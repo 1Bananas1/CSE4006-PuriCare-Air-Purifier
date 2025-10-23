@@ -450,3 +450,19 @@ Finally had time to get some work done. made something somewhat related to above
 ### Day 6:
 
 Was able to do some more work today, was more about figuring out how to capture and detect we have a cough/sneeze sequence. My first thought was capturing volume levels and then performing an RMS threshhold and then just print out some statement saying we have a possible detection. I haven't thought much about the neural network yet. Want to perform some audio profiles on the audible health symptoms to see which signature gives us the most consistent and distinct information.
+
+### Day 7:
+
+I think I need to take a step back and try to start with the very basics and make a flow chart. I need to find an easy metric (maybe volume?) that will allow me to decide whether I even want to run it through a neural network. In order to do this, I need to see the ranges of a microphone volume vs. the purification area specified by the original purifier. As in, if the purifier works for a large room, I want to be able to detect events that happen even at the edge of the room, even if they might be quieter.
+
+Characteristics of a cough:
+
+- Sharp Attack
+- Higher Peak Amplitude
+
+Maybe trigger based on sharp attack and amplitude?
+
+
+
+Record 10 audio cues of you coughing, and find characteristics of them based on the audio wave file (use something like audacity)
+

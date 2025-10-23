@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from collections import deque
 import numpy as np
 import time
+import pandas as pd
+import time
 
 @dataclass
 class AudioConfig:
@@ -21,7 +23,7 @@ class AudioConfig:
     channels: int = 1 
     dtype: str = 'float32' 
     block_size: int = 2048 
-    audio_window: int = 10 
+    audio_window: int = 10
 
 RMS_THRESHOLD = 0.02
 
@@ -37,9 +39,12 @@ def audio_callback(indata, frames, time, status):
         print(f"Current RMS (10s window): {rms:.4f}", end='\r')
         if rms > RMS_THRESHOLD:
             print(f"\n>>> POTENTIAL EVENT detected in 10s window! RMS: {rms:.4f} <<<")
+            df = pd.DataFrame(display_buffer)
+            df.to_csv(f'hardware/AI/data/audio_time{time.time()}.csv',header=False,index=False)
 
 
 display_buffer = deque(maxlen=(AudioConfig.sample_rate*AudioConfig.audio_window)) 
+
 
 try:
     print("Starting audio stream for cough/sneeze detection...")
@@ -76,5 +81,6 @@ except KeyboardInterrupt:
         plt.grid(True)
         plt.tight_layout()
         plt.show()
+        
 except Exception as e:
     print(f"An error occurred: {e}")
