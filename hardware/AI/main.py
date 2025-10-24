@@ -3,7 +3,9 @@ from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from collections import deque
 import numpy as np
-import time
+import math
+from sounddevice import CallbackFlags
+from ctypes import Structure
 import pandas as pd
 import time
 
@@ -23,28 +25,39 @@ class AudioConfig:
     channels: int = 1 
     dtype: str = 'float32' 
     block_size: int = 2048 
-    audio_window: int = 10
+    audio_window: int = 5
+
 
 RMS_THRESHOLD = 0.02
 
-def audio_callback(indata, frames, time, status):
-    if status:
+def audio_callback(indata: np.array, frames: int, time: Structure, status: CallbackFlags) -> None:
+    """
+    Callback function for sound device
+    Allow us to capture audio into deque
+
+    """
+    if status: 
+        # see https://python-sounddevice.readthedocs.io/en/0.5.3/api/misc.html#sounddevice.CallbackFlags
         print(status)
-    display_buffer.extend(indata.copy())
+    
+    display_buffer.append(indata.flatten())
 
     if len(display_buffer) == display_buffer.maxlen:
         full_buffer = np.concatenate(list(display_buffer))
+        window_buffered = full_buffer[-total_samples:]
 
-        rms = np.sqrt(np.mean(full_buffer**2))
-        print(f"Current RMS (10s window): {rms:.4f}", end='\r')
+        rms = np.sqrt(np.mean(window_buffered**2))
+        print(f"Current RMS ({AudioConfig.audio_window}s window): {rms:.4f}", end='\r')
         if rms > RMS_THRESHOLD:
-            print(f"\n>>> POTENTIAL EVENT detected in 10s window! RMS: {rms:.4f} <<<")
-            df = pd.DataFrame(display_buffer)
+            print(f"\n>>> POTENTIAL EVENT detected in {AudioConfig.audio_window}s" 
+                  f"window! RMS: {rms:.4f} <<<")
+            df = pd.DataFrame(window_buffered)
             df.to_csv(f'hardware/AI/data/audio_time{time.time()}.csv',header=False,index=False)
 
 
-display_buffer = deque(maxlen=(AudioConfig.sample_rate*AudioConfig.audio_window)) 
-
+total_samples = AudioConfig.sample_rate * AudioConfig.audio_window
+deque_maxlen_block = math.ceil(total_samples / AudioConfig.block_size)
+display_buffer = deque(maxlen=deque_maxlen_block)
 
 try:
     print("Starting audio stream for cough/sneeze detection...")

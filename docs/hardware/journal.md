@@ -462,7 +462,4 @@ Characteristics of a cough:
 
 Maybe trigger based on sharp attack and amplitude?
 
-
-
 Record 10 audio cues of you coughing, and find characteristics of them based on the audio wave file (use something like audacity)
-
