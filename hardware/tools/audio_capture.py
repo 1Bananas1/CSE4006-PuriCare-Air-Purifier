@@ -24,7 +24,7 @@ class AudioConfig:
     channels: int = 1 
     dtype: str = 'float32' 
     block_size: int = 2048 
-    audio_window: int = 5
+    audio_window: int = 10
 
 RMS_THRESHOLD = 0.02
 
