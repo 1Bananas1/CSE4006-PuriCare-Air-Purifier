@@ -2,12 +2,12 @@ import sounddevice as sd
 import numpy as np
 import pandas as pd
 
-# --- Your Settings ---
+
 sample_rate: int = 8000
 dtype: str = 'float32'
-csv_filename: str = 'hardware\AI\data\manual_save_time1761365782.csv' # <-- Make sure this is your file's name
+csv_filename: str = 'my_audio.csv' # put relative path here
 
-# --- 1. Load the Audio from CSV ---
+
 print(f"Loading audio from {csv_filename}...")
 try:
     my_audio_data = pd.read_csv(
@@ -18,7 +18,6 @@ try:
     print(f"Loaded {my_audio_data.shape[0]} samples.")
     print("Playing audio...")
     sd.play(my_audio_data, sample_rate)
-    
     sd.wait()
 
     print("Playback finished.")
