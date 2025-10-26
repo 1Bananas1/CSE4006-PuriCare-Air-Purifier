@@ -22,11 +22,12 @@ class AudioConfig:
     audio_window: int = 10
 
 RMS_THRESHOLD = 0.02
+RMS_COOLDOWN = 0.5  # Capture for 0.5 seconds after threshold is reached
 
 
 # True: Manual mode. 's' key saves, RMS is ignored. (For data collection)
 # False: Automatic mode. RMS saves, 's' key is ignored. (For detection)
-MANUAL_CAPTURE_MODE = True
+MANUAL_CAPTURE_MODE = False
 
 
 total_samples = AudioConfig.sample_rate * AudioConfig.audio_window
@@ -36,57 +37,117 @@ display_buffer = deque(maxlen=deque_maxlen_block)
 save_queue = queue.Queue()
 buffer_lock = threading.Lock()
 SAVE_DIR = os.path.join("hardware", "AI", "data")
+NOTES_CSV_PATH = os.path.join(SAVE_DIR, "notes.csv")
+
+class RMSEventTracker:
+    """Tracks RMS events to prevent repeated saves during cooldown period."""
+    def __init__(self, cooldown_seconds):
+        self.cooldown_seconds = cooldown_seconds
+        self.event_active = False
+        self.event_start_time = None
+
+    def check_and_start_event(self, current_time):
+        """Returns True if a new event should be recorded."""
+        if self.event_active:
+            elapsed = current_time - self.event_start_time
+            if elapsed >= self.cooldown_seconds:
+                self.event_active = False
+
+        if not self.event_active:
+            self.event_active = True
+            self.event_start_time = current_time
+            return True
+        return False
+
+rms_tracker = RMSEventTracker(RMS_COOLDOWN)
 
 def save_worker():
     """
     Worker function to save data from the queue in a separate thread.
     """
     os.makedirs(SAVE_DIR, exist_ok=True)
-    
+
     print("Save-worker thread started.")
     while True:
         try:
             item = save_queue.get()
             if item is None:
                 break
-            
+
             data, prefix = item
-            filename = os.path.join(SAVE_DIR, f"{prefix}_time{int(time.time())}.csv")
-            
-            print(f"\nWorker saving to {filename}...")
+            filename = f"{prefix}_time{int(time.time())}.csv"
+            filepath = os.path.join(SAVE_DIR, filename)
+
+            print(f"\nWorker saving to {filepath}...")
             df = pd.DataFrame(data)
-            df.to_csv(filename, header=False, index=False)
-            print(f"Worker finished saving {filename}.")
-            
+            df.to_csv(filepath, header=False, index=False)
+            print(f"Worker finished saving {filepath}.")
+
+            # If this is an RMS event, append to notes CSV
+            if prefix == "rms_event":
+                append_to_notes_csv(filename)
+
             save_queue.task_done()
         except Exception as e:
             print(f"Save worker error: {e}")
             save_queue.task_done()
     print("Save-worker thread stopping.")
 
+def append_to_notes_csv(filename):
+    """Append an RMS event entry to the notes CSV."""
+    try:
+        new_row = {
+            'user_id': 'AUTO',
+            'file_name': filename,
+            'day': 'NaN',
+            'sample_no': 'NaN',
+            'is_cough': 0,
+            'physical_activity': 'NaN',
+            'bg_noise': 1,
+            'distance': 'Unknown',
+            'cough_type': 0
+        }
+
+        # Load existing CSV or create new one
+        if os.path.exists(NOTES_CSV_PATH):
+            notes_df = pd.read_csv(NOTES_CSV_PATH)
+        else:
+            notes_df = pd.DataFrame(columns=new_row.keys())
+
+        # Append new row
+        notes_df = pd.concat([notes_df, pd.DataFrame([new_row])], ignore_index=True)
+
+        # Save back to CSV
+        notes_df.to_csv(NOTES_CSV_PATH, index=False)
+        print(f"Updated notes.csv with new entry: {filename}")
+    except Exception as e:
+        print(f"Error appending to notes.csv: {e}")
+
 def audio_callback(indata: np.array, frames: int, time: Structure, status: CallbackFlags) -> None:
     """
     Callback function for sound device. Must be FAST.
     """
-    if status: 
+    if status:
         print(status)
-    
+
     with buffer_lock:
         display_buffer.append(indata.flatten())
         if len(display_buffer) < display_buffer.maxlen:
             return
         buffer_list_copy = list(display_buffer)
-    
+
     full_buffer = np.concatenate(buffer_list_copy)
-    window_buffered = full_buffer[-total_samples:] 
+    window_buffered = full_buffer[-total_samples:]
 
     rms = np.sqrt(np.mean(window_buffered**2))
     print(f"Current RMS ({AudioConfig.audio_window}s window): {rms:.4f}", end='\r')
-    
+
     if not MANUAL_CAPTURE_MODE:
         if rms > RMS_THRESHOLD:
-            print(f"\n>>> POTENTIAL EVENT detected! RMS: {rms:.4f} <<<")
-            save_queue.put((window_buffered, "rms_event"))
+            # Only save if this is a new event (not during cooldown)
+            if rms_tracker.check_and_start_event(time.currentTime):
+                print(f"\n>>> POTENTIAL EVENT detected! RMS: {rms:.4f} <<<")
+                save_queue.put((window_buffered, "rms_event"))
 
 def on_press(key):
     """
