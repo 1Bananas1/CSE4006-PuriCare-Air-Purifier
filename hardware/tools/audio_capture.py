@@ -27,7 +27,7 @@ RMS_COOLDOWN = 0.5  # Capture for 0.5 seconds after threshold is reached
 
 # True: Manual mode. 's' key saves, RMS is ignored. (For data collection)
 # False: Automatic mode. RMS saves, 's' key is ignored. (For detection)
-MANUAL_CAPTURE_MODE = False
+MANUAL_CAPTURE_MODE = True
 
 
 total_samples = AudioConfig.sample_rate * AudioConfig.audio_window
