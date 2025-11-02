@@ -463,3 +463,7 @@ Characteristics of a cough:
 Maybe trigger based on sharp attack and amplitude?
 
 Record 10 audio cues of you coughing, and find characteristics of them based on the audio wave file (use something like audacity)
+
+### Day 8:
+
+For my automatic detection RMS is good at detecting loud noises but i've started noticing that it won't capture coughs if they are quiet. This poses an interesting issue as as background noise increases, it'll become more difficult to actually detect coughs. I think I need to go back to the research papers and discover their methodology for actual cough detection

@@ -53,6 +53,7 @@ def audio_callback(indata: np.array, frames: int, time: Structure, status: Callb
                   f"window! RMS: {rms:.4f} <<<")
             df = pd.DataFrame(window_buffered)
             df.to_csv(f'hardware/AI/data/audio_time{time.time()}.csv',header=False,index=False)
+            display_buffer.clear()
 
 
 total_samples = AudioConfig.sample_rate * AudioConfig.audio_window
@@ -97,3 +98,5 @@ except KeyboardInterrupt:
         
 except Exception as e:
     print(f"An error occurred: {e}")
+
+

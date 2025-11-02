@@ -1,9 +1,16 @@
-user_id,file_name, day, sample_no, is_cough, physical_activity, bg_noise, distance, cough_type
-M1US20-01,manual_save_time1761365782.csv, 0, 1, 1, rest, NaN, 0m, wet_cough
-M1US20-01,manual_save_time1761366074.csv, 0, 2, 1, rest, music+window, 1m, wet_cough
-M1US20-01,manual_save_time1761366192.csv, 0, 3, 1, rest, music+window, 2m, throat_clearing
-M1US20-01,manual_save_time1761366295.csv, 0, 4, 1, rest, music, 3m, dry_cough
-M1US20-01,manual_save_time1761366419.csv, 0, 5, 0, rest, youtube, 0m, NaN
-M1US20-01,manual_save_time1761366630.csv, 0, 6, 1, rest, talking, 1m, wheeze
-AUTO,rms_event_time1761466800.csv,1,NaN,1,rest,NaN,Unknown,0
-AUTO,rms_event_time1761467384.CSV,1,NaN,1,rest,NaN,Unknown,0
+user_id,file_name,day,sample_no,is_cough,physical_activity,bg_noise,distance,cough_type
+M1US20-01,manual_save_time1761365782.csv,0.0,1.0,1,rest,,0m,wet_cough
+M1US20-01,manual_save_time1761366074.csv,0.0,2.0,1,rest,music+window,1m,wet_cough
+M1US20-01,manual_save_time1761366192.csv,0.0,3.0,1,rest,music+window,2m,throat_clearing
+M1US20-01,manual_save_time1761366295.csv,0.0,4.0,1,rest,music,3m,dry_cough
+M1US20-01,manual_save_time1761366419.csv,0.0,5.0,0,rest,youtube,0m,
+M1US20-01,manual_save_time1761366630.csv,0.0,6.0,1,rest,talking,1m,wheeze
+AUTO,rms_event_time1761470253.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761470263.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761485575.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761485604.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761485614.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761527107.csv,,,0,,1,Unknown,0
+AUTO,rms_event_time1761527161.csv,NaN,NaN,0,NaN,1,Unknown,0
+
+
