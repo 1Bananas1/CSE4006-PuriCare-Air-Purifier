@@ -26,7 +26,7 @@ RMS_THRESHOLD = 0.02
 
 # True: Manual mode. 's' key saves, RMS is ignored. (For data collection)
 # False: Automatic mode. RMS saves, 's' key is ignored. (For detection)
-MANUAL_CAPTURE_MODE = True
+MANUAL_CAPTURE_MODE = False
 
 
 total_samples = AudioConfig.sample_rate * AudioConfig.audio_window
