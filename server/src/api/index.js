@@ -58,6 +58,10 @@ if (process.env.ENABLE_TELEMETRY_CONSUMER === "true") {
     console.error("Failed to start telemetry consumer:", e.message);
   }
 }
+if (process.env.ENABLE_AUDIO_CONSUMER === "true") {
+  try { require("./workers/audioEventsConsumer").start(); }
+  catch (e) { console.error("Audio consumer start failed:", e.message); }
+}
 
 // ========== JWT MIDDLEWARE ==========
 const authenticateToken = (req, res, next) => {
