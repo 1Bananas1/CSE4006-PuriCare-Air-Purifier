@@ -2,6 +2,7 @@
 const axios = require("axios");
 const AirQuality = require("../models/AirQuality");
 const Device = require("../models/Device");
+const { producer } = require("./kafka");
 
 class AirQualityService {
   // Fetch air quality for a specific location
@@ -69,7 +70,31 @@ class AirQualityService {
       });
 
       await airQuality.save();
-      console.log(`✅ Saved air quality data for device ${deviceId}`);
+
+      // Publish to Kafka (best-effort)
+      try {
+        const topic = process.env.TOPIC_AIRQUALITY || "airpurifier.airquality";
+        await producer.send({
+          topic,
+          messages: [
+            {
+              key: String(deviceId),
+              value: JSON.stringify({
+                id: String(airQuality._id),
+                deviceId: String(deviceId),
+                userId: String(userId),
+                location,
+                data: airQuality.data,
+                fetchedAt: airQuality.fetchedAt,
+              }),
+            },
+          ],
+        });
+      } catch (e) {
+        console.error("Kafka produce failed:", e.message);
+      }
+
+      console.log(`??Saved air quality data for device ${deviceId}`);
       return airQuality;
     } catch (error) {
       console.error(`Error saving air quality:`, error.message);
@@ -83,7 +108,7 @@ class AirQualityService {
       const device = await Device.findById(deviceId);
 
       if (!device || !device.location) {
-        console.log(`⏭️  Skipping device ${deviceId}: No location set`);
+        console.log(`??��  Skipping device ${deviceId}: No location set`);
         return null;
       }
 
@@ -98,7 +123,7 @@ class AirQualityService {
           device.location.longitude
         );
       } else {
-        console.log(`⏭️  Skipping device ${deviceId}: Invalid location data`);
+        console.log(`??��  Skipping device ${deviceId}: Invalid location data`);
         return null;
       }
 
@@ -122,7 +147,7 @@ class AirQualityService {
   async updateAllDevicesAirQuality() {
     try {
       console.log(
-        "🔄 Starting scheduled air quality update for all devices..."
+        "?�� Starting scheduled air quality update for all devices..."
       );
 
       // Find all devices that have a location set
@@ -136,7 +161,7 @@ class AirQualityService {
         ],
       });
 
-      console.log(`📍 Found ${devices.length} devices with locations`);
+      console.log(`?�� Found ${devices.length} devices with locations`);
 
       let successCount = 0;
       let failCount = 0;
@@ -156,7 +181,7 @@ class AirQualityService {
       }
 
       console.log(
-        `✅ Air quality update complete: ${successCount} successful, ${failCount} failed`
+        `??Air quality update complete: ${successCount} successful, ${failCount} failed`
       );
       return { successCount, failCount, total: devices.length };
     } catch (error) {
@@ -167,3 +192,4 @@ class AirQualityService {
 }
 
 module.exports = new AirQualityService();
+

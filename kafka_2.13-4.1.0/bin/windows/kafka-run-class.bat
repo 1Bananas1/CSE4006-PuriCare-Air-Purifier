@@ -42,159 +42,164 @@ IF ["%SCALA_BINARY_VERSION%"] EQU [""] (
   )
 )
 
-rem Classpath addition for kafka-core dependencies
-for %%i in ("%BASE_DIR%\core\build\dependant-libs-%SCALA_VERSION%\*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka-core dependencies
+@REM for %%i in ("%BASE_DIR%\core\build\dependant-libs-%SCALA_VERSION%\*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for kafka-examples
-for %%i in ("%BASE_DIR%\examples\build\libs\kafka-examples*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka-examples
+@REM for %%i in ("%BASE_DIR%\examples\build\libs\kafka-examples*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for kafka-clients
-for %%i in ("%BASE_DIR%\clients\build\libs\kafka-clients*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka-clients
+@REM for %%i in ("%BASE_DIR%\clients\build\libs\kafka-clients*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for kafka-streams
-for %%i in ("%BASE_DIR%\streams\build\libs\kafka-streams*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka-streams
+@REM for %%i in ("%BASE_DIR%\streams\build\libs\kafka-streams*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for kafka-streams-examples
-for %%i in ("%BASE_DIR%\streams\examples\build\libs\kafka-streams-examples*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka-streams-examples
+@REM for %%i in ("%BASE_DIR%\streams\examples\build\libs\kafka-streams-examples*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-for %%i in ("%BASE_DIR%\streams\build\dependant-libs-%SCALA_VERSION%\rocksdb*.jar") do (
-	call :concat "%%i"
-)
+@REM for %%i in ("%BASE_DIR%\streams\build\dependant-libs-%SCALA_VERSION%\rocksdb*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for kafka tools
-for %%i in ("%BASE_DIR%\tools\build\libs\kafka-tools*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for kafka tools
+@REM for %%i in ("%BASE_DIR%\tools\build\libs\kafka-tools*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-for %%i in ("%BASE_DIR%\tools\build\dependant-libs-%SCALA_VERSION%\*.jar") do (
-	call :concat "%%i"
-)
+@REM for %%i in ("%BASE_DIR%\tools\build\dependant-libs-%SCALA_VERSION%\*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-for %%p in (api runtime file json tools) do (
-	for %%i in ("%BASE_DIR%\connect\%%p\build\libs\connect-%%p*.jar") do (
-		call :concat "%%i"
-	)
-	if exist "%BASE_DIR%\connect\%%p\build\dependant-libs\*" (
-		call :concat "%BASE_DIR%\connect\%%p\build\dependant-libs\*"
-	)
-)
+@REM for %%p in (api runtime file json tools) do (
+@REM 	for %%i in ("%BASE_DIR%\connect\%%p\build\libs\connect-%%p*.jar") do (
+@REM 		call :concat "%%i"
+@REM 	)
+@REM 	if exist "%BASE_DIR%\connect\%%p\build\dependant-libs\*" (
+@REM 		call :concat "%BASE_DIR%\connect\%%p\build\dependant-libs\*"
+@REM 	)
+@REM )
 
-rem Classpath addition for release
-for %%i in ("%BASE_DIR%\libs\*") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for release
+@REM for %%i in ("%BASE_DIR%\libs\*") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem Classpath addition for core
-for %%i in ("%BASE_DIR%\core\build\libs\kafka_%SCALA_BINARY_VERSION%*.jar") do (
-	call :concat "%%i"
-)
+@REM rem Classpath addition for core
+@REM for %%i in ("%BASE_DIR%\core\build\libs\kafka_%SCALA_BINARY_VERSION%*.jar") do (
+@REM 	call :concat "%%i"
+@REM )
 
-rem JMX settings
-IF ["%KAFKA_JMX_OPTS%"] EQU [""] (
-	set KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false
-)
+@REM rem JMX settings
+@REM IF ["%KAFKA_JMX_OPTS%"] EQU [""] (
+@REM 	set KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false
+@REM )
 
-rem JMX port to use
-IF ["%JMX_PORT%"] NEQ [""] (
-	set KAFKA_JMX_OPTS=%KAFKA_JMX_OPTS% -Dcom.sun.management.jmxremote.port=%JMX_PORT%
-)
+@REM rem JMX port to use
+@REM IF ["%JMX_PORT%"] NEQ [""] (
+@REM 	set KAFKA_JMX_OPTS=%KAFKA_JMX_OPTS% -Dcom.sun.management.jmxremote.port=%JMX_PORT%
+@REM )
 
-rem Log directory to use
-IF ["%LOG_DIR%"] EQU [""] (
-    set LOG_DIR=%BASE_DIR%/logs
-)
+@REM rem Log directory to use
+@REM IF ["%LOG_DIR%"] EQU [""] (
+@REM     set LOG_DIR=%BASE_DIR%/logs
+@REM )
 
-rem Log4j settings
-IF ["%KAFKA_LOG4J_OPTS%"] EQU [""] (
-	set KAFKA_LOG4J_OPTS=-Dlog4j2.configurationFile=file:%BASE_DIR%/config/tools-log4j2.yaml
-) ELSE (
-    rem Check if Log4j 1.x configuration options are present in KAFKA_LOG4J_OPTS
-    echo %KAFKA_LOG4J_OPTS% | findstr /r /c:"log4j\.[^ ]*(\.properties|\.xml)$" >nul
-    IF %ERRORLEVEL% == 0 (
-        rem Enable Log4j 1.x configuration compatibility mode for Log4j 2
-        set LOG4J_COMPATIBILITY=true
-        echo DEPRECATED: A Log4j 1.x configuration file has been detected, which is no longer recommended. >&2
-        echo To use a Log4j 2.x configuration, please see https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#Log4j2ConfigurationFormat for details about Log4j configuration file migration. >&2
-        echo You can also use the %BASE_DIR%/config/tool-log4j2.yaml file as a starting point. Make sure to remove the Log4j 1.x configuration after completing the migration. >&2
-    )
-  rem create logs directory
-  IF not exist "%LOG_DIR%" (
-      mkdir "%LOG_DIR%"
-  )
-)
+@REM rem Log4j settings
+@REM IF ["%KAFKA_LOG4J_OPTS%"] EQU [""] (
+@REM 	set KAFKA_LOG4J_OPTS=-Dlog4j2.configurationFile=file:%BASE_DIR%/config/tools-log4j2.yaml
+@REM ) ELSE (
+@REM     rem Check if Log4j 1.x configuration options are present in KAFKA_LOG4J_OPTS
+@REM     echo %KAFKA_LOG4J_OPTS% | findstr /r /c:"log4j\.[^ ]*(\.properties|\.xml)$" >nul
+@REM     IF %ERRORLEVEL% == 0 (
+@REM         rem Enable Log4j 1.x configuration compatibility mode for Log4j 2
+@REM         set LOG4J_COMPATIBILITY=true
+@REM         echo DEPRECATED: A Log4j 1.x configuration file has been detected, which is no longer recommended. >&2
+@REM         echo To use a Log4j 2.x configuration, please see https://logging.apache.org/log4j/2.x/migrate-from-log4j1.html#Log4j2ConfigurationFormat for details about Log4j configuration file migration. >&2
+@REM         echo You can also use the %BASE_DIR%/config/tool-log4j2.yaml file as a starting point. Make sure to remove the Log4j 1.x configuration after completing the migration. >&2
+@REM     )
+@REM   rem create logs directory
+@REM   IF not exist "%LOG_DIR%" (
+@REM       mkdir "%LOG_DIR%"
+@REM   )
+@REM )
 
-set KAFKA_LOG4J_OPTS=-Dkafka.logs.dir="%LOG_DIR%" "%KAFKA_LOG4J_OPTS%"
+@REM set KAFKA_LOG4J_OPTS=-Dkafka.logs.dir="%LOG_DIR%" "%KAFKA_LOG4J_OPTS%"
 
-rem Generic jvm settings you want to add
-IF ["%KAFKA_OPTS%"] EQU [""] (
-	set KAFKA_OPTS=
-)
+@REM rem Generic jvm settings you want to add
+@REM IF ["%KAFKA_OPTS%"] EQU [""] (
+@REM 	set KAFKA_OPTS=
+@REM )
 
-set DEFAULT_JAVA_DEBUG_PORT=5005
-set DEFAULT_DEBUG_SUSPEND_FLAG=n
-rem Set Debug options if enabled
-IF ["%KAFKA_DEBUG%"] NEQ [""] (
+@REM set DEFAULT_JAVA_DEBUG_PORT=5005
+@REM set DEFAULT_DEBUG_SUSPEND_FLAG=n
+@REM rem Set Debug options if enabled
+@REM IF ["%KAFKA_DEBUG%"] NEQ [""] (
 
 
-	IF ["%JAVA_DEBUG_PORT%"] EQU [""] (
-		set JAVA_DEBUG_PORT=%DEFAULT_JAVA_DEBUG_PORT%
-	)
+@REM 	IF ["%JAVA_DEBUG_PORT%"] EQU [""] (
+@REM 		set JAVA_DEBUG_PORT=%DEFAULT_JAVA_DEBUG_PORT%
+@REM 	)
 
-	IF ["%DEBUG_SUSPEND_FLAG%"] EQU [""] (
-		set DEBUG_SUSPEND_FLAG=%DEFAULT_DEBUG_SUSPEND_FLAG%
-	)
-	set DEFAULT_JAVA_DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=!DEBUG_SUSPEND_FLAG!,address=!JAVA_DEBUG_PORT!
+@REM 	IF ["%DEBUG_SUSPEND_FLAG%"] EQU [""] (
+@REM 		set DEBUG_SUSPEND_FLAG=%DEFAULT_DEBUG_SUSPEND_FLAG%
+@REM 	)
+@REM 	set DEFAULT_JAVA_DEBUG_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=!DEBUG_SUSPEND_FLAG!,address=!JAVA_DEBUG_PORT!
 
-	IF ["%JAVA_DEBUG_OPTS%"] EQU [""] (
-		set JAVA_DEBUG_OPTS=!DEFAULT_JAVA_DEBUG_OPTS!
-	)
+@REM 	IF ["%JAVA_DEBUG_OPTS%"] EQU [""] (
+@REM 		set JAVA_DEBUG_OPTS=!DEFAULT_JAVA_DEBUG_OPTS!
+@REM 	)
 
-	echo Enabling Java debug options: !JAVA_DEBUG_OPTS!
-	set KAFKA_OPTS=!JAVA_DEBUG_OPTS! !KAFKA_OPTS!
-)
+@REM 	echo Enabling Java debug options: !JAVA_DEBUG_OPTS!
+@REM 	set KAFKA_OPTS=!JAVA_DEBUG_OPTS! !KAFKA_OPTS!
+@REM )
 
-rem Which java to use
-IF ["%JAVA_HOME%"] EQU [""] (
-	set JAVA=java
-) ELSE (
-	set JAVA="%JAVA_HOME%/bin/java"
-)
+@REM rem Which java to use
+@REM IF ["%JAVA_HOME%"] EQU [""] (
+@REM 	set JAVA=java
+@REM ) ELSE (
+@REM 	set JAVA="%JAVA_HOME%/bin/java"
+@REM )
 
-rem Memory options
-IF ["%KAFKA_HEAP_OPTS%"] EQU [""] (
-	set KAFKA_HEAP_OPTS=-Xmx256M
-)
+@REM rem Memory options
+@REM IF ["%KAFKA_HEAP_OPTS%"] EQU [""] (
+@REM 	set KAFKA_HEAP_OPTS=-Xmx256M
+@REM )
 
-rem JVM performance options
-IF ["%KAFKA_JVM_PERFORMANCE_OPTS%"] EQU [""] (
-	set KAFKA_JVM_PERFORMANCE_OPTS=-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true
-)
+@REM rem JVM performance options
+@REM IF ["%KAFKA_JVM_PERFORMANCE_OPTS%"] EQU [""] (
+@REM 	set KAFKA_JVM_PERFORMANCE_OPTS=-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true
+@REM )
 
-IF not defined CLASSPATH (
-	echo Classpath is empty. Please build the project first e.g. by running 'gradlew jarAll'
-	EXIT /B 2
-)
+@REM IF not defined CLASSPATH (
+@REM 	echo Classpath is empty. Please build the project first e.g. by running 'gradlew jarAll'
+@REM 	EXIT /B 2
+@REM )
 
-set COMMAND=%JAVA% %KAFKA_HEAP_OPTS% %KAFKA_JVM_PERFORMANCE_OPTS% %KAFKA_JMX_OPTS% %KAFKA_LOG4J_OPTS% -cp "%CLASSPATH%" %KAFKA_OPTS% %*
-rem echo.
-rem echo %COMMAND%
-rem echo.
-%COMMAND%
+@REM set COMMAND=%JAVA% %KAFKA_HEAP_OPTS% %KAFKA_JVM_PERFORMANCE_OPTS% %KAFKA_JMX_OPTS% %KAFKA_LOG4J_OPTS% -cp "%CLASSPATH%" %KAFKA_OPTS% %*
+@REM rem echo.
+@REM rem echo %COMMAND%
+@REM rem echo.
+@REM %COMMAND%
 
-goto :eof
-:concat
-IF not defined CLASSPATH (
-  set CLASSPATH="%~1"
-) ELSE (
-  set CLASSPATH=%CLASSPATH%;"%~1"
-)
+@REM goto :eof
+@REM :concat
+@REM IF not defined CLASSPATH (
+@REM   set CLASSPATH="%~1"
+@REM ) ELSE (
+@REM   set CLASSPATH=%CLASSPATH%;"%~1"
+@REM )
+
+rem ==== BEGIN: short classpath to avoid long command line on Windows ====
+set CLASSPATH=
+set CLASSPATH=%BASE_DIR%\config;%BASE_DIR%\libs\*
+rem ==== END ====

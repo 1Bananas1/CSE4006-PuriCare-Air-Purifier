@@ -15,6 +15,7 @@ const Data = require("./models/Data");
 const Device = require("./models/Device");
 const AirQuality = require("./models/AirQuality");
 const airQualityService = require("./services/airQuaityService");
+const { initProducer } = require("./services/kafka");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,16 @@ const authLimiter = rateLimit({
   max: 5,
   message: "Too many login attempts, please try again later.",
 });
+
+// ========== KAFKA INIT ==========
+initProducer();
+if (process.env.ENABLE_TELEMETRY_CONSUMER === "true") {
+  try {
+    require("./workers/telemetryConsumer").start();
+  } catch (e) {
+    console.error("Failed to start telemetry consumer:", e.message);
+  }
+}
 
 // ========== JWT MIDDLEWARE ==========
 const authenticateToken = (req, res, next) => {
