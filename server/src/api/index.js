@@ -14,7 +14,7 @@ const User = require("./models/Users");
 const Data = require("./models/Data");
 const Device = require("./models/Device");
 const AirQuality = require("./models/AirQuality");
-const airQualityService = require("./services/airQuaityService");
+const airQualityService = require("./services/airQualityService");
 const { initProducer } = require("./services/kafka");
 
 const app = express();

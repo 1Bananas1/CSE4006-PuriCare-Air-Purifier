@@ -8,7 +8,7 @@ async function start() {
     const groupId = process.env.KAFKA_GROUP_ID || "puri-telemetry";
     const topic = process.env.TOPIC_TELEMETRY || "airpurifier.telemetry";
 
-    const consumer = kafka.consumer({ groupId });
+    const consumer = kafka.consumer({ groupId , allowAutoTopicCreation: true });
     await consumer.connect();
     await consumer.subscribe({ topic, fromBeginning: false });
     console.log(`Kafka consumer subscribed to ${topic} (groupId=${groupId})`);
