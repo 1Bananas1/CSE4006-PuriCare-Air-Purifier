@@ -29,20 +29,20 @@
 Seoul, South Korea \\
 james.macdonald.1@slu.edu}
 \and
-\IEEEauthorblockN{Yimsoobeen}
+\IEEEauthorblockN{Soobeen Yim}
 \IEEEauthorblockA{\textit{dept. of Information System}\\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
 s00been@hanyang.ac.kr}
 \and
-\IEEEauthorblockN{Kim Minjin}
+\IEEEauthorblockN{Minjin Kim}
 \IEEEauthorblockA{\textit{dept. of Information System} \\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
 idid02@hanyang.ac.kr}
 \and
 \IEEEauthorblockN{Yeonwoo Kim}
-\IEEEauthorblockA{\textit{dept. of Information System} \\
+\IEEEauthorblockA{\textit{dept. of Computer Science} \\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
 bbongvong@hanyang.ac.kr}
@@ -51,7 +51,8 @@ bbongvong@hanyang.ac.kr}
 \maketitle
 
 \begin{abstract}
-Air purifiers have become more and more common in people’s houses, but as houses gain more technology, it seems that air purifiers haven’t had any major improvements. We propose a smart air purifier which learns and adapts how it runs based on it’s users. Specifically, by monitoring and recognizing when users are sick, gaining insights about air quality outside as well as seasonal allergies, and smart scheduling on when to run the air purifier to minimize electricity usage.
+Air purifiers have become more and more common in people's houses, but as houses gain more technology, it seems that air purifiers haven't had any major improvements. We propose a smart air purifier which learns and adapts how it runs based on it's users. Specifically, by monitoring and recognizing when users are sick, gaining insights about air quality outside as well as seasonal allergies, and smart scheduling on when to run the air purifier to minimize electricity usage.
+We are going to implement 3 models-cough detection, sniff detection, machine control. Respiratory diseases are air-sensitive, which means complicated factors, such as air quality-include dust, viruses, temperature, and humidity affect users. Our expanded goal is to implement total air care control. 
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -87,24 +88,24 @@ Despite living in a technology-driven age, air purifiers have seemed to lack any
 We propose PureCare, a truly intelligent air purification system that acts as a proactive health assistant rather than a passive appliance. PureCare distinguishes itself through several key innovations: Audible Health Symptom Recognition technology that detects sneezing, coughing, and snoring to automatically adjust purification settings; geofencing capabilities that optimize operation based on occupancy; API integration with local air quality data to prepare for poor outdoor conditions; personalized care recommendations that learn individual sensitivities over time; and sleep mode optimization for nighttime respiratory issues. Unlike traditional purifiers that simply filter air, PureCare anticipates needs, provides gentle human-like notifications, and creates safer environments before problems arise.
 \newpage
 \subsection{Similar Products}
-    \subsubsection{LG PuriCare Objet Collection AI+ 360˚ Air Purifier}
+    \subsubsection{LG PuriCare Objet Collection AI+ 360\textdegree\ Air Purifier}
         \begin{itemize}
             \item Detects harmful gas and fumes from three major sick-building substances-formaldehyde ammonia, and volatile oraganinc compounds (VOCs)-and automatically purifies the air according to gas type and pollution level.
             \item Detects ammonia, the main source of pet waste odors.
             \item Detects contaminants such as cooking fumes.
-            \item “AI Customized Operation” learns and analyzes indoor air quality every hour. Using accumulated data, it identifies times when the air is clean, stops the purifier’s fan, and dims the display to save energy.
+            \item "AI Customized Operation" learns and analyzes indoor air quality every hour. Using accumulated data, it identifies times when the air is clean, stops the purifier's fan, and dims the display to save energy.
             \item By autonomously analyzing air quality and adjusting operating intensity, it can reduce power consumption by up to 50 percent or more compared with the conventional AI mode, helping lower electricity costs.
         \end{itemize}
     \subsubsection{SAMSUNG BESPOKE Cube Air Infinite Line}
         \begin{itemize}
             \item Provides an AI-powered integrated personalized cleaning solution.
-            \item “Customized Clean AI+” compares and learns indoor and outdoor air quality, and pre-cleans when deterioration is predicted.
-            \item “AI Saving Mode” automatically adjusts airflow or stops the fan when indoor air improves, cutting energy use by up to 45% on the 100㎡ model.
-            \item “Customized Clean AI+” is certified with “AI+ Certification” by the Korea Standards Association.
+            \item "Customized Clean AI+" compares and learns indoor and outdoor air quality, and pre-cleans when deterioration is predicted.
+            \item "AI Saving Mode" automatically adjusts airflow or stops the fan when indoor air improves, cutting energy use by up to 45% on the 100㎡ model.
+            \item "Customized Clean AI+" is certified with "AI+ Certification" by the Korea Standards Association.
         \end{itemize}
     \subsubsection{SK Wellness Robot}
         \begin{itemize}
-            \item The Wellness Robot by SK Namoothix’s brand, NAMUHX, removes harmful substances that enter during ventilation to maintain air quality. It also offers performance equivalent to six air purifiers. All of its air solution functions are controlled entirely by voice without touch, and through the AI control system, device monitoring and remote support for maintenance are provided, greatly enhancing user convenience.
+            \item The Wellness Robot by SK Namoothix's brand, NAMUHX, removes harmful substances that enter during ventilation to maintain air quality. It also offers performance equivalent to six air purifiers. All of its air solution functions are controlled entirely by voice without touch, and through the AI control system, device monitoring and remote support for maintenance are provided, greatly enhancing user convenience.
 
         \end{itemize}
 
@@ -200,6 +201,9 @@ Displayed after successful login, device registration (first-time), or tapping "
 
 \item Device Status Synchronization\\
 Loads device list from database, queries IoT server status, updates UI with real-time data, auto-refreshes every 30 seconds
+
+\item Navigation Bar\\
+The Home Page must include the bottom navigation bar as specified in FR-005, with the "Home" tab highlighted/active
 \end{enumerate}
 
 \subsection{\textbf{Navigation Bar}}
@@ -208,247 +212,688 @@ Loads device list from database, queries IoT server status, updates UI with real
 
 \begin{enumerate}
 \item Bottom Navigation Structure\\
-Persistent across all main screens with four tabs: Home (house icon), Dashboard (grid icon), Control (remote icon), Account (profile icon). When logged out, tapping any tab redirects to login
+Persistent across all main screens with three tabs arranged from left to right: Automation (clock icon), Home (house icon), Settings (Gear icon). When logged out, tapping any tab redirects to login
 \end{enumerate}
 
-\subsection{\textbf{Dashboard}}
+\subsection{\textbf{Automation Page}}
 
-\subsubsection{FR-006: Dashboard}
+\subsubsection{FR-006: Automation}
 
 \textit{Note: Only accessible after successful login/sign up}
 
 \begin{enumerate}
-\item Dashboard Data Scope\\
-Displays analytics for all devices registered to current user (Usage History, Active Status Graph), filtered by user ID from auth token
 
-\item Dashboard Sections
+\item Routine Screen Sections
     \begin{enumerate}
-    \item Summary Statistics: Total Devices count, Active Devices count, Cumulative Usage Time
-    \item Device Overview: Filter health status and quick controls for each device
+    \item Screen Header
+    \begin{enumerate}
+        \item \textit{FR-RTS-1.0}: The screen must display a static title "Routines"
+        \item \textit{FR-RTS-1.1}: Below the title must display a static helper text "Automate your Air Purifier by building Routines. For each Routine, schedule events with a start time and action for your selected devices."
+        \item \textit{FR-RTS-1.2}: The header must contain an "Add" icon button (a + symbol) in the top-right corner.
+    \end{enumerate}
+    \item Routine List
+    \begin{enumerate}
+        \item \textit{FR-RTS-2.0}: The system must fetch and display the user's routines
+        \item \textit{FR-RTS-2.1}: If the list of routines exceeds the vertical viewport, the list must be vertically scrollable.
+        \item \textit{FR-RTS-2.2}: Each routine in the list must be displayed as a distinct "Routine Card" (see FR-RTS-3.0).
+    \end{enumerate}
+    \item Routine Card
+    \begin{enumerate}
+        \item \textit{FR-RTS-3.0}: Each Routine Card must display the user-defined name of the routine (e.g., "My Routine").
+        \item \textit{FR-RTS-3.1}: The card must contain a visual summary of the routine's logic.
+        \item \textit{FR-RTS-3.2}: The visual summary must display a chronological list of triggers (clock icons) aligned vertically.
+        \item \textit{FR-RTS-3.3}: The visual summary must display a corresponding list of device actions (e.g., Air Purifier, Thermostat) to the right of the triggers.
+        \item \textit{FR-RTS-3.4}: A vertical connector line must visually link the triggers and actions, with nodes indicating each time/action pair.
+        \item \textit{FR-RTS-3.5}: Device icons in the summary must visually represent their target state:
+        \begin{enumerate}
+            \item On/Active: Icon is illuminated (e.g., glowing, in color).
+            \item Off/Inactive: Icon is dim (e.g., greyed out).
+        \end{enumerate}
+    \end{enumerate} 
+    \item Navigation
+    \begin{enumerate}
+        \item \textit{FR-ITS-4.0}: Tapping the "Add" icon (FR-RTS-1.2) must navigate the user to the "Create Routine" screen.
+        \item \textit{FR-ITS-4.1}: Tapping on any existing "Routine Card" (FR-RTS-3.0) must navigate the user to the "Edit Routine" screen, pre-populated with that routine's data.
+        \item \textit{FR-ITS-4.2}: The screen must display a "New Routine" card-style button below the list of existing routines.
+        \item \textit{FR-ITS-4.3}: The "New Routine" button must display the text "New Routine" and an "Add" icon (+).
+        \item \textit{FR-ITS-4.4}: Tapping the "New Routine" button (FR-RTS-4.2) must navigate the user to the "Create Routine" screen (same action as FR-RTS-4.0).
+    \end{enumerate}
+    
+    \item Navigation Bar
+    \begin{enumerate}
+        \item \textit{FR-RTS-5.0}: The Automation Page must include the bottom navigation bar as specified in FR-005, with the "Automation" tab highlighted/active
+    \end{enumerate}
     \end{enumerate}
 \end{enumerate}
 
-\subsection{\textbf{Control Page}}
-
-\subsubsection{FR-007: Device Control Page}
-
+\subsection{\textbf{Add Routine Screen}}
+\subsubsection{FR-007: Add Routine Screen}
 \begin{enumerate}
-\item Access Control\\
-Manages user permissions for device control operations
-
-\item Device Control Interface\\
-Provides interface for controlling individual air purifier settings and operations
+    \item Screen Header
+    \begin{enumerate}
+        \item \textit{FR-RTA-1.0}: The screen must display a title "Custom Routine" centered at the top
+        \item \textit{FR-RTA-1.1}: The header must contain a "Back" icon button (← arrow) in the top-left corner. When clicked, if the user has unsaved changes, a dialog must warn the user about unsaved changes with options to "Discard" or "Keep Editing"
+        \item \textit{FR-RTA-1.2}: The header must contain a "Delete" icon button (trash bin icon) in the top-right corner. When clicked, a confirmation dialog must appear with "Delete Routine?" message and "Cancel"/"Delete" options
+    \end{enumerate}
+    
+    \item Routine Name Section
+    \begin{enumerate}
+        \item \textit{FR-RTA-2.0}: Below the header, the screen must display an editable routine name field with default text "[Time] Routine" (e.g., "10:49 AM Routine")
+        \item \textit{FR-RTA-2.1}: An edit icon (pencil) must appear next to the routine name to indicate editability
+        \item \textit{FR-RTA-2.2}: Tapping the routine name or edit icon must open an inline text input or modal for editing
+        \item \textit{FR-RTA-2.3}: A toggle switch must appear on the right side of the routine name to enable/disable the entire routine
+        \item \textit{FR-RTA-2.4}: The toggle switch must be green when enabled and gray when disabled
+    \end{enumerate}
+    
+    \item Day Selection Section
+    \begin{enumerate}
+        \item \textit{FR-RTA-3.0}: A "When" label must be displayed above the day selection buttons
+        \item \textit{FR-RTA-3.1}: Seven day buttons must be displayed in a horizontal row: S, M, T, W, TH, F, SA
+        \item \textit{FR-RTA-3.2}: Each day button must be a rounded square with uniform size and spacing
+        \item \textit{FR-RTA-3.3}: Selected days must have white background; unselected days must have dark/transparent background
+        \item \textit{FR-RTA-3.4}: Multiple days can be selected simultaneously
+        \item \textit{FR-RTA-3.5}: At least one day must be selected for the routine to be valid
+        \item \textit{FR-RTA-3.6}: Tapping a selected day must deselect it; tapping an unselected day must select it
+    \end{enumerate}
+    
+    \item Events Section
+    \begin{enumerate}
+        \item \textit{FR-RTA-4.0}: An "Events" label must be displayed as a section header
+        \item \textit{FR-RTA-4.1}: A copy/duplicate icon must appear in the top-right corner of the Events section to duplicate the entire routine
+        \item \textit{FR-RTA-4.2}: The section must display a scrollable list of event cards
+        \item \textit{FR-RTA-4.3}: Each event must be contained in a distinct card with rounded corners and dark background
+    \end{enumerate}
+    
+    \item Event Card Structure
+    \begin{enumerate}
+        \item \textit{FR-RTA-5.0}: Each event card must display a colored gradient icon on the left (unique color per event)
+        \item \textit{FR-RTA-5.1}: The icon must contain a clock symbol to indicate time-based triggering
+        \item \textit{FR-RTA-5.2}: Event cards must display the event name (e.g., "Untitled Event 65011")
+        \item \textit{FR-RTA-5.3}: The second line must show the action state (ON/OFF), time in 24-hour format, and action type (e.g., "Set Scene")
+        \item \textit{FR-RTA-5.4}: Format must be: "[STATE], [TIME], [ACTION]" (e.g., "ON, 18:00, Set Scene")
+        \item \textit{FR-RTA-5.5}: A chevron (>) must appear on the right side of each card to indicate it's tappable
+        \item \textit{FR-RTA-5.6}: Tapping an event card must navigate to the event detail/edit screen
+        \item \textit{FR-RTA-5.7}: Event cards must support swipe gestures for quick delete actions
+    \end{enumerate}
+    
+    \item New Event Button
+    \begin{enumerate}
+        \item \textit{FR-RTA-6.0}: A "New Event" button must appear at the bottom of the events list
+        \item \textit{FR-RTA-6.1}: The button must have a "+" icon on the right side
+        \item \textit{FR-RTA-6.2}: Tapping "New Event" must navigate to the event creation screen
+        \item \textit{FR-RTA-6.3}: The button must maintain consistent styling with other UI elements (dark background, light text)
+    \end{enumerate}
+    
+    \item Event Ordering and Management
+    \begin{enumerate}
+        \item \textit{FR-RTA-7.0}: Events must be automatically sorted chronologically by their trigger time
+        \item \textit{FR-RTA-7.1}: Users must be able to reorder events via drag-and-drop (long-press and drag)
+        \item \textit{FR-RTA-7.2}: A maximum of 20 events per routine must be enforced
+        \item \textit{FR-RTA-7.3}: If a user attempts to add more than 20 events, an error message must display: "Maximum 20 events per routine"
+    \end{enumerate}
+    
+    \item Save and Validation
+    \begin{enumerate}
+        \item \textit{FR-RTA-8.0}: Changes must auto-save after 2 seconds of inactivity
+        \item \textit{FR-RTA-8.1}: A routine is valid only if: at least one day is selected and at least one event exists
+        \item \textit{FR-RTA-8.2}: If validation fails, the back button must show the unsaved changes warning
+        \item \textit{FR-RTA-8.3}: Upon successful save, a toast notification must display: "Routine saved"
+    \end{enumerate}
 \end{enumerate}
 
-\begin{comment}
-The IEEEtran class file is used to format your paper and style the text. All margins, 
-column widths, line spaces, and text fonts are prescribed; please do not 
-alter them. You may note peculiarities. For example, the head margin
-measures proportionately more than is customary. This measurement 
-and others are deliberate, using specifications that anticipate your paper 
-as one part of the entire proceedings, and not as an independent document. 
-Please do not revise any of the current designations.
 
-\section{Prepare Your Paper Before Styling}
-Before you begin to format your paper, first write and save the content as a 
-separate text file. Complete all content and organizational editing before 
-formatting. Please note sections \ref{AA}--\ref{SCM} below for more information on 
-proofreading, spelling and grammar.
+\subsection{\textbf{Control Page}}
 
-Keep your text and graphic files separate until after the text has been 
-formatted and styled. Do not number text heads---{\LaTeX} will do that 
-for you.
+\subsubsection{FR-008: Device Control Page}
 
-\subsection{Abbreviations and Acronyms}\label{AA}
-Define abbreviations and acronyms the first time they are used in the text, 
-even after they have been defined in the abstract. Abbreviations such as 
-IEEE, SI, MKS, CGS, ac, dc, and rms do not have to be defined. Do not use 
-abbreviations in the title or heads unless they are unavoidable.
+\begin{enumerate}
+\item Access Control
+    \begin{enumerate}
+    \item \textit{FR-CTL-1.0}: Accessible only after successful device pairing (FR-003)
+    \item \textit{FR-CTL-1.1}: Must verify device connectivity before displaying controls
+    \item \textit{FR-CTL-1.2}: If device is offline, display "Device Offline" message with retry button
+    \end{enumerate}
 
-\subsection{Units}
+\item Power Control
+    \begin{enumerate}
+    \item \textit{FR-CTL-2.0}: Display prominent ON/OFF toggle button at the top of control interface
+    \item \textit{FR-CTL-2.1}: Toggle must show current device state with visual feedback (colored indicator)
+    \item \textit{FR-CTL-2.2}: Power state changes must be reflected on device within 2 seconds
+    \item \textit{FR-CTL-2.3}: When device is OFF, all other controls must be visually disabled/grayed out
+    \end{enumerate}
+
+\item Fan Speed Control
+    \begin{enumerate}
+    \item \textit{FR-CTL-3.0}: Display horizontal percentage slider for fan speed control (0-100\%)
+    \item \textit{FR-CTL-3.1}: Slider must show current fan speed percentage as text above or beside slider
+    \item \textit{FR-CTL-3.2}: Fan speed adjustments must be sent to device in real-time during slider movement
+    \item \textit{FR-CTL-3.3}: Slider must be disabled when device is in Timer Mode or Auto Mode
+    \end{enumerate}
+
+\item Timer Mode
+    \begin{enumerate}
+    \item \textit{FR-CTL-4.0}: Provide timer mode selection with options: OFF, 4hr, 6hr, 8hr
+    \item \textit{FR-CTL-4.1}: Display timer as segmented control or dropdown menu
+    \item \textit{FR-CTL-4.2}: When timer is active, display countdown showing remaining time
+    \item \textit{FR-CTL-4.3}: Device must automatically turn OFF when timer expires
+    \item \textit{FR-CTL-4.4}: User must receive push notification when timer completes: "Air purifier timer finished"
+    \item \textit{FR-CTL-4.5}: Timer mode overrides Auto Mode when activated
+    \end{enumerate}
+
+\item Child Lock
+    \begin{enumerate}
+    \item \textit{FR-CTL-5.0}: Display Child Lock toggle switch with lock icon
+    \item \textit{FR-CTL-5.1}: When enabled, all physical controls on device must be disabled
+    \item \textit{FR-CTL-5.2}: Child Lock state must persist until manually disabled via app
+    \item \textit{FR-CTL-5.3}: Lock status must be visually indicated on device (LED indicator or display message)
+    \item \textit{FR-CTL-5.4}: App controls remain functional regardless of Child Lock state
+    \end{enumerate}
+
+\item Operation Modes
+    \begin{enumerate}
+    \item \textit{FR-CTL-6.0}: Provide mode selection between "Manual Mode" and "Auto Mode"
+    \item \textit{FR-CTL-6.1}: Display current active mode prominently with visual distinction
+    \item \textit{FR-CTL-6.2}: Mode changes must be confirmed with user before applying
+    \end{enumerate}
+
+\item Manual Mode Controls
+    \begin{enumerate}
+    \item \textit{FR-CTL-7.0}: In Manual Mode, enable direct fan speed control via percentage slider
+    \item \textit{FR-CTL-7.1}: Manual controls must override any automatic adjustments
+    \item \textit{FR-CTL-7.2}: Display "Manual Mode" indicator when active
+    \item \textit{FR-CTL-7.3}: User must manually adjust all settings (fan speed, timer, etc.)
+    \item \textit{FR-CTL-7.4}: Manual Mode remains active until user switches to Auto Mode or device power cycle
+    \end{enumerate}
+
+\item Auto Mode Operation
+    \begin{enumerate}
+    \item \textit{FR-CTL-8.0}: In Auto Mode, device must take sensor readings every 15 minutes
+    \item \textit{FR-CTL-8.1}: Fan speed must automatically adjust based on environmental sensor data
+    \item \textit{FR-CTL-8.2}: Display "Auto Mode" indicator and show "Next sensor reading in: X minutes"
+    \item \textit{FR-CTL-8.3}: Auto Mode adjustments must consider: air quality, temperature, humidity, and detected health symptoms
+    \item \textit{FR-CTL-8.4}: Fan speed slider must be disabled/read-only in Auto Mode, showing current automatic setting
+    \item \textit{FR-CTL-8.5}: User must be able to view sensor reading history and auto-adjustment reasoning
+    \item \textit{FR-CTL-8.6}: Auto Mode must respect Child Lock and Timer Mode settings when active
+    \end{enumerate}
+
+\item Control Interface Layout
+    \begin{enumerate}
+    \item \textit{FR-CTL-9.0}: All controls must be organized in logical sections with clear visual separation
+    \item \textit{FR-CTL-9.1}: Emergency/priority controls (Power, Child Lock) must be easily accessible
+    \item \textit{FR-CTL-9.2}: Current device status must be displayed at top: power state, mode, timer status
+    \item \textit{FR-CTL-9.3}: Interface must update in real-time to reflect device state changes
+    \item \textit{FR-CTL-9.4}: Loading states must be shown during control command transmission
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{\textbf{Settings Page}}
+
+\subsubsection{FR-009: Settings Page (Main Menu)}
+
+\textit{Note: Only accessible after successful login/sign up}
+
+\begin{enumerate}
+\item Settings Page Access
+    \begin{enumerate}
+    \item \textit{FR-SET-1.0}: The Settings Page is accessed by tapping the "Settings" tab in the bottom navigation bar (FR-005)
+    \item \textit{FR-SET-1.1}: The page must check authentication on load—expired tokens redirect to Login
+    \item \textit{FR-SET-1.2}: The Settings Page must include the bottom navigation bar with the "Settings" tab highlighted/active
+    \end{enumerate}
+
+\item Screen Header
+    \begin{enumerate}
+    \item \textit{FR-SET-2.0}: The screen must display "Settings" as the page title at the top-left
+    \item \textit{FR-SET-2.1}: An optional icon (such as a palette or settings gear) may appear in the top-right corner
+    \end{enumerate}
+
+\item Settings Menu List
+    \begin{enumerate}
+    \item \textit{FR-SET-3.0}: The screen must display a vertically scrollable list of settings options
+    \item \textit{FR-SET-3.1}: Each menu item must have an icon on the left, title text in the center, and a chevron (>) on the right
+    \item \textit{FR-SET-3.2}: The following options must be displayed in order:
+        \begin{itemize}
+        \item Account (with user/profile icon)
+        \item My Devices (with device icon)
+        \item Location (with location/pin icon)
+        \item Privacy (with shield/lock icon)
+        \end{itemize}
+    \item \textit{FR-SET-3.3}: Tapping any menu item must navigate to its respective detail screen
+    \item \textit{FR-SET-3.4}: Menu items must have sufficient touch target size (minimum 44pt height)
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FR-010: Account Screen}
+
+\begin{enumerate}
+\item Screen Structure
+    \begin{enumerate}
+    \item \textit{FR-ACC-1.0}: Display "Account" or user's account name as the title
+    \item \textit{FR-ACC-1.1}: Include a back button (<) in the top-left corner to return to Settings menu
+    \item \textit{FR-ACC-1.2}: Display a section header "Account Settings"
+    \end{enumerate}
+
+\item Account Options
+    \begin{enumerate}
+    \item \textit{FR-ACC-2.0}: Display "Edit Account" option with a chevron (>)
+    \item \textit{FR-ACC-2.1}: Tapping "Edit Account" navigates to account editing screen
+    \item \textit{FR-ACC-2.2}: Display "Log Out" option without a chevron
+    \item \textit{FR-ACC-2.3}: Tapping "Log Out" must show confirmation dialog: "Are you sure you want to log out?"
+    \item \textit{FR-ACC-2.4}: Upon logout confirmation, clear authentication token and redirect to Login screen
+    \end{enumerate}
+
+\item Edit Account Screen
+    \begin{enumerate}
+    \item \textit{FR-ACC-3.0}: The Edit Account screen must allow users to edit their account name/display name
+    \item \textit{FR-ACC-3.1}: Display current account name in an editable text field
+    \item \textit{FR-ACC-3.2}: Include a "Save" button to save changes
+    \item \textit{FR-ACC-3.3}: Include a "Cancel" button or back button to discard changes
+    \item \textit{FR-ACC-3.4}: Show success message "Account updated" after successful save
+    \item \textit{FR-ACC-3.5}: Validate that account name is not empty and is between 2-50 characters
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FR-011: My Devices Screen}
+
+\begin{enumerate}
+\item Screen Structure
+    \begin{enumerate}
+    \item \textit{FR-DEV-1.0}: Display "My Devices" as the screen title
+    \item \textit{FR-DEV-1.1}: Include a back button (<) in the top-left corner
+    \item \textit{FR-DEV-1.2}: Include a "+" button in the top-right corner to add new devices
+    \item \textit{FR-DEV-1.3}: Tapping the "+" button must trigger the device registration flow (FR-003)
+    \end{enumerate}
+
+\item Device List Display
+    \begin{enumerate}
+    \item \textit{FR-DEV-2.0}: Display all registered devices in a scrollable vertical list
+    \item \textit{FR-DEV-2.1}: If no devices are registered, show empty state: "No devices registered" with "Add Device" button
+    \item \textit{FR-DEV-2.2}: Each device must be displayed in a card with the following information:
+        \begin{itemize}
+        \item Device icon (left side)
+        \item Device name with optional status indicator icon
+        \item Room/location name (below device name)
+        \item Device version or model number (below location)
+        \item Three-dot menu button (...) on the right side
+        \end{itemize}
+    \item \textit{FR-DEV-2.3}: Device cards must have rounded corners and appropriate padding/spacing
+    \item \textit{FR-DEV-2.4}: Cards should maintain consistent styling with other UI elements (dark background for dark mode)
+    \end{enumerate}
+
+\item Device Options Menu
+    \begin{enumerate}
+    \item \textit{FR-DEV-3.0}: Tapping the three-dot (...) button must display a context menu/modal overlay
+    \item \textit{FR-DEV-3.1}: The menu must appear as a popup/modal centered or near the device card
+    \item \textit{FR-DEV-3.2}: The menu must have a light background with rounded corners (iOS-style)
+    \item \textit{FR-DEV-3.3}: The menu must include the following options in order:
+        \begin{itemize}
+        \item "Rename" (with edit/pencil icon)
+        \item "Identify" (with location/search icon)
+        \item "Settings" (with gear icon)
+        \item "Delete" (with trash/minus icon, displayed in red/warning color)
+        \end{itemize}
+    \item \textit{FR-DEV-3.4}: Tapping outside the menu must close it without taking action
+    \item \textit{FR-DEV-3.5}: Each menu option must have an icon on the right side
+    \end{enumerate}
+
+\item Rename Device
+    \begin{enumerate}
+    \item \textit{FR-DEV-4.0}: Tapping "Rename" must open a dialog/modal with a text input field
+    \item \textit{FR-DEV-4.1}: The dialog must display current device name as default value
+    \item \textit{FR-DEV-4.2}: Include "Cancel" and "Save" buttons
+    \item \textit{FR-DEV-4.3}: Device name must be 1-50 characters
+    \item \textit{FR-DEV-4.4}: Show success message "Device renamed" after save
+    \end{enumerate}
+
+\item Identify Device
+    \begin{enumerate}
+    \item \textit{FR-DEV-5.0}: Tapping "Identify" must send a command to the physical device to identify itself
+    \item \textit{FR-DEV-5.1}: The device should flash its LED, beep, or otherwise indicate which device it is
+    \item \textit{FR-DEV-5.2}: Show message "Identifying device..." while command is being sent
+    \item \textit{FR-DEV-5.3}: Show success message "Device should now be blinking/beeping"
+    \end{enumerate}
+
+\item Device Settings
+    \begin{enumerate}
+    \item \textit{FR-DEV-6.0}: Tapping "Settings" must navigate to device-specific settings screen
+    \item \textit{FR-DEV-6.1}: Device settings may include: firmware version, WiFi connection, update options, etc.
+    \end{enumerate}
+
+\item Delete Device
+    \begin{enumerate}
+    \item \textit{FR-DEV-7.0}: Tapping "Delete" must show confirmation dialog: "Remove [Device Name]? This device will be removed from your account."
+    \item \textit{FR-DEV-7.1}: Dialog must have "Cancel" and "Remove" buttons
+    \item \textit{FR-DEV-7.2}: "Remove" button must be in red/warning color
+    \item \textit{FR-DEV-7.3}: Upon confirmation, remove device from user account
+    \item \textit{FR-DEV-7.4}: Show success message "Device removed"
+    \item \textit{FR-DEV-7.5}: Update the device list to remove the deleted device
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FR-012: Location Screen}
+
+\begin{enumerate}
+\item Screen Structure
+    \begin{enumerate}
+    \item \textit{FR-LOC-1.0}: Display "Location" as the screen title (centered)
+    \item \textit{FR-LOC-1.1}: Include a back button (<) in the top-left corner
+    \item \textit{FR-LOC-1.2}: Include a "Save" button in the top-right corner
+    \end{enumerate}
+
+\item Location Search
+    \begin{enumerate}
+    \item \textit{FR-LOC-2.0}: Display a search bar below the header with placeholder text "Search"
+    \item \textit{FR-LOC-2.1}: Include a magnifying glass icon on the left side of the search bar
+    \item \textit{FR-LOC-2.2}: Include a location/GPS icon button on the right side of the search bar
+    \item \textit{FR-LOC-2.3}: Tapping the GPS icon must request device location and auto-populate nearest city
+    \item \textit{FR-LOC-2.4}: As user types, show autocomplete suggestions for cities/locations
+    \item \textit{FR-LOC-2.5}: User can select a location from search results or autocomplete suggestions
+    \end{enumerate}
+
+\item Location Selection
+    \begin{enumerate}
+    \item \textit{FR-LOC-3.0}: Selected location must be saved to the user's profile in the database
+    \item \textit{FR-LOC-3.1}: Tapping "Save" must save the location and return to Settings menu
+    \item \textit{FR-LOC-3.2}: Show success message "Location saved"
+    \item \textit{FR-LOC-3.3}: If user taps back button without saving, show warning: "Discard changes?"
+    \item \textit{FR-LOC-3.4}: Location data should include: city name, country, latitude, longitude (optional)
+    \end{enumerate}
+
+\item Location Usage
+    \begin{enumerate}
+    \item \textit{FR-LOC-4.0}: Saved location will be used for external AQI (Air Quality Index) API integration
+    \item \textit{FR-LOC-4.1}: Location will be used for weather-based automation recommendations
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FR-013: Privacy Screen}
+
+\begin{enumerate}
+\item Screen Structure
+    \begin{enumerate}
+    \item \textit{FR-PRIV-1.0}: Display "Privacy" as the screen title
+    \item \textit{FR-PRIV-1.1}: Include a back button (<) in the top-left corner
+    \end{enumerate}
+
+\item Privacy Content
+    \begin{enumerate}
+    \item \textit{FR-PRIV-2.0}: Display privacy policy statement or summary
+    \item \textit{FR-PRIV-2.1}: Include link to full privacy policy document: "Read Full Privacy Policy"
+    \item \textit{FR-PRIV-2.2}: Optionally include toggles for:
+        \begin{itemize}
+        \item Data collection consent
+        \item Audio processing (for cough/sneeze detection)
+        \item Location services
+        \end{itemize}
+    \item \textit{FR-PRIV-2.3}: Include explanation text for each privacy setting
+    \item \textit{FR-PRIV-2.4}: Include "Download My Data" option
+    \item \textit{FR-PRIV-2.5}: Include "Delete My Account" option at bottom in red text
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FR-014: Empathetic Intelligence Notifications}
+
+\begin{enumerate}
+\item Notification Permissions
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-1.0}: During app setup (FR-001), request push notification permissions with explanation: "Allow notifications to receive caring health insights and device updates"
+    \item \textit{FR-NOTIF-1.1}: If permissions denied initially, provide in-app prompt in Settings to enable notifications
+    \item \textit{FR-NOTIF-1.2}: User must be able to customize notification types and frequency in Settings menu
+    \item \textit{FR-NOTIF-1.3}: Notifications must respect device "Do Not Disturb" and quiet hours settings
+    \end{enumerate}
+
+\item Notification Design Principles
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-2.0}: All notifications must use empathetic, human-like language that demonstrates care and understanding
+    \item \textit{FR-NOTIF-2.1}: Notifications must be actionable, providing clear next steps or automatic solutions
+    \item \textit{FR-NOTIF-2.2}: Tone must be supportive and non-alarming, avoiding medical terminology or urgent language
+    \item \textit{FR-NOTIF-2.3}: Messages must personalize to individual users when multiple users detected
+    \item \textit{FR-NOTIF-2.4}: Include gentle emoji or icons where appropriate to enhance emotional connection
+    \end{enumerate}
+
+\item Responsive Notifications
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-3.0}: Monitor cough/sneeze detection events and trigger notifications when threshold exceeded
+    \item \textit{FR-NOTIF-3.1}: Threshold definition: 5+ cough events or 8+ sneeze events within 30-minute window
+    \item \textit{FR-NOTIF-3.2}: Example responsive notification: "We've noticed you have been coughing quite a bit lately, I've turned on Pollen Protection Mode to help out ��"
+    \item \textit{FR-NOTIF-3.3}: Automatic action must be taken simultaneously with notification (e.g., activate protection mode)
+    \item \textit{FR-NOTIF-3.4}: Follow-up notification after 2 hours: "How are you feeling? The air should be much cleaner now"
+    \item \textit{FR-NOTIF-3.5}: Avoid sending duplicate responsive notifications within 4-hour window for same symptom type
+    \end{enumerate}
+
+\item Predictive Notifications
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-4.0}: Integrate external AQI data with user health sensitivity profiles to predict issues
+    \item \textit{FR-NOTIF-4.1}: Learn individual user sensitivities over time (Person A reacts to pollen, Person B to dust, etc.)
+    \item \textit{FR-NOTIF-4.2}: Multi-user household example: "Pollen levels in the area are rising and [Person A] might have some struggles, we recommend moving the purifier to [Person A]'s room ��"
+    \item \textit{FR-NOTIF-4.3}: Location-specific example: "The ultrafine dust level in [Location] is high this afternoon, and I've detected some sneezing. I've activated 'Pollution Defense' mode to create a safe zone for you at home. Please remember to keep the windows closed! ��"
+    \item \textit{FR-NOTIF-4.4}: Predictive notifications must be sent 1-2 hours before predicted air quality deterioration
+    \item \textit{FR-NOTIF-4.5}: Include specific recommendations: window closure, room changes, device repositioning
+    \item \textit{FR-NOTIF-4.6}: Track prediction accuracy and adjust sensitivity thresholds based on user feedback
+    \end{enumerate}
+
+\item Maintenance Notifications
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-5.0}: Monitor filter life and send proactive replacement notifications
+    \item \textit{FR-NOTIF-5.1}: Filter warning at 90\% capacity: "Your filter is running low! Replace it soon to avoid air quality issues ��"
+    \item \textit{FR-NOTIF-5.2}: Critical filter notification at 100\% capacity: "Time for a fresh filter! I've reduced fan speed to protect the motor until you can replace it"
+    \item \textit{FR-NOTIF-5.3}: Include direct link to purchase replacement filters or schedule maintenance
+    \item \textit{FR-NOTIF-5.4}: Send reminder notifications every 3 days after initial filter warning
+    \item \textit{FR-NOTIF-5.5}: Other maintenance notifications: cleaning reminders, sensor calibration, software updates
+    \end{enumerate}
+
+\item Notification Timing and Frequency
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-6.0}: Respect user's local time zone and avoid notifications between 10 PM - 7 AM unless critical
+    \item \textit{FR-NOTIF-6.1}: Maximum 3 notifications per day per device to avoid notification fatigue
+    \item \textit{FR-NOTIF-6.2}: Priority system: Critical (filter/safety) > Predictive > Responsive > General updates
+    \item \textit{FR-NOTIF-6.3}: User must be able to snooze non-critical notifications for 1hr, 4hr, or until tomorrow
+    \item \textit{FR-NOTIF-6.4}: Smart batching: combine multiple low-priority notifications into daily summary
+    \end{enumerate}
+
+\item Notification Customization
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-7.0}: Settings menu must include notification preferences with toggles for each notification type
+    \item \textit{FR-NOTIF-7.1}: Allow users to set "empathy level": Minimal, Standard, Caring, Very Caring
+    \item \textit{FR-NOTIF-7.2}: Empathy level affects message tone, frequency, and personalization depth
+    \item \textit{FR-NOTIF-7.3}: Quick notification response options: "Thanks!", "Not helpful", "Remind me later"
+    \item \textit{FR-NOTIF-7.4}: Learn from user responses to improve future notification relevance and timing
+    \end{enumerate}
+
+\item Emergency and Safety Notifications
+    \begin{enumerate}
+    \item \textit{FR-NOTIF-8.0}: Override quiet hours for safety-critical notifications (device malfunction, air quality emergency)
+    \item \textit{FR-NOTIF-8.1}: Emergency example: "Air purifier has stopped working! Please check the device and ensure proper ventilation"
+    \item \textit{FR-NOTIF-8.2}: Severe air quality example: "Air quality in your area is hazardous. Please stay indoors and run the purifier on maximum"
+    \item \textit{FR-NOTIF-8.3}: Safety notifications must be persistent until acknowledged by user
+    \item \textit{FR-NOTIF-8.4}: Include emergency contact information or support links when appropriate
+    \end{enumerate}
+\end{enumerate}
+
+\section{Development environment}
+\subsection{\textbf{Choice of Software Development Platform}}
 \begin{itemize}
-\item Use either SI (MKS) or CGS as primary units. (SI units are encouraged.) English units may be used as secondary units (in parentheses). An exception would be the use of English units as identifiers in trade, such as ``3.5-inch disk drive''.
-\item Avoid combining SI and CGS units, such as current in amperes and magnetic field in oersteds. This often leads to confusion because equations do not balance dimensionally. If you must use mixed units, clearly state the units for each quantity that you use in an equation.
-\item Do not mix complete spellings and abbreviations of units: ``Wb/m\textsuperscript{2}'' or ``webers per square meter'', not ``webers/m\textsuperscript{2}''. Spell out units when they appear in text: ``. . . a few henries'', not ``. . . a few H''.
-\item Use a zero before decimal points: ``0.25'', not ``.25''. Use ``cm\textsuperscript{3}'', not ``cc''.)
+\item \textbf{Host OS}: Windows 11 Build 26200.6899/7019 
+\item \textbf{Language}: Python 3.11.9/3.12.5 for rapid prototyping, strong audio and ML ecosystem
+\item \textbf{Target Edge}: Ideal LG Purifier Hardware (for convenience).
 \end{itemize}
 
-\subsection{Equations}
-Number equations consecutively. To make your 
-equations more compact, you may use the solidus (~/~), the exp function, or 
-appropriate exponents. Italicize Roman symbols for quantities and variables, 
-but not Greek symbols. Use a long dash rather than a hyphen for a minus 
-sign. Punctuate equations with commas or periods when they are part of a 
-sentence, as in:
-\begin{equation}
-a+b=\gamma\label{eq}
-\end{equation}
-
-Be sure that the 
-symbols in your equation have been defined before or immediately following 
-the equation. Use ``\eqref{eq}'', not ``Eq.~\eqref{eq}'' or ``equation \eqref{eq}'', except at 
-the beginning of a sentence: ``Equation \eqref{eq} is . . .''
-
-\subsection{\LaTeX-Specific Advice}
-
-Please use ``soft'' (e.g., \verb|\eqref{Eq}|) cross references instead
-of ``hard'' references (e.g., \verb|(1)|). That will make it possible
-to combine sections, add equations, or change the order of figures or
-citations without having to go through the file line by line.
-
-Please don't use the \verb|{eqnarray}| equation environment. Use
-\verb|{align}| or \verb|{IEEEeqnarray}| instead. The \verb|{eqnarray}|
-environment leaves unsightly spaces around relation symbols.
-
-Please note that the \verb|{subequations}| environment in {\LaTeX}
-will increment the main equation counter even when there are no
-equation numbers displayed. If you forget that, you might write an
-article in which the equation numbers skip from (17) to (20), causing
-the copy editors to wonder if you've discovered a new method of
-counting.
-
-{\BibTeX} does not work by magic. It doesn't get the bibliographic
-data from thin air but from .bib files. If you use {\BibTeX} to produce a
-bibliography you must send the .bib files. 
-
-{\LaTeX} can't read your mind. If you assign the same label to a
-subsubsection and a table, you might find that Table I has been cross
-referenced as Table IV-B3. 
-
-{\LaTeX} does not have precognitive abilities. If you put a
-\verb|\label| command before the command that updates the counter it's
-supposed to be using, the label will pick up the last counter to be
-cross referenced instead. In particular, a \verb|\label| command
-should not go before the caption of a figure or a table.
-
-Do not use \verb|\nonumber| inside the \verb|{array}| environment. It
-will not stop equation numbers inside \verb|{array}| (there won't be
-any anyway) and it might stop a wanted equation number in the
-surrounding equation.
-
-\subsection{Some Common Mistakes}\label{SCM}
+\subsection{\textbf{Software in Use}}
 \begin{itemize}
-\item The word ``data'' is plural, not singular.
-\item The subscript for the permeability of vacuum $\mu_{0}$, and other common scientific constants, is zero with subscript formatting, not a lowercase letter ``o''.
-\item In American English, commas, semicolons, periods, question and exclamation marks are located within quotation marks only when a complete thought or name is cited, such as a title or full quotation. When quotation marks are used, instead of a bold or italic typeface, to highlight a word or phrase, punctuation should appear outside of the quotation marks. A parenthetical phrase or statement at the end of a sentence is punctuated outside of the closing parenthesis (like this). (A parenthetical sentence is punctuated within the parentheses.)
-\item A graph within a graph is an ``inset'', not an ``insert''. The word alternatively is preferred to the word ``alternately'' (unless you really mean something that alternates).
-\item Do not use the word ``essentially'' to mean ``approximately'' or ``effectively''.
-\item In your paper title, if the words ``that uses'' can accurately replace the word ``using'', capitalize the ``u''; if not, keep using lower-cased.
-\item Be aware of the different meanings of the homophones ``affect'' and ``effect'', ``complement'' and ``compliment'', ``discreet'' and ``discrete'', ``principal'' and ``principle''.
-\item Do not confuse ``imply'' and ``infer''.
-\item The prefix ``non'' is not a word; it should be joined to the word it modifies, usually without a hyphen.
-\item There is no period after the ``et'' in the Latin abbreviation ``et al.''.
-\item The abbreviation ``i.e.'' means ``that is'', and the abbreviation ``e.g.'' means ``for example''.
+\item \textbf{ML}: PyTorch, MLlib(optional).
+\item \textbf{Streaming/Backend}: Django(essential). \\
+Apache Kafka (events), Apache Spark (Structured Streaming + batch ETL); optional.
+\item \textbf{DevOps}: VS Code, Git/GitHub
 \end{itemize}
-An excellent style manual for science writers is \cite{b7}.
+    
 
-\subsection{Authors and Affiliations}
-\textbf{The class file is designed for, but not limited to, six authors.} A 
-minimum of one author is required for all conference articles. Author names 
-should be listed starting from left to right and then moving down to the 
-next line. This is the author sequence that will be used in future citations 
-and by indexing services. Names should not be listed in columns nor group by 
-affiliation. Please keep your affiliations as succinct as possible (for 
-example, do not differentiate among departments of the same organization).
 
-\subsection{Identify the Headings}
-Headings, or heads, are organizational devices that guide the reader through 
-your paper. There are two types: component heads and text heads.
-
-Component heads identify the different components of your paper and are not 
-topically subordinate to each other. Examples include Acknowledgments and 
-References and, for these, the correct style to use is ``Heading 5''. Use 
-``figure caption'' for your Figure captions, and ``table head'' for your 
-table title. Run-in heads, such as ``Abstract'', will require you to apply a 
-style (in this case, italic) in addition to the style provided by the drop 
-down menu to differentiate the head from the text.
-
-Text heads organize the topics on a relational, hierarchical basis. For 
-example, the paper title is the primary text head because all subsequent 
-material relates and elaborates on this one topic. If there are two or more 
-sub-topics, the next level head (uppercase Roman numerals) should be used 
-and, conversely, if there are not at least two sub-topics, then no subheads 
-should be introduced.
-
-\subsection{Figures and Tables}
-\paragraph{Positioning Figures and Tables} Place figures and tables at the top and 
-bottom of columns. Avoid placing them in the middle of columns. Large 
-figures and tables may span across both columns. Figure captions should be 
-below the figures; table heads should appear above the tables. Insert 
-figures and tables after they are cited in the text. Use the abbreviation 
-``Fig.~\ref{fig}'', even at the beginning of a sentence.
-
+       
+        
 \begin{table}[htbp]
-\caption{Table Type Styles}
+\caption{Task Distribution}
 \begin{center}
-\begin{tabular}{|c|c|c|c|}
+\small
+\setlength{\tabcolsep}{6pt} 
+\renewcommand{\arraystretch}{1.3} 
+\begin{tabular}{|p{2cm}|p{1.5cm}|p{4cm}|}
 \hline
-\textbf{Table}&\multicolumn{3}{|c|}{\textbf{Table Column Head}} \\
-\cline{2-4} 
-\textbf{Head} & \textbf{\textit{Table column subhead}}& \textbf{\textit{Subhead}}& \textbf{\textit{Subhead}} \\
-\hline
-copy& More table copy$^{\mathrm{a}}$& &  \\
-\hline
-\multicolumn{4}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
-\end{tabular}
+\multicolumn{1}{|c|}{\textbf{Jobs}} & \multicolumn{1}{c|}{\textbf{Name}} & \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+\centering Frontend & \centering Kim Soobin, Kim Yeonwoo & In charge of the planning, development and rollout of the PWA onto mobile devices. \\ \hline
+\centering Backend & \centering Kim Yeonwoo & In charge of database and API creation, management, and maintainment \\ \hline
+\centering ML/AI & \centering Jimmy MacDonald, Kim Minjin, et Al & In charge of collecting data, planning and creating an AI model to achieve the task at hand \\ \hline
+\centering Project Manager & \centering Kim Minjin & Keeps track of documentation, assigns tasks, and make sure deadlines are met on time \\ \hline
+\end{tabular}%
 \label{tab1}
 \end{center}
 \end{table}
 
-\begin{figure}[htbp]
-\centerline{\includegraphics{fig1.png}}
-\caption{Example of a figure caption.}
-\label{fig}
-\end{figure}
 
-Figure Labels: Use 8 point Times New Roman for Figure labels. Use words 
-rather than symbols or abbreviations when writing Figure axis labels to 
-avoid confusing the reader. As an example, write the quantity 
-``Magnetization'', or ``Magnetization, M'', not just ``M''. If including 
-units in the label, present them within parentheses. Do not label axes only 
-with units. In the example, write ``Magnetization (A/m)'' or ``Magnetization 
-\{A[m(1)]\}'', not just ``A/m''. Do not label axes with a ratio of 
-quantities and units. For example, write ``Temperature (K)'', not 
-``Temperature/K''.
 
-\section*{Acknowledgment}
+\section{Specification}
 
-The preferred spelling of the word ``acknowledgment'' in America is without 
-an ``e'' after the ``g''. Avoid the stilted expression ``one of us (R. B. 
-G.) thanks $\ldots$''. Instead, try ``R. B. G. thanks$\ldots$''. Put sponsor 
-acknowledgments in the unnumbered footnote on the first page.
+\subsection{\textbf{Requirement 2}}
 
-\section*{References}
+\subsubsection{Features}
 
-Please number citations consecutively within brackets \cite{b1}. The 
-sentence punctuation follows the bracket \cite{b2}. Refer simply to the reference 
-number, as in \cite{b3}---do not use ``Ref. \cite{b3}'' or ``reference \cite{b3}'' except at 
-the beginning of a sentence: ``Reference \cite{b3} was the first $\ldots$''
+\begin{enumerate}
+\item Device Enrollment
+    \begin{enumerate}
+    \item Permission Requests: Camera (for QR scanning), Notifications (for device alerts), and optional Location (for weather recommendations)
+    \item  Method: QR-based local AP or BLE provisioning (LG ThinQ-like flow)
+    \item Maximum Number of Device per User: 6
+    \end{enumerate}
 
-Number footnotes separately in superscripts. Place the actual footnote at 
-the bottom of the column in which it was cited. Do not put footnotes in the 
-abstract or reference list. Use letters for table footnotes.
+\item Logs
+    \begin{enumerate}
+    \item On-device: last 7 days of inference summaries (timestamp, event type).
+    \item Server: event features and environment snapshots; \textbf{no raw audio}.
+    \item Retention: event/features 30 days (default)
+    \end{enumerate}
+\newpage
+\item Login and Sign-up
+    \begin{enumerate}
+\item Login Screen\\
+Contains email and password fields, "Remember me" checkbox, "Forgot Password?" link, and "Don't have an Account? Sign Up" link
 
-Unless there are six authors or more give all authors' names; do not use 
-``et al.''. Papers that have not been published, even if they have been 
-submitted for publication, should be cited as ``unpublished'' \cite{b4}. Papers 
-that have been accepted for publication should be cited as ``in press'' \cite{b5}. 
-Capitalize only the first word in a paper title, except for proper nouns and 
-element symbols.
+\item Sign-up Flow
+    \begin{enumerate}
+    \item Page 1: Basic account information (Full Name, Email, Password, Confirm Password, Terms Agreement)
+    \item Page 2: Optional profile information (Phone, Profile Picture, DOB, Country)
+    \end{enumerate}
+    \end{enumerate}
 
-For papers published in translation journals, please give the English 
-citation first, followed by the original foreign-language citation \cite{b6}.
-\end{comment}
+\item Selecting and Entering Information
+    \begin{enumerate}
+    \item Splash: app logo + version for 1--2 s.
+    \item Profile (optional): respiratory sensitivities, quiet hours, preferred temperature/humidity bands.
+  \item Units: Celsius only; humidity in \%RH.
+    \end{enumerate}
+
+\item Information Screen
+    \begin{enumerate}
+     \item Display: current air quality, temperature (\textdegree C), humidity (\%RH), device state, event timeline.
+  \item Refresh: 1 s UI update; 5 s sensor polling; status colors by thresholds.
+    \end{enumerate}
+
+\item Hardware API/DB
+    \begin{enumerate}
+        \item Serves as the stand in for the actual hardware device for each production model.
+        \item Characteristics
+        \begin{itemize}
+            \item userId (ref: User, required: True)
+            \item name (type: String, required: true, trim: true)
+            \item deviceId (type: String, required: true, unique: true)
+            \item location (name: String, city: String, latitude: Number, longitude: Number, lastUpdated: Date)
+            \item settings (autoMode type: Boolean, default: true, fanSpeed  type: Number, default: 1 , sensitivity sensitivity:  type: Number, default: 2 )
+            \item status (online: { type: Boolean, default: false },
+      lastSeen: Date)
+        \end{itemize}
+        \item Posts
+        \begin{enumerate}
+            \item Update database with the characteristics of the device
+        \end{enumerate}
+        \item Gets
+        \begin{enumerate}
+            \item Every 24 hours, the API will send a request to the database to get an updated AQI prediction for the day as well as surrounding conditions from the DB
+        \end{enumerate}
+    \end{enumerate}
+
+\item Firebase API/DB
+\begin{enumerate}
+    \item Acts as the main database for all things related to the project, limited by the fact that it cannot make external API requests
+    \item Collections:
+    \begin{enumerate}
+        \item Users
+        \begin{itemize}
+            \item username
+            \begin{itemize}
+                \item type: String
+                \item required: true
+                \item unique: true
+                \item trim: true
+            \end{itemize}
+            \item email
+            \begin{itemize}
+                \item type: String
+                \item required: true,
+                \item unique: true,
+                \item trim: true,
+                \item lowercase: true
+            \end{itemize}
+            \item password
+            \begin{itemize}
+                \item type: String
+                \item required: true
+            \end{itemize}
+            \item data
+            \begin{itemize}
+                \item phone number
+                \item reqpiratoryServices
+                \item quietHours
+                \item deviceCount
+            \end{itemize}
+        \end{itemize}
+        \item AirQuality
+        \begin{itemize}
+            \item aqi: int
+            \item city
+            \begin{itemize}
+                \item geo: array
+                \item name: String
+            \end{itemize}
+            \item dominentpol: string
+            \item iaqi
+            \begin{itemize}
+                \item co: number
+                \item h: number
+                \item no2: number
+                \item o3: number
+                \item p: number
+                \item pm10: number
+                \item pm25: number
+                \item so2: number
+                \item t: number
+                \item w: number
+            \end{itemize}
+            \item iqx: number
+            \item time
+            \begin{itemize}
+                \item iso: string
+                \item s: string
+                \item tz: string
+                \item y: number
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+    \end{enumerate}
+        
+    \end{enumerate}
+\end{enumerate}
+    
+\end{enumerate}
+
 \begin{thebibliography}{00}
-\bibitem{b1}  World Health Organization, “Billions of people still breathe unhealthy air: new WHO data,” WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
-\begin{comment}
-    \bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
-\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
-\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
-\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
-\bibitem{b6} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
-\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
-\end{comment}
+\bibitem{b1}  World Health Organization, "Billions of people still breathe unhealthy air: new WHO data," WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
 
 \end{thebibliography}
 \vspace{12pt}
