@@ -1,9 +1,6 @@
-const { initializeFirebase } = require("../config/firebase");
-
+const { auth } = require("../config/firebase");
 // Middleware to verify Firebase ID tokens
 async function authenticateFirebaseToken(req, res, next) {
-  const { auth } = initializeFirebase();
-
   try {
     const authHeader = req.headers.authorization;
 

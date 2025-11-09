@@ -1,18 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 
+const { db } = require("./config/firebase");
+const deviceRoutes = require("./routes/deviceRoutes");
+
 const app = express();
 const PORT = process.env.PORT || 3020;
 
-const { initializeFirebase } = require("./config/firebase");
-
-try {
-  initializeFirebase();
-  console.log("🔥 Firebase initialized");
-} catch (error) {
-  console.error("❌ Failed to initialize Firebase:", error);
-  process.exit(1);
-}
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -21,9 +15,7 @@ app.get("/", (req, res) => {
 
 app.get("/health", async (req, res) => {
   try {
-    const { db } = initializeFirebase();
-
-    // Try to read from Firestore to verify connection
+    // 'db' is imported directly
     const testDoc = await db.collection("_health").doc("test").get();
 
     res.json({
@@ -43,4 +35,12 @@ app.get("/health", async (req, res) => {
 });
 
 // ========== ROUTES ==========
+// 3. Plug in your device routes under the '/api/devices' path
+// This means the '/register' route in deviceRoutes.js
+// is now reachable at: POST /api/devices/register
+app.use("/api/devices", deviceRoutes);
 
+// ========== START SERVER ==========
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});

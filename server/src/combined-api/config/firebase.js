@@ -44,4 +44,5 @@ function initializeFirebase() {
   }
 }
 
-module.exports = { initializeFirebase };
+const { db, auth } = initializeFirebase();
+module.exports = { admin, db, auth };
