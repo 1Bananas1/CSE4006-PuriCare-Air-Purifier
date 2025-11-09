@@ -33,6 +33,15 @@ async function registerDevice(secureUserId, deviceData) {
           timezone: timezone || "UTC",
         },
         linkedUserID: secureUserId,
+        settings: {
+          autoMode: false,
+          fanSpeed: 0,
+          sensitivity: 0,
+        },
+        status: {
+          lastSeen: new Date(),
+          online: false,
+        },
       };
       t.set(userDeviceRef, newDevicePayload);
       t.update(masterDeviceRef, {
