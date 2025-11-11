@@ -14,7 +14,7 @@ router.post('/upload', async (req, res) => {
     if (!apiKey || apiKey !== process.env.DEVICE_API_KEY) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid API key'
+        message: 'Invalid API key',
       });
     }
 
@@ -23,24 +23,27 @@ router.post('/upload', async (req, res) => {
     if (!deviceId) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Device ID is required'
+        message: 'Device ID is required',
       });
     }
 
     if (!data) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Environment data is required'
+        message: 'Environment data is required',
       });
     }
 
     // Store the environment data
-    const storedData = await environmentService.storeEnvironmentData(deviceId, data);
+    const storedData = await environmentService.storeEnvironmentData(
+      deviceId,
+      data
+    );
 
     res.status(201).json({
       message: 'Environment data stored successfully',
       id: storedData.id,
-      timestamp: storedData.timestamp
+      timestamp: storedData.timestamp,
     });
   } catch (error) {
     console.error('Upload environment data error:', error);
@@ -48,13 +51,13 @@ router.post('/upload', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'Device not registered. Please register the device first.'
+        message: 'Device not registered. Please register the device first.',
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -68,7 +71,7 @@ router.post('/upload/batch', async (req, res) => {
     if (!apiKey || apiKey !== process.env.DEVICE_API_KEY) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid API key'
+        message: 'Invalid API key',
       });
     }
 
@@ -77,14 +80,14 @@ router.post('/upload/batch', async (req, res) => {
     if (!deviceId) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Device ID is required'
+        message: 'Device ID is required',
       });
     }
 
     if (!Array.isArray(readings) || readings.length === 0) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Readings array is required and must not be empty'
+        message: 'Readings array is required and must not be empty',
       });
     }
 
@@ -94,17 +97,20 @@ router.post('/upload/batch', async (req, res) => {
 
     for (const data of readings) {
       try {
-        const storedData = await environmentService.storeEnvironmentData(deviceId, data);
+        const storedData = await environmentService.storeEnvironmentData(
+          deviceId,
+          data
+        );
         results.push({
           success: true,
           id: storedData.id,
-          timestamp: storedData.timestamp
+          timestamp: storedData.timestamp,
         });
       } catch (error) {
         errors.push({
           success: false,
           error: error.message,
-          data
+          data,
         });
       }
     }
@@ -114,13 +120,13 @@ router.post('/upload/batch', async (req, res) => {
       successful: results.length,
       failed: errors.length,
       results,
-      errors: errors.length > 0 ? errors : undefined
+      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
     console.error('Batch upload error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -133,7 +139,7 @@ router.post('/ping', async (req, res) => {
     if (!apiKey || apiKey !== process.env.DEVICE_API_KEY) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'Invalid API key'
+        message: 'Invalid API key',
       });
     }
 
@@ -142,7 +148,7 @@ router.post('/ping', async (req, res) => {
     if (!deviceId) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Device ID is required'
+        message: 'Device ID is required',
       });
     }
 
@@ -151,7 +157,7 @@ router.post('/ping', async (req, res) => {
 
     res.json({
       message: 'Ping received',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Ping error:', error);
@@ -159,13 +165,13 @@ router.post('/ping', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'Device not registered'
+        message: 'Device not registered',
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });

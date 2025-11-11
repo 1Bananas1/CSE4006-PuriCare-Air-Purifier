@@ -1,20 +1,20 @@
 // index.js
-require("dotenv").config();
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const rateLimit = require("express-rate-limit");
-const morgan = require("morgan");
-const helmet = require("helmet");
-const mongoose = require("mongoose");
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const mongoose = require('mongoose');
 
 // Import models
-const User = require("./models/Users");
-const Data = require("./models/Data");
-const Device = require("./models/Device");
-const AirQuality = require("./models/AirQuality");
-const airQualityService = require("./services/airQuaityService");
+const User = require('./models/Users');
+const Data = require('./models/Data');
+const Device = require('./models/Device');
+const AirQuality = require('./models/AirQuality');
+const airQualityService = require('./services/airQuaityService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,43 +23,43 @@ const PORT = process.env.PORT || 3000;
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log("✅ MongoDB connected successfully");
+    console.log('✅ MongoDB connected successfully');
     // Start scheduled jobs after DB connection
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // ========== MIDDLEWARE ==========
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(morgan("combined"));
+app.use(morgan('combined'));
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: "Too many requests from this IP, please try again later.",
+  message: 'Too many requests from this IP, please try again later.',
 });
 app.use(limiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: "Too many login attempts, please try again later.",
+  message: 'Too many login attempts, please try again later.',
 });
 
 // ========== JWT MIDDLEWARE ==========
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: "Access token required" });
+    return res.status(401).json({ error: 'Access token required' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: "Invalid or expired token" });
+      return res.status(403).json({ error: 'Invalid or expired token' });
     }
     req.user = user;
     next();
@@ -67,39 +67,39 @@ const authenticateToken = (req, res, next) => {
 };
 
 // ========== HEALTH CHECK ==========
-app.get("/health", async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     const userCount = await User.countDocuments();
     const dataCount = await Data.countDocuments();
     const deviceCount = await Device.countDocuments();
 
     res.json({
-      status: "healthy",
+      status: 'healthy',
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       memory: process.memoryUsage(),
       database:
-        mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+        mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
       users: userCount,
       dataItems: dataCount,
       devices: deviceCount,
     });
   } catch (error) {
-    res.status(500).json({ status: "unhealthy", error: error.message });
+    res.status(500).json({ status: 'unhealthy', error: error.message });
   }
 });
 
 // ========== AUTHENTICATION ==========
 
 // Register
-app.post("/auth/register", authLimiter, async (req, res) => {
+app.post('/auth/register', authLimiter, async (req, res) => {
   try {
     const { username, password, email } = req.body;
 
     if (!username || !password || !email) {
       return res
         .status(400)
-        .json({ error: "Username, password, and email required" });
+        .json({ error: 'Username, password, and email required' });
     }
 
     // Check if user exists
@@ -110,7 +110,7 @@ app.post("/auth/register", authLimiter, async (req, res) => {
     if (existingUser) {
       return res
         .status(409)
-        .json({ error: "Username or email already exists" });
+        .json({ error: 'Username or email already exists' });
     }
 
     // Create user (password will be hashed automatically by pre-save hook)
@@ -118,7 +118,7 @@ app.post("/auth/register", authLimiter, async (req, res) => {
     await user.save();
 
     res.status(201).json({
-      message: "User created successfully",
+      message: 'User created successfully',
       user: {
         id: user._id,
         username: user.username,
@@ -132,31 +132,31 @@ app.post("/auth/register", authLimiter, async (req, res) => {
 });
 
 // Login
-app.post("/auth/login", authLimiter, async (req, res) => {
+app.post('/auth/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
     // Find user
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Check password
     const validPassword = await user.comparePassword(password);
     if (!validPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Generate JWT
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: '24h' }
     );
 
     res.json({
-      message: "Login successful",
+      message: 'Login successful',
       token,
       user: {
         id: user._id,
@@ -170,9 +170,9 @@ app.post("/auth/login", authLimiter, async (req, res) => {
 });
 
 // Verify token
-app.get("/auth/verify", authenticateToken, async (req, res) => {
+app.get('/auth/verify', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select('-password');
     res.json({ valid: true, user });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -182,9 +182,9 @@ app.get("/auth/verify", authenticateToken, async (req, res) => {
 // ========== USER MANAGEMENT ==========
 
 // Get all users (admin view - no passwords)
-app.get("/api/users", authenticateToken, async (req, res) => {
+app.get('/api/users', authenticateToken, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find().select('-password');
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -192,9 +192,9 @@ app.get("/api/users", authenticateToken, async (req, res) => {
 });
 
 // Get current user profile
-app.get("/api/users/me", authenticateToken, async (req, res) => {
+app.get('/api/users/me', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select('-password');
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -204,7 +204,7 @@ app.get("/api/users/me", authenticateToken, async (req, res) => {
 // ========== DATA OPERATIONS ==========
 
 // CREATE - Add data
-app.post("/api/data", authenticateToken, async (req, res) => {
+app.post('/api/data', authenticateToken, async (req, res) => {
   try {
     const newData = new Data({
       userId: req.user.id,
@@ -218,7 +218,7 @@ app.post("/api/data", authenticateToken, async (req, res) => {
 });
 
 // READ - Get all user's data
-app.get("/api/data", authenticateToken, async (req, res) => {
+app.get('/api/data', authenticateToken, async (req, res) => {
   try {
     const data = await Data.find({ userId: req.user.id }).sort({
       createdAt: -1,
@@ -230,7 +230,7 @@ app.get("/api/data", authenticateToken, async (req, res) => {
 });
 
 // READ - Get single item
-app.get("/api/data/:id", authenticateToken, async (req, res) => {
+app.get('/api/data/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Data.findOne({
       _id: req.params.id,
@@ -238,7 +238,7 @@ app.get("/api/data/:id", authenticateToken, async (req, res) => {
     });
 
     if (!item) {
-      return res.status(404).json({ error: "Item not found" });
+      return res.status(404).json({ error: 'Item not found' });
     }
 
     res.json(item);
@@ -248,7 +248,7 @@ app.get("/api/data/:id", authenticateToken, async (req, res) => {
 });
 
 // UPDATE - Modify data
-app.put("/api/data/:id", authenticateToken, async (req, res) => {
+app.put('/api/data/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Data.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
@@ -257,7 +257,7 @@ app.put("/api/data/:id", authenticateToken, async (req, res) => {
     );
 
     if (!item) {
-      return res.status(404).json({ error: "Item not found" });
+      return res.status(404).json({ error: 'Item not found' });
     }
 
     res.json(item);
@@ -267,7 +267,7 @@ app.put("/api/data/:id", authenticateToken, async (req, res) => {
 });
 
 // DELETE - Remove data
-app.delete("/api/data/:id", authenticateToken, async (req, res) => {
+app.delete('/api/data/:id', authenticateToken, async (req, res) => {
   try {
     const item = await Data.findOneAndDelete({
       _id: req.params.id,
@@ -275,10 +275,10 @@ app.delete("/api/data/:id", authenticateToken, async (req, res) => {
     });
 
     if (!item) {
-      return res.status(404).json({ error: "Item not found" });
+      return res.status(404).json({ error: 'Item not found' });
     }
 
-    res.json({ message: "Deleted successfully", item });
+    res.json({ message: 'Deleted successfully', item });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -287,20 +287,20 @@ app.delete("/api/data/:id", authenticateToken, async (req, res) => {
 // ========== DEVICE MANAGEMENT ==========
 
 // Register a new device
-app.post("/api/devices", authenticateToken, async (req, res) => {
+app.post('/api/devices', authenticateToken, async (req, res) => {
   try {
     const { name, deviceId, location } = req.body;
 
     if (!name || !deviceId) {
       return res
         .status(400)
-        .json({ error: "Device name and deviceId required" });
+        .json({ error: 'Device name and deviceId required' });
     }
 
     // Check if device ID already exists
     const existingDevice = await Device.findOne({ deviceId });
     if (existingDevice) {
-      return res.status(409).json({ error: "Device ID already registered" });
+      return res.status(409).json({ error: 'Device ID already registered' });
     }
 
     const device = new Device({
@@ -312,7 +312,7 @@ app.post("/api/devices", authenticateToken, async (req, res) => {
 
     await device.save();
     res.status(201).json({
-      message: "Device registered successfully",
+      message: 'Device registered successfully',
       device,
     });
   } catch (error) {
@@ -321,7 +321,7 @@ app.post("/api/devices", authenticateToken, async (req, res) => {
 });
 
 // Get all user's devices
-app.get("/api/devices", authenticateToken, async (req, res) => {
+app.get('/api/devices', authenticateToken, async (req, res) => {
   try {
     const devices = await Device.find({ userId: req.user.id }).sort({
       createdAt: -1,
@@ -333,7 +333,7 @@ app.get("/api/devices", authenticateToken, async (req, res) => {
 });
 
 // Get single device
-app.get("/api/devices/:id", authenticateToken, async (req, res) => {
+app.get('/api/devices/:id', authenticateToken, async (req, res) => {
   try {
     const device = await Device.findOne({
       _id: req.params.id,
@@ -341,7 +341,7 @@ app.get("/api/devices/:id", authenticateToken, async (req, res) => {
     });
 
     if (!device) {
-      return res.status(404).json({ error: "Device not found" });
+      return res.status(404).json({ error: 'Device not found' });
     }
 
     res.json(device);
@@ -351,7 +351,7 @@ app.get("/api/devices/:id", authenticateToken, async (req, res) => {
 });
 
 // Update device
-app.put("/api/devices/:id", authenticateToken, async (req, res) => {
+app.put('/api/devices/:id', authenticateToken, async (req, res) => {
   try {
     const device = await Device.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
@@ -360,11 +360,11 @@ app.put("/api/devices/:id", authenticateToken, async (req, res) => {
     );
 
     if (!device) {
-      return res.status(404).json({ error: "Device not found" });
+      return res.status(404).json({ error: 'Device not found' });
     }
 
     res.json({
-      message: "Device updated successfully",
+      message: 'Device updated successfully',
       device,
     });
   } catch (error) {
@@ -373,7 +373,7 @@ app.put("/api/devices/:id", authenticateToken, async (req, res) => {
 });
 
 // Delete device
-app.delete("/api/devices/:id", authenticateToken, async (req, res) => {
+app.delete('/api/devices/:id', authenticateToken, async (req, res) => {
   try {
     const device = await Device.findOneAndDelete({
       _id: req.params.id,
@@ -381,26 +381,26 @@ app.delete("/api/devices/:id", authenticateToken, async (req, res) => {
     });
 
     if (!device) {
-      return res.status(404).json({ error: "Device not found" });
+      return res.status(404).json({ error: 'Device not found' });
     }
 
     // Optionally delete associated air quality data
     await AirQuality.deleteMany({ deviceId: device._id });
 
-    res.json({ message: "Device deleted successfully", device });
+    res.json({ message: 'Device deleted successfully', device });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Update device location
-app.put("/api/devices/:id/location", authenticateToken, async (req, res) => {
+app.put('/api/devices/:id/location', authenticateToken, async (req, res) => {
   try {
     const { name, city, latitude, longitude } = req.body;
 
     if (!city && (!latitude || !longitude)) {
       return res.status(400).json({
-        error: "Provide either city name or latitude/longitude",
+        error: 'Provide either city name or latitude/longitude',
       });
     }
 
@@ -408,22 +408,22 @@ app.put("/api/devices/:id/location", authenticateToken, async (req, res) => {
       { _id: req.params.id, userId: req.user.id },
       {
         $set: {
-          "location.name": name,
-          "location.city": city,
-          "location.latitude": latitude,
-          "location.longitude": longitude,
-          "location.lastUpdated": new Date(),
+          'location.name': name,
+          'location.city': city,
+          'location.latitude': latitude,
+          'location.longitude': longitude,
+          'location.lastUpdated': new Date(),
         },
       },
       { new: true }
     );
 
     if (!device) {
-      return res.status(404).json({ error: "Device not found" });
+      return res.status(404).json({ error: 'Device not found' });
     }
 
     res.json({
-      message: "Device location updated successfully",
+      message: 'Device location updated successfully',
       device,
     });
   } catch (error) {
@@ -435,7 +435,7 @@ app.put("/api/devices/:id/location", authenticateToken, async (req, res) => {
 
 // Get latest cached air quality for a specific device
 app.get(
-  "/api/devices/:id/airquality/latest",
+  '/api/devices/:id/airquality/latest',
   authenticateToken,
   async (req, res) => {
     try {
@@ -446,16 +446,18 @@ app.get(
       });
 
       if (!device) {
-        return res.status(404).json({ error: "Device not found" });
+        return res.status(404).json({ error: 'Device not found' });
       }
 
-      const latestData = await AirQuality.findOne({ deviceId: device._id })
+      const latestData = await AirQuality.findOne({
+        deviceId: device._id,
+      })
         .sort({ fetchedAt: -1 })
         .limit(1);
 
       if (!latestData) {
         return res.status(404).json({
-          error: "No air quality data found. Set device location first.",
+          error: 'No air quality data found. Set device location first.',
         });
       }
 
@@ -468,7 +470,7 @@ app.get(
 
 // Get air quality history for a specific device
 app.get(
-  "/api/devices/:id/airquality/history",
+  '/api/devices/:id/airquality/history',
   authenticateToken,
   async (req, res) => {
     try {
@@ -481,7 +483,7 @@ app.get(
       });
 
       if (!device) {
-        return res.status(404).json({ error: "Device not found" });
+        return res.status(404).json({ error: 'Device not found' });
       }
 
       const startDate = new Date();
@@ -500,7 +502,7 @@ app.get(
 );
 
 // Get air quality for ALL user's devices (dashboard view)
-app.get("/api/airquality/all", authenticateToken, async (req, res) => {
+app.get('/api/airquality/all', authenticateToken, async (req, res) => {
   try {
     const devices = await Device.find({ userId: req.user.id });
     const deviceIds = devices.map((d) => d._id);
@@ -510,7 +512,7 @@ app.get("/api/airquality/all", authenticateToken, async (req, res) => {
         const data = await AirQuality.findOne({ deviceId })
           .sort({ fetchedAt: -1 })
           .limit(1)
-          .populate("deviceId", "name location");
+          .populate('deviceId', 'name location');
         return data;
       })
     );
@@ -523,7 +525,7 @@ app.get("/api/airquality/all", authenticateToken, async (req, res) => {
 
 // Manually trigger air quality fetch for a specific device
 app.post(
-  "/api/devices/:id/airquality/fetch",
+  '/api/devices/:id/airquality/fetch',
   authenticateToken,
   async (req, res) => {
     try {
@@ -534,7 +536,7 @@ app.post(
       });
 
       if (!device) {
-        return res.status(404).json({ error: "Device not found" });
+        return res.status(404).json({ error: 'Device not found' });
       }
 
       const result = await airQualityService.updateDeviceAirQuality(device._id);
@@ -542,12 +544,12 @@ app.post(
       if (!result) {
         return res.status(400).json({
           error:
-            "Could not fetch air quality. Make sure device location is set.",
+            'Could not fetch air quality. Make sure device location is set.',
         });
       }
 
       res.json({
-        message: "Air quality data fetched successfully",
+        message: 'Air quality data fetched successfully',
         data: result,
       });
     } catch (error) {
@@ -558,13 +560,13 @@ app.post(
 
 // Admin: Manually trigger update for all devices
 app.post(
-  "/api/admin/airquality/update-all",
+  '/api/admin/airquality/update-all',
   authenticateToken,
   async (req, res) => {
     try {
       const result = await airQualityService.updateAllDevicesAirQuality();
       res.json({
-        message: "Air quality update completed",
+        message: 'Air quality update completed',
         ...result,
       });
     } catch (error) {
@@ -577,7 +579,7 @@ app.post(
 
 // Fetch air quality data (generic)
 app.get(
-  "/api/external/airquality/:city",
+  '/api/external/airquality/:city',
   authenticateToken,
   async (req, res) => {
     try {
@@ -591,7 +593,7 @@ app.get(
       res.json(response.data);
     } catch (error) {
       res.status(500).json({
-        error: "Failed to fetch external data",
+        error: 'Failed to fetch external data',
         message: error.message,
       });
     }
@@ -599,9 +601,9 @@ app.get(
 );
 
 // Generic external API proxy
-app.post("/api/external/fetch", authenticateToken, async (req, res) => {
+app.post('/api/external/fetch', authenticateToken, async (req, res) => {
   try {
-    const { url, method = "GET", headers = {}, data } = req.body;
+    const { url, method = 'GET', headers = {}, data } = req.body;
 
     const response = await axios({
       method,
@@ -613,7 +615,7 @@ app.post("/api/external/fetch", authenticateToken, async (req, res) => {
     res.json(response.data);
   } catch (error) {
     res.status(500).json({
-      error: "Failed to fetch external data",
+      error: 'Failed to fetch external data',
       message: error.message,
     });
   }
@@ -622,7 +624,7 @@ app.post("/api/external/fetch", authenticateToken, async (req, res) => {
 // ========== ERROR HANDLING ==========
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // ========== START SERVER ==========

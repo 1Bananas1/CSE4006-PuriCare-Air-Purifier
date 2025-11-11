@@ -7,7 +7,12 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["firebase", "firestore", "air-purifier", "iot"],
+  "keywords": [
+    "firebase",
+    "firestore",
+    "air-purifier",
+    "iot"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

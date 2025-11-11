@@ -79,7 +79,9 @@ async function testTimezoneSystem() {
       console.log(`  📍 ${tz.timezone}`);
       console.log(`     Devices: ${tz.deviceCount}`);
       console.log(`     Cities: ${tz.cityNames.join(', ')}`);
-      console.log(`     Last Run: ${tz.lastMidnightRun ? tz.lastMidnightRun.toDate().toISOString() : 'Never'}`);
+      console.log(
+        `     Last Run: ${tz.lastMidnightRun ? tz.lastMidnightRun.toDate().toISOString() : 'Never'}`
+      );
       console.log('');
     }
 
@@ -92,7 +94,8 @@ async function testTimezoneSystem() {
     console.log('TEST 3: Get devices in America/Chicago timezone\n');
     console.log('─'.repeat(60));
 
-    const chicagoDevices = await timezoneService.getDevicesInTimezone('America/Chicago');
+    const chicagoDevices =
+      await timezoneService.getDevicesInTimezone('America/Chicago');
 
     console.log(`Devices in America/Chicago: ${chicagoDevices.deviceCount}`);
     console.log(`Device IDs: ${chicagoDevices.devices.join(', ')}`);
@@ -108,7 +111,8 @@ async function testTimezoneSystem() {
     console.log('─'.repeat(60));
 
     console.log('Before move:');
-    const seoulBefore = await timezoneService.getDevicesInTimezone('Asia/Seoul');
+    const seoulBefore =
+      await timezoneService.getDevicesInTimezone('Asia/Seoul');
     console.log(`  Asia/Seoul devices: ${seoulBefore.deviceCount}`);
 
     // Move device
@@ -121,7 +125,8 @@ async function testTimezoneSystem() {
 
     console.log('\nAfter move:');
     const seoulAfter = await timezoneService.getDevicesInTimezone('Asia/Seoul');
-    const nyAfter = await timezoneService.getDevicesInTimezone('America/New_York');
+    const nyAfter =
+      await timezoneService.getDevicesInTimezone('America/New_York');
     console.log(`  Asia/Seoul devices: ${seoulAfter.deviceCount}`);
     console.log(`  America/New_York devices: ${nyAfter.deviceCount}`);
 
@@ -137,9 +142,15 @@ async function testTimezoneSystem() {
     const allTimezones = await timezoneService.getAllTimezones();
 
     console.log('Efficiency Metrics:');
-    console.log(`  • Midnight checks per run: ${allTimezones.length} timezones (instead of ${stats.totalDevices} devices)`);
-    console.log(`  • Reduction: ${((1 - allTimezones.length / stats.totalDevices) * 100).toFixed(1)}% fewer checks`);
-    console.log(`  • Complexity: O(${allTimezones.length}) instead of O(${stats.totalDevices})`);
+    console.log(
+      `  • Midnight checks per run: ${allTimezones.length} timezones (instead of ${stats.totalDevices} devices)`
+    );
+    console.log(
+      `  • Reduction: ${((1 - allTimezones.length / stats.totalDevices) * 100).toFixed(1)}% fewer checks`
+    );
+    console.log(
+      `  • Complexity: O(${allTimezones.length}) instead of O(${stats.totalDevices})`
+    );
     console.log('\nWith 1000 devices across 10 timezones:');
     console.log(`  • Old approach: 1000 timezone checks`);
     console.log(`  • New approach: 10 timezone checks`);
@@ -160,7 +171,6 @@ async function testTimezoneSystem() {
     console.log('\n╔════════════════════════════════════════════════════════╗');
     console.log('║              ALL TESTS PASSED ✓                        ║');
     console.log('╚════════════════════════════════════════════════════════╝\n');
-
   } catch (error) {
     console.error('\n❌ Test failed:', error);
     throw error;

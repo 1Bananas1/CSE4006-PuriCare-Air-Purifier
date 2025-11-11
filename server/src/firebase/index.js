@@ -35,13 +35,13 @@ app.use(morgan('combined'));
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: 'Too many authentication attempts, please try again later.'
+  message: 'Too many authentication attempts, please try again later.',
 });
 
 app.use('/api', limiter);
@@ -61,12 +61,12 @@ app.get('/health', async (req, res) => {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       memory: process.memoryUsage(),
-      firebase: 'connected'
+      firebase: 'connected',
     });
   } catch (error) {
     res.status(500).json({
       status: 'unhealthy',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -82,30 +82,34 @@ const axios = require('axios');
 const { authenticateFirebaseToken } = require('./middleware/auth');
 
 // Fetch air quality data from external API
-app.get('/api/external/airquality/:city', authenticateFirebaseToken, async (req, res) => {
-  try {
-    const { city } = req.params;
-    const token = process.env.AQICN_TOKEN;
+app.get(
+  '/api/external/airquality/:city',
+  authenticateFirebaseToken,
+  async (req, res) => {
+    try {
+      const { city } = req.params;
+      const token = process.env.AQICN_TOKEN;
 
-    if (!token) {
-      return res.status(500).json({
-        error: 'Configuration Error',
-        message: 'Air quality API token not configured'
+      if (!token) {
+        return res.status(500).json({
+          error: 'Configuration Error',
+          message: 'Air quality API token not configured',
+        });
+      }
+
+      const response = await axios.get(
+        `https://api.waqi.info/feed/${city}/?token=${token}`
+      );
+
+      res.json(response.data);
+    } catch (error) {
+      res.status(500).json({
+        error: 'External API Error',
+        message: error.message,
       });
     }
-
-    const response = await axios.get(
-      `https://api.waqi.info/feed/${city}/?token=${token}`
-    );
-
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({
-      error: 'External API Error',
-      message: error.message
-    });
   }
-});
+);
 
 // Generic external API proxy
 app.post('/api/external/fetch', authenticateFirebaseToken, async (req, res) => {
@@ -116,14 +120,14 @@ app.post('/api/external/fetch', authenticateFirebaseToken, async (req, res) => {
       method,
       url,
       headers,
-      data
+      data,
     });
 
     res.json(response.data);
   } catch (error) {
     res.status(500).json({
       error: 'External API Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -133,7 +137,7 @@ app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
     message: 'The requested endpoint does not exist',
-    path: req.path
+    path: req.path,
   });
 });
 
@@ -142,7 +146,7 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     error: 'Internal Server Error',
-    message: err.message
+    message: err.message,
   });
 });
 

@@ -28,19 +28,19 @@ class DeviceService {
           city: null,
           latitude: null,
           longitude: null,
-          lastUpdated: null
+          lastUpdated: null,
         },
         settings: {
           autoMode: true,
           fanSpeed: 1,
-          sensitivity: 2
+          sensitivity: 2,
         },
         status: {
           online: false,
-          lastSeen: null
+          lastSeen: null,
         },
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       const docRef = await this.devicesCollection.add(device);
@@ -100,7 +100,7 @@ class DeviceService {
         .get();
 
       const devices = [];
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         devices.push({ id: doc.id, ...doc.data() });
       });
 
@@ -126,7 +126,7 @@ class DeviceService {
 
       const updateData = {
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       await this.devicesCollection.doc(deviceDocId).update(updateData);
@@ -155,12 +155,12 @@ class DeviceService {
         city: locationData.city || device.location.city,
         latitude: locationData.latitude || device.location.latitude,
         longitude: locationData.longitude || device.location.longitude,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
 
       await this.devicesCollection.doc(deviceDocId).update({
         location,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
 
       return await this.getDeviceById(deviceDocId);
@@ -180,13 +180,16 @@ class DeviceService {
       }
 
       const status = {
-        online: statusData.online !== undefined ? statusData.online : device.status.online,
-        lastSeen: new Date().toISOString()
+        online:
+          statusData.online !== undefined
+            ? statusData.online
+            : device.status.online,
+        lastSeen: new Date().toISOString(),
       };
 
       await this.devicesCollection.doc(device.id).update({
         status,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
 
       return await this.getDeviceById(device.id);

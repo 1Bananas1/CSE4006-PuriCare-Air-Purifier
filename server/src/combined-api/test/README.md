@@ -24,6 +24,7 @@ node test/setupTestData.js
 ```
 
 This will create three test devices:
+
 - `TEST-DEVICE-001` (PuriCare X1)
 - `TEST-DEVICE-002` (PuriCare X2 Pro)
 - `TEST-DEVICE-003` (PuriCare Mini)
@@ -35,6 +36,7 @@ node test/testDeviceRegistration.js
 ```
 
 This will:
+
 - Create a test user (if needed)
 - Generate an auth token
 - Attempt to register `TEST-DEVICE-001` to that user
@@ -63,22 +65,27 @@ node test/testDeviceRegistration.js <user-id-from-above> TEST-DEVICE-001
 ## Test Scripts
 
 ### `setupTestData.js`
+
 Creates test devices in Firebase's `masterDeviceList` collection. Run this first!
 
 **Usage:**
+
 ```bash
 node test/setupTestData.js
 ```
 
 ### `testDeviceRegistration.js`
+
 Tests the `/api/devices/register` endpoint end-to-end.
 
 **Usage:**
+
 ```bash
 node test/testDeviceRegistration.js [user-id] [device-id]
 ```
 
 **Examples:**
+
 ```bash
 # Use defaults
 node test/testDeviceRegistration.js
@@ -91,14 +98,17 @@ node test/testDeviceRegistration.js john-doe-123 TEST-DEVICE-002
 ```
 
 ### `createTestUser.js`
+
 Creates a test user in Firebase Authentication.
 
 **Usage:**
+
 ```bash
 node test/createTestUser.js [email]
 ```
 
 **Examples:**
+
 ```bash
 # Generate a random test user
 node test/createTestUser.js
@@ -108,9 +118,11 @@ node test/createTestUser.js test@example.com
 ```
 
 ### `generateTestToken.js`
+
 Generates a custom Firebase token for a user ID (advanced usage).
 
 **Usage:**
+
 ```bash
 node test/generateTestToken.js [user-id]
 ```
@@ -118,6 +130,7 @@ node test/generateTestToken.js [user-id]
 ## Expected Test Results
 
 ### ✅ Success (Status 201)
+
 ```json
 {
   "success": true,
@@ -126,6 +139,7 @@ node test/generateTestToken.js [user-id]
 ```
 
 ### ❌ Device Already Claimed (Status 409)
+
 ```json
 {
   "error": "This device has already been registered."
@@ -133,6 +147,7 @@ node test/generateTestToken.js [user-id]
 ```
 
 ### ❌ Invalid Device ID (Status 400)
+
 ```json
 {
   "error": "Invalid device ID. The device does not exist in our system."
@@ -140,6 +155,7 @@ node test/generateTestToken.js [user-id]
 ```
 
 ### ❌ Unauthorized (Status 401)
+
 ```json
 {
   "error": "Unauthorized"
@@ -149,18 +165,22 @@ node test/generateTestToken.js [user-id]
 ## Troubleshooting
 
 ### "Device not found" error
+
 - Run `node test/setupTestData.js` to create test devices
 - Check that the device ID exists in Firebase Console → Firestore → `masterDeviceList`
 
 ### "Already registered" error
+
 - Run `node test/setupTestData.js` again to reset the devices
 - Or manually set `claimedAt: null` in Firebase Console
 
 ### "Unauthorized" error
+
 - Check that your `.env` file has correct Firebase credentials
 - Make sure the auth middleware in `middleware/auth.js` is working correctly
 
 ### Server not responding
+
 - Make sure the server is running: `npm run dev`
 - Check that it's running on port 3020 (or update `API_URL` in the test script)
 
@@ -169,11 +189,13 @@ node test/generateTestToken.js [user-id]
 If you prefer to test manually:
 
 1. Get a token:
+
 ```bash
 node test/generateTestToken.js my-user-id
 ```
 
 2. Use the token with cURL:
+
 ```bash
 curl -X POST http://localhost:3020/api/devices/register \
   -H "Content-Type: application/json" \
@@ -201,6 +223,7 @@ When a device is successfully registered:
 ## Next Steps
 
 After successful testing:
+
 1. Test with your actual mobile app or frontend
 2. Create real device entries in `masterDeviceList` (not TEST- prefixed)
 3. Set up proper user authentication in your app

@@ -124,11 +124,13 @@ npm install
 ### 6. Run the Server
 
 Development mode (with auto-reload):
+
 ```bash
 npm run dev
 ```
 
 Production mode:
+
 ```bash
 npm start
 ```
@@ -138,6 +140,7 @@ npm start
 ### Authentication
 
 #### Register User
+
 **Note**: Users should first register using Firebase Auth SDK on the client, then call this endpoint to create their Firestore profile.
 
 ```http
@@ -152,12 +155,14 @@ Content-Type: application/json
 ```
 
 #### Get User Profile
+
 ```http
 GET /auth/me
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Update User Profile
+
 ```http
 PUT /auth/me
 Authorization: Bearer <firebase-id-token>
@@ -169,6 +174,7 @@ Content-Type: application/json
 ```
 
 #### Verify Token
+
 ```http
 GET /auth/verify
 Authorization: Bearer <firebase-id-token>
@@ -177,6 +183,7 @@ Authorization: Bearer <firebase-id-token>
 ### Device Management
 
 #### Register Device
+
 ```http
 POST /api/devices
 Authorization: Bearer <firebase-id-token>
@@ -195,18 +202,21 @@ Content-Type: application/json
 ```
 
 #### Get All User Devices
+
 ```http
 GET /api/devices
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Get Specific Device
+
 ```http
 GET /api/devices/:id
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Update Device
+
 ```http
 PUT /api/devices/:id
 Authorization: Bearer <firebase-id-token>
@@ -223,6 +233,7 @@ Content-Type: application/json
 ```
 
 #### Update Device Location
+
 ```http
 PUT /api/devices/:id/location
 Authorization: Bearer <firebase-id-token>
@@ -237,6 +248,7 @@ Content-Type: application/json
 ```
 
 #### Delete Device
+
 ```http
 DELETE /api/devices/:id
 Authorization: Bearer <firebase-id-token>
@@ -245,6 +257,7 @@ Authorization: Bearer <firebase-id-token>
 ### Environment Data
 
 #### Upload Data from Device
+
 **Note**: This endpoint uses API key authentication for IoT devices.
 
 ```http
@@ -270,6 +283,7 @@ Content-Type: application/json
 ```
 
 #### Batch Upload (Multiple Readings)
+
 ```http
 POST /api/data/upload/batch
 X-API-Key: <device-api-key>
@@ -295,6 +309,7 @@ Content-Type: application/json
 ```
 
 #### Device Ping (Health Check)
+
 ```http
 POST /api/data/ping
 X-API-Key: <device-api-key>
@@ -306,24 +321,28 @@ Content-Type: application/json
 ```
 
 #### Get Latest Environment Data
+
 ```http
 GET /api/devices/:id/environment/latest
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Get Environment Data History
+
 ```http
 GET /api/devices/:id/environment/history?days=7&limit=100
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Get Device Statistics
+
 ```http
 GET /api/devices/:id/statistics?days=7
 Authorization: Bearer <firebase-id-token>
 ```
 
 #### Get Dashboard (All Devices Latest Data)
+
 ```http
 GET /api/devices/all/environment
 Authorization: Bearer <firebase-id-token>
@@ -332,6 +351,7 @@ Authorization: Bearer <firebase-id-token>
 ### External API
 
 #### Fetch Air Quality for City
+
 ```http
 GET /api/external/airquality/:city
 Authorization: Bearer <firebase-id-token>
@@ -346,7 +366,11 @@ Authorization: Bearer <firebase-id-token>
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 const auth = getAuth();
-const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+const userCredential = await createUserWithEmailAndPassword(
+  auth,
+  email,
+  password
+);
 const user = userCredential.user;
 
 // 2. Register user in Firestore via API
@@ -356,8 +380,8 @@ const response = await fetch('http://localhost:3001/auth/register', {
   body: JSON.stringify({
     uid: user.uid,
     email: user.email,
-    username: 'johndoe'
-  })
+    username: 'johndoe',
+  }),
 });
 
 // 3. Make authenticated requests
@@ -365,8 +389,8 @@ const idToken = await user.getIdToken();
 
 const devicesResponse = await fetch('http://localhost:3001/api/devices', {
   headers: {
-    'Authorization': `Bearer ${idToken}`
-  }
+    Authorization: `Bearer ${idToken}`,
+  },
 });
 ```
 
@@ -410,6 +434,7 @@ print(f"Response: {response.json()}")
 ## Firestore Data Structure
 
 ### Users Collection
+
 ```
 users/{userId}
   ├── uid: string
@@ -421,6 +446,7 @@ users/{userId}
 ```
 
 ### Devices Collection
+
 ```
 devices/{deviceId}
   ├── userId: string
@@ -447,6 +473,7 @@ devices/{deviceId}
 ```
 
 ### Environment Data Collection
+
 ```
 environmentData/{dataId}
   ├── deviceId: string (Firestore doc ID)
@@ -493,16 +520,19 @@ If you're migrating from the existing MongoDB API:
 ## Troubleshooting
 
 ### Error: "Firebase initialization error"
+
 - Check service account key path
 - Verify environment variables are set correctly
 - Ensure Firebase project exists
 
 ### Error: "Invalid or expired token"
+
 - Token may be expired (Firebase tokens expire after 1 hour)
 - User needs to re-authenticate
 - Verify token is being sent correctly
 
 ### Error: "Device not found"
+
 - Ensure device is registered first
 - Check deviceId matches exactly
 - Verify user owns the device

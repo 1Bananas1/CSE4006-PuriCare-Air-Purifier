@@ -9,6 +9,7 @@ This system implements an efficient timezone-based approach to managing devices 
 ### Collections
 
 #### 1. **timezones** Collection
+
 Stores timezone information and device groupings.
 
 ```javascript
@@ -25,6 +26,7 @@ Stores timezone information and device groupings.
 ```
 
 #### 2. **devices** Collection
+
 Stores individual device information (existing collection, enhanced).
 
 ```javascript
@@ -47,11 +49,11 @@ Stores individual device information (existing collection, enhanced).
 
 ### Complexity Reduction
 
-| Scenario | Old Approach | New Approach | Improvement |
-|----------|-------------|--------------|-------------|
-| 100 devices in 5 timezones | O(100) | O(5) | **20x faster** |
-| 1,000 devices in 10 timezones | O(1000) | O(10) | **100x faster** |
-| 10,000 devices in 38 timezones | O(10000) | O(38) | **263x faster** |
+| Scenario                       | Old Approach | New Approach | Improvement     |
+| ------------------------------ | ------------ | ------------ | --------------- |
+| 100 devices in 5 timezones     | O(100)       | O(5)         | **20x faster**  |
+| 1,000 devices in 10 timezones  | O(1000)      | O(10)        | **100x faster** |
+| 10,000 devices in 38 timezones | O(10000)     | O(38)        | **263x faster** |
 
 ### Why It's Faster
 
@@ -67,6 +69,7 @@ Stores individual device information (existing collection, enhanced).
 Manages timezone collection and device groupings.
 
 **Key Methods:**
+
 - `addDeviceToTimezone(deviceId, cityName, timezone)` - Add device to timezone group
 - `removeDeviceFromTimezone(deviceId, timezone)` - Remove device from timezone group
 - `updateDeviceTimezone(deviceId, oldTz, newTz, cityName)` - Move device between timezones
@@ -75,6 +78,7 @@ Manages timezone collection and device groupings.
 - `getTimezoneStats()` - Get distribution statistics
 
 **Static Methods:**
+
 - `getTimezoneFromCity(cityName, lat, lng)` - Convert city/coordinates to timezone
 
 ### 2. DeviceRegistrationHelper ([deviceRegistrationHelper.js](services/deviceRegistrationHelper.js))
@@ -82,6 +86,7 @@ Manages timezone collection and device groupings.
 Handles device registration with automatic timezone management.
 
 **Key Methods:**
+
 - `registerDevice(deviceData)` - Register new device (auto-adds to timezone)
 - `unregisterDevice(deviceId)` - Unregister device (auto-removes from timezone)
 - `bulkRegisterDevices(devicesArray)` - Register multiple devices at once
@@ -92,6 +97,7 @@ Handles device registration with automatic timezone management.
 Timezone-aware midnight execution system.
 
 **Features:**
+
 - Checks timezones instead of individual devices
 - Detects midnight in 30-minute window (23:45-00:14)
 - Prevents duplicate executions on the same day
@@ -110,10 +116,10 @@ const helper = new DeviceRegistrationHelper();
 await helper.registerDevice({
   deviceId: 'device-seoul-001',
   cityName: 'Seoul',
-  latitude: 37.5665,        // Optional
-  longitude: 126.9780,      // Optional
+  latitude: 37.5665, // Optional
+  longitude: 126.978, // Optional
   userId: 'user123',
-  metadata: { model: 'PuriCare-X1' }
+  metadata: { model: 'PuriCare-X1' },
 });
 ```
 
@@ -125,9 +131,9 @@ const TimezoneService = require('./services/timezoneService');
 const service = new TimezoneService();
 
 const result = await service.getDevicesInTimezone('America/Chicago');
-console.log(result.devices);      // ["device1", "device2"]
-console.log(result.cityNames);    // ["Chicago", "Dallas"]
-console.log(result.deviceCount);  // 2
+console.log(result.devices); // ["device1", "device2"]
+console.log(result.cityNames); // ["Chicago", "Dallas"]
+console.log(result.deviceCount); // 2
 ```
 
 ### Run Midnight Routine
@@ -138,6 +144,7 @@ npm run midnight
 ```
 
 Output:
+
 ```
 === MIDNIGHT ROUTINE CHECK ===
 Started at: 2025-11-08T10:00:00.000Z
@@ -186,6 +193,7 @@ npm run test-timezones
 ```
 
 This will:
+
 1. Register sample devices across multiple timezones
 2. Display timezone distribution
 3. Test device relocation (timezone changes)
@@ -226,10 +234,12 @@ Then uncomment lines in [timezoneService.js:20-23](services/timezoneService.js#L
 ## Midnight Routine Window
 
 The system considers it "midnight" during a **30-minute window**:
+
 - **23:45 - 23:59** (15 minutes before midnight)
 - **00:00 - 00:14** (15 minutes after midnight)
 
 This provides:
+
 - **Flexibility** for cron jobs that don't run exactly at midnight
 - **Reliability** if a check fails and retries within the window
 - **Single execution** per day via `lastMidnightRun` tracking
@@ -260,7 +270,7 @@ for (const deviceId of deviceIds) {
   // Example 1: Reset daily counters
   await deviceDoc.ref.update({
     dailyAirQualityReadings: 0,
-    dailyFilterUsage: 0
+    dailyFilterUsage: 0,
   });
 
   // Example 2: Generate daily report
@@ -272,12 +282,13 @@ for (const deviceId of deviceIds) {
   }
 
   // Example 4: Clean up old data
-  await db.collection('sensorReadings')
+  await db
+    .collection('sensorReadings')
     .where('deviceId', '==', deviceId)
     .where('timestamp', '<', thirtyDaysAgo)
     .get()
-    .then(snapshot => {
-      snapshot.forEach(doc => doc.ref.delete());
+    .then((snapshot) => {
+      snapshot.forEach((doc) => doc.ref.delete());
     });
 }
 ```
@@ -373,7 +384,7 @@ await helper.registerDevice({
   deviceId: 'device-001',
   cityName: 'Correct City Name',
   latitude: correctLat,
-  longitude: correctLng
+  longitude: correctLng,
 });
 ```
 
@@ -428,7 +439,7 @@ if (oldTimezone !== newTimezone) {
     type: 'timezone_changed',
     deviceId,
     oldTimezone,
-    newTimezone
+    newTimezone,
   });
 }
 ```

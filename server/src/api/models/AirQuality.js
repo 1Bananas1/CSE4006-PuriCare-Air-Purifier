@@ -1,15 +1,15 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const airQualitySchema = new mongoose.Schema(
   {
     deviceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Device",
+      ref: 'Device',
       required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     location: {
@@ -45,4 +45,4 @@ const airQualitySchema = new mongoose.Schema(
 airQualitySchema.index({ deviceId: 1, fetchedAt: -1 });
 airQualitySchema.index({ userId: 1, fetchedAt: -1 });
 
-module.exports = mongoose.model("AirQuality", airQualitySchema);
+module.exports = mongoose.model('AirQuality', airQualitySchema);

@@ -35,11 +35,11 @@ class EnvironmentService {
           humidity: environmentData.humidity || null,
           pressure: environmentData.pressure || null,
           // You can add more sensor data here
-          raw: environmentData.raw || null
+          raw: environmentData.raw || null,
         },
         location: device.location,
         timestamp: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       const docRef = await this.environmentCollection.add(data);
@@ -114,7 +114,7 @@ class EnvironmentService {
         .get();
 
       const history = [];
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         history.push({ id: doc.id, ...doc.data() });
       });
 
@@ -140,14 +140,14 @@ class EnvironmentService {
         if (snapshot.empty) {
           return {
             device,
-            data: null
+            data: null,
           };
         }
 
         const doc = snapshot.docs[0];
         return {
           device,
-          data: { id: doc.id, ...doc.data() }
+          data: { id: doc.id, ...doc.data() },
         };
       });
 
@@ -169,7 +169,7 @@ class EnvironmentService {
         .get();
 
       const batch = this.db.batch();
-      snapshot.docs.forEach(doc => {
+      snapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
 
@@ -177,7 +177,7 @@ class EnvironmentService {
 
       return {
         success: true,
-        deletedCount: snapshot.size
+        deletedCount: snapshot.size,
       };
     } catch (error) {
       console.error('Error deleting old data:', error);
@@ -214,16 +214,19 @@ class EnvironmentService {
 
       // Calculate statistics
       const dataPoints = [];
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         dataPoints.push(doc.data());
       });
 
       const stats = {
         count: dataPoints.length,
-        period: { start: startDate.toISOString(), end: new Date().toISOString() },
+        period: {
+          start: startDate.toISOString(),
+          end: new Date().toISOString(),
+        },
         averages: this.calculateAverages(dataPoints),
         min: this.calculateMin(dataPoints),
-        max: this.calculateMax(dataPoints)
+        max: this.calculateMax(dataPoints),
       };
 
       return stats;
@@ -238,10 +241,10 @@ class EnvironmentService {
     const fields = ['aqi', 'pm25', 'pm10', 'temperature', 'humidity'];
     const averages = {};
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const values = dataPoints
-        .map(d => d.data[field])
-        .filter(v => v !== null && v !== undefined);
+        .map((d) => d.data[field])
+        .filter((v) => v !== null && v !== undefined);
 
       if (values.length > 0) {
         averages[field] = values.reduce((a, b) => a + b, 0) / values.length;
@@ -258,10 +261,10 @@ class EnvironmentService {
     const fields = ['aqi', 'pm25', 'pm10', 'temperature', 'humidity'];
     const min = {};
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const values = dataPoints
-        .map(d => d.data[field])
-        .filter(v => v !== null && v !== undefined);
+        .map((d) => d.data[field])
+        .filter((v) => v !== null && v !== undefined);
 
       if (values.length > 0) {
         min[field] = Math.min(...values);
@@ -278,10 +281,10 @@ class EnvironmentService {
     const fields = ['aqi', 'pm25', 'pm10', 'temperature', 'humidity'];
     const max = {};
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const values = dataPoints
-        .map(d => d.data[field])
-        .filter(v => v !== null && v !== undefined);
+        .map((d) => d.data[field])
+        .filter((v) => v !== null && v !== undefined);
 
       if (values.length > 0) {
         max[field] = Math.max(...values);

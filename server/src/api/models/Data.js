@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const dataSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     title: {
@@ -22,4 +22,4 @@ const dataSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-module.exports = mongoose.model("Data", dataSchema);
+module.exports = mongoose.model('Data', dataSchema);

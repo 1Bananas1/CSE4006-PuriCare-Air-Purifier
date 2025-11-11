@@ -16,13 +16,13 @@ server/
 
 ### ✅ What You Have Built
 
-| Component | Status | Technology | Port | Description |
-|-----------|--------|------------|------|-------------|
-| **Firebase API** | ✅ Complete | Firebase Admin SDK + Firestore | 3001 | Main backend with Google Auth |
-| **MongoDB API** | ⚠️ Legacy | MongoDB + Mongoose + JWT | 3000 | Old REST API (pre-Firebase decision) |
-| **AQI Service** | 🟡 Partial | Integrated in MongoDB API | - | Air quality fetching service |
-| **locationAirQuality Route** | 🔴 Empty | - | - | Only 2 lines, needs implementation |
-| **Hardware Simulator** | 🔴 Missing | - | - | Not yet created |
+| Component                    | Status      | Technology                     | Port | Description                          |
+| ---------------------------- | ----------- | ------------------------------ | ---- | ------------------------------------ |
+| **Firebase API**             | ✅ Complete | Firebase Admin SDK + Firestore | 3001 | Main backend with Google Auth        |
+| **MongoDB API**              | ⚠️ Legacy   | MongoDB + Mongoose + JWT       | 3000 | Old REST API (pre-Firebase decision) |
+| **AQI Service**              | 🟡 Partial  | Integrated in MongoDB API      | -    | Air quality fetching service         |
+| **locationAirQuality Route** | 🔴 Empty    | -                              | -    | Only 2 lines, needs implementation   |
+| **Hardware Simulator**       | 🔴 Missing  | -                              | -    | Not yet created                      |
 
 ---
 
@@ -33,6 +33,7 @@ server/
 **Status**: ✅ **PRODUCTION READY** - This is your main backend
 
 **Technology Stack**:
+
 - Firebase Admin SDK (for Firestore database)
 - Firebase Authentication (Google OAuth, Email/Password)
 - Express.js (REST API framework)
@@ -41,6 +42,7 @@ server/
 **Port**: 3001
 
 **Features Implemented**:
+
 - ✅ User authentication (Firebase Auth with Google Sign-In)
 - ✅ User profile management (`/auth/register`, `/auth/me`, `/auth/verify`)
 - ✅ Device registration & management (max 6 per user)
@@ -51,6 +53,7 @@ server/
 - ✅ Comprehensive documentation ([FIREBASE_API_GUIDE.md](FIREBASE_API_GUIDE.md))
 
 **Key Files**:
+
 ```
 server/src/firebase/
 ├── index.js                     - Main server entry point
@@ -68,16 +71,19 @@ server/src/firebase/
 ```
 
 **Firestore Collections**:
+
 - `users/` - User profiles
 - `devices/` - Device registrations
 - `environmentData/` - Sensor readings & health events
 - `locationAirQuality/` - **External AQI data (NOT YET POPULATED)**
 
 **Authentication**:
+
 1. **Firebase ID Token** (users): `Authorization: Bearer <token>`
 2. **API Key** (devices): `X-API-Key: <key>`
 
 **What's Missing**:
+
 - ❌ No external AQI data fetching (Firebase free tier can't make external API calls)
 - ❌ `locationAirQuality/` collection is empty
 - ❌ No scheduled jobs to update air quality data
@@ -90,6 +96,7 @@ server/src/firebase/
 **Status**: ⚠️ **LEGACY / TO BE REFACTORED OR REMOVED**
 
 **Technology Stack**:
+
 - MongoDB + Mongoose (traditional NoSQL database)
 - JWT Authentication (manual token management)
 - Express.js
@@ -99,12 +106,14 @@ server/src/firebase/
 
 **Why It Exists**:
 You built this **BEFORE** deciding to use Firebase. It has similar functionality but uses:
+
 - MongoDB instead of Firestore
 - JWT tokens instead of Firebase Auth
 - bcryptjs for password hashing
 - mongoose for database modeling
 
 **Features Implemented**:
+
 - ✅ User registration & login (JWT-based)
 - ✅ User management
 - ✅ Device registration & management
@@ -114,6 +123,7 @@ You built this **BEFORE** deciding to use Firebase. It has similar functionality
 - ✅ Scheduled updates capability (node-cron installed)
 
 **Key Files**:
+
 ```
 server/src/api/
 ├── index.js                        - Main server (632 lines)
@@ -130,6 +140,7 @@ server/src/api/
 ```
 
 **What's Valuable Here**:
+
 - ⭐⭐⭐ **`airQuaityService.js`** - Complete air quality fetching service:
   - Fetches from WAQI API by city or coordinates
   - Saves to MongoDB cache
@@ -144,6 +155,7 @@ server/src/api/
   - `/api/admin/airquality/update-all`
 
 **What's Redundant**:
+
 - ❌ User authentication (duplicate of Firebase API)
 - ❌ Device management (duplicate of Firebase API)
 - ❌ Generic data operations (not needed for your use case)
@@ -158,6 +170,7 @@ server/src/api/
 This is a **well-implemented service** that does exactly what API 1 needs to do:
 
 **Features**:
+
 ```javascript
 class AirQualityService {
   // Fetch by city name
@@ -178,12 +191,14 @@ class AirQualityService {
 ```
 
 **How It Works**:
+
 1. Fetches from WAQI API: `https://api.waqi.info/feed/{city}/?token={token}`
 2. Parses response: `{ aqi, pm25, pm10, o3, no2, so2, co, dominentpol, iaqi }`
 3. Saves to database cache
 4. Adds 1-second delay between requests to avoid rate limiting
 
 **Current Implementation** (MongoDB):
+
 ```javascript
 const airQuality = new AirQuality({
   deviceId,
@@ -195,7 +210,7 @@ const airQuality = new AirQuality({
     pm10: apiData.iaqi?.pm10?.v,
     // ... etc
   },
-  fetchedAt: new Date()
+  fetchedAt: new Date(),
 });
 await airQuality.save();
 ```
@@ -210,8 +225,9 @@ Instead of saving to MongoDB `AirQuality` collection, it should save to Firestor
 **Status**: 🔴 **EMPTY - NEEDS IMPLEMENTATION**
 
 **Current Content**:
+
 ```javascript
-const express = require("express");
+const express = require('express');
 // That's it. Only 2 lines.
 ```
 
@@ -226,6 +242,7 @@ This was **intended** to be your API 1 (AQI Proxy), but you never finished it.
 **Approach**: Take the working `airQuaityService.js` and adapt it for Firebase.
 
 **Steps**:
+
 1. Copy `server/src/api/services/airQuaityService.js` → `server/src/firebase/services/airQualityProxyService.js`
 2. Replace MongoDB calls with Firestore calls
 3. Create scheduled job to run `updateAllDevicesAirQuality()` every 2 hours
@@ -233,16 +250,19 @@ This was **intended** to be your API 1 (AQI Proxy), but you never finished it.
 5. Remove MongoDB dependency
 
 **Pros**:
+
 - ✅ Reuse existing, tested code
 - ✅ Air quality logic already works
 - ✅ Minimal new code needed
 - ✅ Stay within Firebase ecosystem
 
 **Cons**:
+
 - ❌ Still can't run scheduled jobs in Firebase (free tier limitation)
 
 **Workaround**:
 Run scheduled job as a separate Node.js script that:
+
 - Uses Firebase Admin SDK
 - Runs on your local machine or a free server (Render, Railway, etc.)
 - Updates Firestore every 2 hours
@@ -254,6 +274,7 @@ Run scheduled job as a separate Node.js script that:
 **Approach**: Create a separate Express service (`server/src/aqi-proxy/`) that runs independently.
 
 **Steps**:
+
 1. Create new project: `server/src/aqi-proxy/`
 2. Copy `airQuaityService.js` as-is
 3. Add Firebase Admin SDK to write to Firestore
@@ -262,6 +283,7 @@ Run scheduled job as a separate Node.js script that:
 6. Add scheduled job (node-cron)
 
 **Pros**:
+
 - ✅ Can make external API calls
 - ✅ Can run scheduled jobs
 - ✅ Independent from Firebase API
@@ -269,6 +291,7 @@ Run scheduled job as a separate Node.js script that:
 - ✅ Can use Redis for better caching
 
 **Cons**:
+
 - ❌ Need to deploy another service
 - ❌ More infrastructure to maintain
 
@@ -279,10 +302,12 @@ Run scheduled job as a separate Node.js script that:
 **Approach**: Keep MongoDB API for air quality, Firebase API for everything else.
 
 **Pros**:
+
 - ✅ Minimal changes needed
 - ✅ Air quality service already works
 
 **Cons**:
+
 - ❌ Two databases (MongoDB + Firestore) - complexity
 - ❌ Duplicate code (users, devices in both)
 - ❌ Higher costs (2 databases)
@@ -295,6 +320,7 @@ Run scheduled job as a separate Node.js script that:
 ### 🎯 **Option A + Standalone Script** (Best of Both Worlds)
 
 **Architecture**:
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │  Firebase API (server/src/firebase/)                   │
@@ -330,6 +356,7 @@ Run scheduled job as a separate Node.js script that:
 **Implementation**:
 
 1. **Create AQI Update Script**:
+
 ```javascript
 // server/src/scripts/updateAQI.js
 const admin = require('firebase-admin');
@@ -338,7 +365,9 @@ const cron = require('node-cron');
 
 // Initialize Firebase
 admin.initializeApp({
-  credential: admin.credential.cert(require('../firebase/cse4006-c9446422bcd5.json'))
+  credential: admin.credential.cert(
+    require('../firebase/cse4006-c9446422bcd5.json')
+  ),
 });
 
 const db = admin.firestore();
@@ -359,7 +388,7 @@ async function fetchAndCacheAQI(city) {
       dominentpol: data.dominentpol,
       iaqi: data.iaqi,
       time: data.time,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     console.log(`✅ Updated AQI for ${city}: ${data.aqi}`);
@@ -375,7 +404,7 @@ async function updateAllLocations() {
   const usersSnapshot = await db.collection('users').get();
   const cities = new Set();
 
-  usersSnapshot.forEach(doc => {
+  usersSnapshot.forEach((doc) => {
     const user = doc.data();
     if (user.location && user.location.city) {
       cities.add(user.location.city);
@@ -386,7 +415,7 @@ async function updateAllLocations() {
 
   for (const city of cities) {
     await fetchAndCacheAQI(city);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limit delay
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Rate limit delay
   }
 
   console.log('✅ AQI update complete');
@@ -403,12 +432,14 @@ console.log('⏰ Updates every 2 hours');
 ```
 
 2. **Run the Script**:
+
 ```bash
 cd server/src/scripts
 node updateAQI.js
 ```
 
 3. **Deploy Options**:
+
 - **Local**: Run on your development machine
 - **Render/Railway**: Free tier with persistent container
 - **GitHub Actions**: Scheduled workflow every 2 hours
@@ -422,16 +453,19 @@ node updateAQI.js
 ### ✅ Keep (Production Code)
 
 **Firebase API** (`server/src/firebase/`):
+
 - ✅ All files - this is your main backend
 - ✅ Continue development here
 
 **MongoDB API** (`server/src/api/`):
+
 - ✅ `services/airQuaityService.js` - **COPY this to Firebase API**
 - ✅ `models/AirQuality.js` - **REFERENCE for Firestore schema**
 
 ### 🗑️ Remove (Legacy Code)
 
 **MongoDB API** (`server/src/api/`):
+
 - ❌ `index.js` - duplicate of Firebase API functionality
 - ❌ `models/Users.js` - superseded by Firebase Auth
 - ❌ `models/Device.js` - superseded by Firestore
@@ -440,6 +474,7 @@ node updateAQI.js
 - ❌ `package.json` - remove mongoose dependency after migration
 
 **Action Plan**:
+
 1. Extract `airQuaityService.js` → Adapt for Firebase
 2. Delete `server/src/api/` folder
 3. Keep only Firebase API going forward
@@ -455,6 +490,7 @@ This doesn't exist yet. You'll need to create it from scratch.
 **Recommended Location**: `server/src/hardware-simulator/`
 
 **What It Should Do**:
+
 1. Read device config from Firestore on startup
 2. Simulate realistic sensor readings (AQI, PM2.5, temp, humidity)
 3. Upload data to Firebase API every 15 seconds
@@ -500,14 +536,14 @@ This doesn't exist yet. You'll need to create it from scratch.
 
 ## Summary Table
 
-| Component | Current Status | Action Required | Priority |
-|-----------|---------------|-----------------|----------|
-| Firebase API | ✅ Complete | Keep & maintain | High |
-| MongoDB API | ⚠️ Legacy | Extract AQI service → Delete | High |
-| AQI Service | ✅ Exists (MongoDB) | Adapt for Firestore | **CRITICAL** |
-| AQI Proxy API | 🔴 Missing | Create standalone script | **CRITICAL** |
-| Hardware Simulator | 🔴 Missing | Create from scratch | High |
-| locationAirQuality route | 🔴 Empty | Not needed (use script instead) | Low |
+| Component                | Current Status      | Action Required                 | Priority     |
+| ------------------------ | ------------------- | ------------------------------- | ------------ |
+| Firebase API             | ✅ Complete         | Keep & maintain                 | High         |
+| MongoDB API              | ⚠️ Legacy           | Extract AQI service → Delete    | High         |
+| AQI Service              | ✅ Exists (MongoDB) | Adapt for Firestore             | **CRITICAL** |
+| AQI Proxy API            | 🔴 Missing          | Create standalone script        | **CRITICAL** |
+| Hardware Simulator       | 🔴 Missing          | Create from scratch             | High         |
+| locationAirQuality route | 🔴 Empty            | Not needed (use script instead) | Low          |
 
 ---
 

@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
     if (!uid || !email) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'UID and email are required'
+        message: 'UID and email are required',
       });
     }
 
@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         error: 'Conflict',
-        message: 'User already exists'
+        message: 'User already exists',
       });
     }
 
@@ -32,13 +32,13 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       message: 'User registered successfully',
-      user
+      user,
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -51,7 +51,7 @@ router.get('/me', authenticateFirebaseToken, async (req, res) => {
     if (!user) {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'User profile not found'
+        message: 'User profile not found',
       });
     }
 
@@ -60,7 +60,7 @@ router.get('/me', authenticateFirebaseToken, async (req, res) => {
     console.error('Get profile error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -77,13 +77,13 @@ router.put('/me', authenticateFirebaseToken, async (req, res) => {
 
     res.json({
       message: 'Profile updated successfully',
-      user: updatedUser
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -99,14 +99,14 @@ router.get('/verify', authenticateFirebaseToken, async (req, res) => {
         uid: req.user.uid,
         email: req.user.email,
         emailVerified: req.user.emailVerified,
-        ...user
-      }
+        ...user,
+      },
     });
   } catch (error) {
     console.error('Verify token error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -117,13 +117,13 @@ router.delete('/me', authenticateFirebaseToken, async (req, res) => {
     await userService.deleteUser(req.user.uid);
 
     res.json({
-      message: 'User account deleted successfully'
+      message: 'User account deleted successfully',
     });
   } catch (error) {
     console.error('Delete account error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -136,7 +136,7 @@ router.post('/custom-token', async (req, res) => {
     if (!uid) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'UID is required'
+        message: 'UID is required',
       });
     }
 
@@ -144,13 +144,13 @@ router.post('/custom-token', async (req, res) => {
     const customToken = await auth.createCustomToken(uid);
 
     res.json({
-      token: customToken
+      token: customToken,
     });
   } catch (error) {
     console.error('Create custom token error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });

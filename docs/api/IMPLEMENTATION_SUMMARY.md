@@ -14,15 +14,16 @@ You now have a fully functional timezone-based device management system that:
 ## 📊 Performance Improvement
 
 ### Your Original Idea
+
 > "I don't want to check every single device to see if it is midnight there, I'd rather when we register a device, check the timezone based on the city location, and instead of doing this for every single city, we only do it for every timezone"
 
 ### What We Achieved
 
-| Scenario | Before | After | Speedup |
-|----------|--------|-------|---------|
-| 10 devices, 5 timezones | Check 10 devices | Check 5 timezones | **2x faster** |
-| 100 devices, 10 timezones | Check 100 devices | Check 10 timezones | **10x faster** |
-| 1000 devices, 38 timezones | Check 1000 devices | Check 38 timezones | **26x faster** |
+| Scenario                    | Before              | After              | Speedup         |
+| --------------------------- | ------------------- | ------------------ | --------------- |
+| 10 devices, 5 timezones     | Check 10 devices    | Check 5 timezones  | **2x faster**   |
+| 100 devices, 10 timezones   | Check 100 devices   | Check 10 timezones | **10x faster**  |
+| 1000 devices, 38 timezones  | Check 1000 devices  | Check 38 timezones | **26x faster**  |
 | 10000 devices, 38 timezones | Check 10000 devices | Check 38 timezones | **263x faster** |
 
 ## 🗂️ Files Created
@@ -107,6 +108,7 @@ For each timezone:
 ### 3. Database Schema
 
 **timezones collection:**
+
 ```javascript
 {
   id: "America_Chicago",           // Encoded (slashes → underscores)
@@ -121,6 +123,7 @@ For each timezone:
 ```
 
 **devices collection:**
+
 ```javascript
 {
   id: "device-001",
@@ -157,7 +160,7 @@ await helper.registerDevice({
   deviceId: 'my-device-001',
   cityName: 'Seoul',
   userId: 'user123',
-  metadata: { model: 'PuriCare-X1' }
+  metadata: { model: 'PuriCare-X1' },
 });
 ```
 
@@ -193,6 +196,7 @@ TEST 6: Cleanup test devices ✓
 ```
 
 Current database state:
+
 - **4 timezones**: America/Chicago, America/New_York, Asia/Tokyo, Europe/London
 - **5 devices** registered across timezones
 - **100% automated** timezone management
@@ -220,6 +224,7 @@ cron.schedule('* * * * *', async () => {
 ### 2. Implement Your Midnight Logic
 
 Based on your requirements, add logic in the midnight routine to:
+
 - Reset daily air quality counters
 - Generate device reports
 - Send push notifications to users
@@ -241,7 +246,7 @@ app.post('/api/devices/register', async (req, res) => {
     deviceId,
     cityName,
     userId,
-    metadata: req.body.metadata
+    metadata: req.body.metadata,
   });
 
   res.json(result);
@@ -258,6 +263,7 @@ await helper.migrateExistingDevices();
 ```
 
 This will:
+
 - Read all existing devices
 - Determine their timezones
 - Add them to timezone collections
@@ -285,6 +291,7 @@ npm install geo-tz
 4. **Scale efficiently** as you add more devices
 
 Example:
+
 ```javascript
 for (const deviceId of deviceIds) {
   const deviceData = deviceDoc.data();

@@ -10,7 +10,7 @@ async function authenticateFirebaseToken(req, res, next) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'No token provided'
+        message: 'No token provided',
       });
     }
 
@@ -23,7 +23,7 @@ async function authenticateFirebaseToken(req, res, next) {
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      emailVerified: decodedToken.email_verified
+      emailVerified: decodedToken.email_verified,
     };
 
     next();
@@ -31,7 +31,7 @@ async function authenticateFirebaseToken(req, res, next) {
     console.error('Authentication error:', error);
     return res.status(403).json({
       error: 'Forbidden',
-      message: 'Invalid or expired token'
+      message: 'Invalid or expired token',
     });
   }
 }

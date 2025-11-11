@@ -1,11 +1,11 @@
 // models/Device.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const deviceSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     name: {
@@ -43,4 +43,4 @@ const deviceSchema = new mongoose.Schema(
 deviceSchema.index({ userId: 1 });
 deviceSchema.index({ deviceId: 1 });
 
-module.exports = mongoose.model("Device", deviceSchema);
+module.exports = mongoose.model('Device', deviceSchema);

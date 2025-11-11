@@ -1,6 +1,7 @@
 # PuriCare Firebase API - Developer Guide
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [Google Sign-In Integration](#google-sign-in-integration)
@@ -16,6 +17,7 @@
 ## Overview
 
 The PuriCare Firebase API is a RESTful backend service that manages:
+
 - User authentication (Google Sign-In, Email/Password)
 - Device registration and management (max 6 devices per user)
 - Environment data storage from Raspberry Pi sensors
@@ -25,6 +27,7 @@ The PuriCare Firebase API is a RESTful backend service that manages:
 **Base URL**: `http://localhost:3001` (development)
 
 **Tech Stack**:
+
 - Firebase Admin SDK
 - Firestore Database
 - Express.js
@@ -83,6 +86,7 @@ The PuriCare Firebase API is a RESTful backend service that manages:
 ### Why Google Sign-In?
 
 Google Sign-In provides:
+
 - ✅ Trusted authentication without password management
 - ✅ User profile data (email, name, photo)
 - ✅ Multi-user household support
@@ -91,12 +95,14 @@ Google Sign-In provides:
 ### Two-Database Architecture
 
 **Firebase Authentication** (Managed by Firebase):
+
 - Handles OAuth flow with Google
 - Stores authentication tokens
 - Validates ID tokens
 - Visible in: Firebase Console > Authentication > Users
 
 **Firestore Database** (Managed by your API):
+
 - Stores user profile and health preferences
 - Stores devices and environment data
 - You control the schema and data
@@ -105,6 +111,7 @@ Google Sign-In provides:
 ### Important Note
 
 When a user signs in with Google:
+
 1. ✅ Firebase Auth **automatically** creates a user record
 2. ❌ Firestore Database **does NOT** automatically create a user document
 3. ✅ You **must** call `/auth/register` to create the Firestore user profile
@@ -230,6 +237,7 @@ Navigate to Home Page
 **Authentication**: Optional (but recommended to include Firebase ID token)
 
 **Request Body**:
+
 ```json
 {
   "uid": "firebase-user-uid",
@@ -240,7 +248,7 @@ Navigate to Home Page
     "city": "Seoul",
     "country": "South Korea",
     "latitude": 37.5665,
-    "longitude": 126.9780
+    "longitude": 126.978
   },
   "phone": "+82-10-1234-5678",
   "dob": "1990-01-15",
@@ -263,10 +271,12 @@ Navigate to Home Page
 ```
 
 **Required Fields**:
+
 - `uid` (string) - Firebase user ID
 - `email` (string) - User email address
 
 **Optional Fields**:
+
 - `username` (string) - Display name (defaults to email prefix)
 - `photoURL` (string) - Profile photo URL
 - `location` (object) - User's home location
@@ -279,6 +289,7 @@ Navigate to Home Page
 - `preferredHumidity` (object) - Preferred humidity range
 
 **Response** (201 Created):
+
 ```json
 {
   "message": "User registered successfully",
@@ -296,6 +307,7 @@ Navigate to Home Page
 ```
 
 **Error Responses**:
+
 - `400 Bad Request` - Missing required fields (uid, email)
 - `409 Conflict` - User already exists
 - `500 Internal Server Error` - Database error
@@ -311,11 +323,13 @@ Navigate to Home Page
 **Authentication**: Required (Firebase ID Token)
 
 **Headers**:
+
 ```
 Authorization: Bearer <firebase-id-token>
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "abc123",
@@ -327,7 +341,7 @@ Authorization: Bearer <firebase-id-token>
     "city": "Seoul",
     "country": "South Korea",
     "latitude": 37.5665,
-    "longitude": 126.9780
+    "longitude": 126.978
   },
   "phone": "+82-10-1234-5678",
   "respiratorySensitivities": ["pollen", "dust"],
@@ -351,6 +365,7 @@ Authorization: Bearer <firebase-id-token>
 ```
 
 **Error Responses**:
+
 - `401 Unauthorized` - No token provided
 - `403 Forbidden` - Invalid or expired token
 - `404 Not Found` - User profile not found in Firestore
@@ -367,11 +382,13 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Headers**:
+
 ```
 Authorization: Bearer <firebase-id-token>
 ```
 
 **Request Body** (all fields optional):
+
 ```json
 {
   "username": "New Name",
@@ -388,6 +405,7 @@ Authorization: Bearer <firebase-id-token>
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "message": "Profile updated successfully",
@@ -412,6 +430,7 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "valid": true,
@@ -438,6 +457,7 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Request Body**:
+
 ```json
 {
   "deviceId": "DEVICE-001",
@@ -446,12 +466,13 @@ Authorization: Bearer <firebase-id-token>
     "name": "Living Room",
     "city": "Seoul",
     "latitude": 37.5665,
-    "longitude": 126.9780
+    "longitude": 126.978
   }
 }
 ```
 
 **Response** (201 Created):
+
 ```json
 {
   "message": "Device registered successfully",
@@ -476,6 +497,7 @@ Authorization: Bearer <firebase-id-token>
 ```
 
 **Error Responses**:
+
 - `400 Bad Request` - Missing deviceId or name
 - `409 Conflict` - Device ID already registered
 - `500 Internal Server Error` - Database error
@@ -491,6 +513,7 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "count": 2,
@@ -528,9 +551,11 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **URL Parameters**:
+
 - `id` - Firestore document ID (not hardware deviceId)
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "device-doc-id-1",
@@ -544,6 +569,7 @@ Authorization: Bearer <firebase-id-token>
 ```
 
 **Error Responses**:
+
 - `403 Forbidden` - Device does not belong to user
 - `404 Not Found` - Device not found
 
@@ -558,6 +584,7 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Request Body**:
+
 ```json
 {
   "name": "Master Bedroom Purifier",
@@ -570,6 +597,7 @@ Authorization: Bearer <firebase-id-token>
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "message": "Device updated successfully",
@@ -588,16 +616,18 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Request Body**:
+
 ```json
 {
   "name": "Office",
   "city": "Seoul",
   "latitude": 37.5665,
-  "longitude": 126.9780
+  "longitude": 126.978
 }
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "message": "Device location updated successfully",
@@ -616,6 +646,7 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "message": "Device deleted successfully",
@@ -636,12 +667,14 @@ Authorization: Bearer <firebase-id-token>
 **Authentication**: API Key (X-API-Key header)
 
 **Headers**:
+
 ```
 X-API-Key: your-device-api-key
 Content-Type: application/json
 ```
 
 **Request Body**:
+
 ```json
 {
   "deviceId": "DEVICE-001",
@@ -665,10 +698,12 @@ Content-Type: application/json
 ```
 
 **Health Event Fields** (from ML model):
+
 - `eventType` (string) - "cough", "sneeze", "sniff", "snore", or null
 - `confidence` (number) - ML model confidence score (0-1)
 
 **Response** (201 Created):
+
 ```json
 {
   "message": "Environment data stored successfully",
@@ -678,6 +713,7 @@ Content-Type: application/json
 ```
 
 **Error Responses**:
+
 - `401 Unauthorized` - Invalid API key
 - `404 Not Found` - Device not registered
 
@@ -692,6 +728,7 @@ Content-Type: application/json
 **Authentication**: API Key (X-API-Key header)
 
 **Request Body**:
+
 ```json
 {
   "deviceId": "DEVICE-001",
@@ -714,6 +751,7 @@ Content-Type: application/json
 ```
 
 **Response** (201 Created):
+
 ```json
 {
   "message": "Stored 2 of 2 readings",
@@ -745,6 +783,7 @@ Content-Type: application/json
 **Authentication**: API Key (X-API-Key header)
 
 **Request Body**:
+
 ```json
 {
   "deviceId": "DEVICE-001"
@@ -752,6 +791,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "message": "Ping received",
@@ -770,6 +810,7 @@ Content-Type: application/json
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "env-data-id",
@@ -800,10 +841,12 @@ Content-Type: application/json
 **Authentication**: Required (Firebase ID Token)
 
 **Query Parameters**:
+
 - `days` (number, default: 7) - Number of days to retrieve
 - `limit` (number, default: 100) - Maximum number of records
 
 **Response** (200 OK):
+
 ```json
 {
   "count": 42,
@@ -829,6 +872,7 @@ Content-Type: application/json
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "count": 42,
@@ -869,6 +913,7 @@ Content-Type: application/json
 **Authentication**: Required (Firebase ID Token)
 
 **Response** (200 OK):
+
 ```json
 {
   "count": 2,
@@ -1061,9 +1106,9 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'your-project.firebaseapp.com',
+  projectId: 'your-project-id',
   // ... other config
 };
 
@@ -1091,8 +1136,8 @@ async function handleGoogleSignIn() {
     // Step 3: Check if user exists in Firestore
     const response = await fetch('http://localhost:3001/auth/me', {
       headers: {
-        'Authorization': `Bearer ${idToken}`
-      }
+        Authorization: `Bearer ${idToken}`,
+      },
     });
 
     if (response.ok) {
@@ -1100,7 +1145,6 @@ async function handleGoogleSignIn() {
       const userData = await response.json();
       console.log('User profile:', userData);
       navigate('/home');
-
     } else if (response.status === 404) {
       // New user, show profile completion
       navigate('/complete-profile', {
@@ -1109,13 +1153,12 @@ async function handleGoogleSignIn() {
           email: user.email,
           username: user.displayName,
           photoURL: user.photoURL,
-          idToken
-        }
+          idToken,
+        },
       });
     } else {
       throw new Error('Authentication failed');
     }
-
   } catch (error) {
     console.error('Sign-in error:', error);
     alert('Sign-in failed. Please try again.');
@@ -1141,7 +1184,7 @@ function CompleteProfile() {
     respiratorySensitivities: [],
     quietHours: { start: '22:00', end: '07:00' },
     preferredTemp: { min: 20, max: 24 },
-    preferredHumidity: { min: 40, max: 60 }
+    preferredHumidity: { min: 40, max: 60 },
   });
 
   async function handleSubmit(e) {
@@ -1152,7 +1195,7 @@ function CompleteProfile() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           uid,
@@ -1161,13 +1204,13 @@ function CompleteProfile() {
           photoURL,
           location: {
             city: formData.city,
-            country: formData.country
+            country: formData.country,
           },
           respiratorySensitivities: formData.respiratorySensitivities,
           quietHours: formData.quietHours,
           preferredTemp: formData.preferredTemp,
-          preferredHumidity: formData.preferredHumidity
-        })
+          preferredHumidity: formData.preferredHumidity,
+        }),
       });
 
       if (response.ok) {
@@ -1177,7 +1220,6 @@ function CompleteProfile() {
       } else {
         throw new Error('Registration failed');
       }
-
     } catch (error) {
       console.error('Registration error:', error);
       alert('Failed to complete profile. Please try again.');
@@ -1191,7 +1233,7 @@ function CompleteProfile() {
         type="text"
         placeholder="City"
         value={formData.city}
-        onChange={(e) => setFormData({...formData, city: e.target.value})}
+        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
       />
       {/* ... other fields ... */}
       <button type="submit">Save & Continue</button>
@@ -1214,8 +1256,8 @@ async function getDevices() {
 
   const response = await fetch('http://localhost:3001/api/devices', {
     headers: {
-      'Authorization': `Bearer ${idToken}`
-    }
+      Authorization: `Bearer ${idToken}`,
+    },
   });
 
   if (!response.ok) throw new Error('Failed to fetch devices');
@@ -1230,10 +1272,10 @@ async function registerDevice(deviceId, name, location) {
   const response = await fetch('http://localhost:3001/api/devices', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${idToken}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ deviceId, name, location })
+    body: JSON.stringify({ deviceId, name, location }),
   });
 
   if (!response.ok) throw new Error('Failed to register device');
@@ -1437,7 +1479,6 @@ async function apiCall(endpoint, options = {}) {
     }
 
     return await response.json();
-
   } catch (error) {
     if (error.message.includes('token')) {
       // Token expired, redirect to login
@@ -1511,6 +1552,7 @@ AQICN_TOKEN=your-air-quality-api-token
 ## Support
 
 For questions or issues:
+
 - Backend API: [Contact backend team]
 - Firebase Console: https://console.firebase.google.com/
 - API Documentation: This file

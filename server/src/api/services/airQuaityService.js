@@ -1,7 +1,7 @@
 // services/airQualityService.js
-const axios = require("axios");
-const AirQuality = require("../models/AirQuality");
-const Device = require("../models/Device");
+const axios = require('axios');
+const AirQuality = require('../models/AirQuality');
+const Device = require('../models/Device');
 
 class AirQualityService {
   // Fetch air quality for a specific location
@@ -12,8 +12,8 @@ class AirQualityService {
         `https://api.waqi.info/feed/${city}/?token=${token}`
       );
 
-      if (response.data.status !== "ok") {
-        throw new Error("Failed to fetch air quality data");
+      if (response.data.status !== 'ok') {
+        throw new Error('Failed to fetch air quality data');
       }
 
       return response.data.data;
@@ -31,8 +31,8 @@ class AirQualityService {
         `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`
       );
 
-      if (response.data.status !== "ok") {
-        throw new Error("Failed to fetch air quality data");
+      if (response.data.status !== 'ok') {
+        throw new Error('Failed to fetch air quality data');
       }
 
       return response.data.data;
@@ -122,16 +122,16 @@ class AirQualityService {
   async updateAllDevicesAirQuality() {
     try {
       console.log(
-        "🔄 Starting scheduled air quality update for all devices..."
+        '🔄 Starting scheduled air quality update for all devices...'
       );
 
       // Find all devices that have a location set
       const devices = await Device.find({
         $or: [
-          { "location.city": { $exists: true, $ne: null } },
+          { 'location.city': { $exists: true, $ne: null } },
           {
-            "location.latitude": { $exists: true, $ne: null },
-            "location.longitude": { $exists: true, $ne: null },
+            'location.latitude': { $exists: true, $ne: null },
+            'location.longitude': { $exists: true, $ne: null },
           },
         ],
       });
@@ -160,7 +160,7 @@ class AirQualityService {
       );
       return { successCount, failCount, total: devices.length };
     } catch (error) {
-      console.error("Error in scheduled air quality update:", error.message);
+      console.error('Error in scheduled air quality update:', error.message);
       throw error;
     }
   }

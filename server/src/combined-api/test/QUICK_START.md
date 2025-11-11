@@ -21,6 +21,7 @@ Use Firebase's REST API to authenticate with a real user account and get a valid
 ### 2. Create a Test User
 
 In Firebase Console → Authentication → Users:
+
 - Click **Add user**
 - Email: `test@puricare.com` (or any email you want)
 - Password: Choose a password (e.g., `TestPassword123!`)
@@ -50,6 +51,7 @@ npm run test:setup
 ```
 
 This creates three test devices in your Firebase Firestore:
+
 - TEST-DEVICE-001
 - TEST-DEVICE-002
 - TEST-DEVICE-003
@@ -124,20 +126,26 @@ Response:
 ## Troubleshooting
 
 ### "Missing FIREBASE_WEB_API_KEY"
+
 → Add your Web API Key to `.env` file
 
 ### "EMAIL_NOT_FOUND" or "INVALID_PASSWORD"
+
 → Create the user in Firebase Console → Authentication
 
 ### "Invalid device ID"
+
 → Run `npm run test:setup` to create test devices
 
 ### "Device already registered" (409 error)
+
 → The device has been claimed. Either:
-  - Use a different device ID (TEST-DEVICE-002 or TEST-DEVICE-003)
-  - Run `npm run test:setup` again to reset devices
+
+- Use a different device ID (TEST-DEVICE-002 or TEST-DEVICE-003)
+- Run `npm run test:setup` again to reset devices
 
 ### Server not responding
+
 → Make sure server is running: `npm run dev`
 
 ## Testing from Your App
@@ -153,13 +161,13 @@ const response = await fetch('http://your-server:3020/api/devices/register', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${idToken}`
+    Authorization: `Bearer ${idToken}`,
   },
   body: JSON.stringify({
     deviceID: 'REAL-DEVICE-ID',
     name: 'My Air Purifier',
     geo: [latitude, longitude],
-    timezone: 'America/Chicago'
-  })
+    timezone: 'America/Chicago',
+  }),
 });
 ```

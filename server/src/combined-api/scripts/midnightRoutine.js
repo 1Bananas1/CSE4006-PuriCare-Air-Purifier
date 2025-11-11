@@ -17,7 +17,9 @@ async function runMidnightRoutine() {
 
     if (timezones.length === 0) {
       console.log('⚠️  No timezones found in database');
-      console.log('Timezones are automatically created when devices are registered.');
+      console.log(
+        'Timezones are automatically created when devices are registered.'
+      );
       console.log('Register a device to populate the timezones collection.\n');
       return;
     }
@@ -42,7 +44,9 @@ async function runMidnightRoutine() {
 
       // Log timezone status
       console.log(`[${i + 1}/${timezones.length}] ${timezoneId}:`);
-      console.log(`    Local Time: ${localTime.format('YYYY-MM-DD HH:mm:ss z')}`);
+      console.log(
+        `    Local Time: ${localTime.format('YYYY-MM-DD HH:mm:ss z')}`
+      );
       console.log(`    Devices: ${timezoneData.deviceCount || 0}`);
       console.log(`    Cities: ${(timezoneData.cityNames || []).join(', ')}`);
       console.log(`    Is Midnight Window: ${isMidnight ? '✓ YES' : '✗ NO'}`);
@@ -52,15 +56,24 @@ async function runMidnightRoutine() {
 
         // Check if already ran today
         const lastRun = timezoneData.lastMidnightRun;
-        const lastRunMoment = lastRun ? moment(lastRun.toDate ? lastRun.toDate() : lastRun).tz(timezoneId) : null;
-        const alreadyRanToday = lastRunMoment && localTime.isSame(lastRunMoment, 'day');
+        const lastRunMoment = lastRun
+          ? moment(lastRun.toDate ? lastRun.toDate() : lastRun).tz(timezoneId)
+          : null;
+        const alreadyRanToday =
+          lastRunMoment && localTime.isSame(lastRunMoment, 'day');
 
-        console.log(`    Last Run: ${lastRun ? lastRunMoment.format('YYYY-MM-DD HH:mm:ss z') : 'Never'}`);
-        console.log(`    Already Ran Today: ${alreadyRanToday ? 'YES (skipping)' : 'NO'}`);
+        console.log(
+          `    Last Run: ${lastRun ? lastRunMoment.format('YYYY-MM-DD HH:mm:ss z') : 'Never'}`
+        );
+        console.log(
+          `    Already Ran Today: ${alreadyRanToday ? 'YES (skipping)' : 'NO'}`
+        );
 
         if (!alreadyRanToday) {
           console.log(`    🌙 EXECUTING MIDNIGHT ROUTINE for ${timezoneId}`);
-          console.log(`    → Processing ${timezoneData.deviceCount} devices...`);
+          console.log(
+            `    → Processing ${timezoneData.deviceCount} devices...`
+          );
 
           // Get all devices in this timezone
           const deviceIds = timezoneData.deviceIds || [];
@@ -69,10 +82,15 @@ async function runMidnightRoutine() {
           // Process each device in this timezone
           for (const deviceId of deviceIds) {
             // Fetch full device data
-            const deviceDoc = await db.collection('devices').doc(deviceId).get();
+            const deviceDoc = await db
+              .collection('devices')
+              .doc(deviceId)
+              .get();
 
             if (!deviceDoc.exists) {
-              console.log(`      ⚠️  Device ${deviceId} not found in devices collection`);
+              console.log(
+                `      ⚠️  Device ${deviceId} not found in devices collection`
+              );
               continue;
             }
 
@@ -111,7 +129,6 @@ async function runMidnightRoutine() {
     console.log(`Timezones at midnight: ${midnightCount}`);
     console.log(`Devices processed: ${devicesProcessed}`);
     console.log(`Completed at: ${new Date().toISOString()}\n`);
-
   } catch (error) {
     console.error('❌ Error running midnight routine:', error);
     throw error;

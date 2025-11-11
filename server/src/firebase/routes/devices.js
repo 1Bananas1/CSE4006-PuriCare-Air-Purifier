@@ -16,19 +16,19 @@ router.post('/', async (req, res) => {
     if (!deviceId || !name) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Device ID and name are required'
+        message: 'Device ID and name are required',
       });
     }
 
     const device = await deviceService.registerDevice(req.user.uid, {
       deviceId,
       name,
-      location
+      location,
     });
 
     res.status(201).json({
       message: 'Device registered successfully',
-      device
+      device,
     });
   } catch (error) {
     console.error('Register device error:', error);
@@ -36,13 +36,13 @@ router.post('/', async (req, res) => {
     if (error.message === 'Device ID already registered') {
       return res.status(409).json({
         error: 'Conflict',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -54,13 +54,13 @@ router.get('/', async (req, res) => {
 
     res.json({
       count: devices.length,
-      devices
+      devices,
     });
   } catch (error) {
     console.error('Get devices error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -73,14 +73,14 @@ router.get('/:id', async (req, res) => {
     if (!device) {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'Device not found'
+        message: 'Device not found',
       });
     }
 
     if (device.userId !== req.user.uid) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: 'Unauthorized access to device'
+        message: 'Unauthorized access to device',
       });
     }
 
@@ -89,7 +89,7 @@ router.get('/:id', async (req, res) => {
     console.error('Get device error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -111,7 +111,7 @@ router.put('/:id', async (req, res) => {
 
     res.json({
       message: 'Device updated successfully',
-      device
+      device,
     });
   } catch (error) {
     console.error('Update device error:', error);
@@ -119,20 +119,20 @@ router.put('/:id', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -145,7 +145,7 @@ router.put('/:id/location', async (req, res) => {
     if (!city && (!latitude || !longitude)) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Provide either city or latitude/longitude'
+        message: 'Provide either city or latitude/longitude',
       });
     }
 
@@ -157,7 +157,7 @@ router.put('/:id/location', async (req, res) => {
 
     res.json({
       message: 'Device location updated successfully',
-      device
+      device,
     });
   } catch (error) {
     console.error('Update device location error:', error);
@@ -165,20 +165,20 @@ router.put('/:id/location', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -186,11 +186,14 @@ router.put('/:id/location', async (req, res) => {
 // Delete a device
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await deviceService.deleteDevice(req.params.id, req.user.uid);
+    const result = await deviceService.deleteDevice(
+      req.params.id,
+      req.user.uid
+    );
 
     res.json({
       message: 'Device deleted successfully',
-      device: result.device
+      device: result.device,
     });
   } catch (error) {
     console.error('Delete device error:', error);
@@ -198,20 +201,20 @@ router.delete('/:id', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -227,7 +230,7 @@ router.get('/:id/environment/latest', async (req, res) => {
     if (!data) {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'No environment data found for this device'
+        message: 'No environment data found for this device',
       });
     }
 
@@ -238,20 +241,20 @@ router.get('/:id/environment/latest', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -269,7 +272,7 @@ router.get('/:id/environment/history', async (req, res) => {
 
     res.json({
       count: history.length,
-      history
+      history,
     });
   } catch (error) {
     console.error('Get environment data history error:', error);
@@ -277,20 +280,20 @@ router.get('/:id/environment/history', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -309,7 +312,7 @@ router.get('/:id/statistics', async (req, res) => {
     if (!statistics) {
       return res.status(404).json({
         error: 'Not Found',
-        message: 'No data available for statistics'
+        message: 'No data available for statistics',
       });
     }
 
@@ -320,20 +323,20 @@ router.get('/:id/statistics', async (req, res) => {
     if (error.message === 'Device not found') {
       return res.status(404).json({
         error: 'Not Found',
-        message: error.message
+        message: error.message,
       });
     }
 
     if (error.message.includes('Unauthorized')) {
       return res.status(403).json({
         error: 'Forbidden',
-        message: error.message
+        message: error.message,
       });
     }
 
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -341,17 +344,19 @@ router.get('/:id/statistics', async (req, res) => {
 // Get latest data for all user's devices (dashboard)
 router.get('/all/environment', async (req, res) => {
   try {
-    const allData = await environmentService.getAllUserDevicesLatestData(req.user.uid);
+    const allData = await environmentService.getAllUserDevicesLatestData(
+      req.user.uid
+    );
 
     res.json({
       count: allData.length,
-      devices: allData
+      devices: allData,
     });
   } catch (error) {
     console.error('Get all devices environment data error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message
+      message: error.message,
     });
   }
 });

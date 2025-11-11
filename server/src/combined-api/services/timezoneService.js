@@ -1,5 +1,5 @@
-const moment = require("moment-timezone");
-const { initializeFirebase } = require("../config/firebase");
+const moment = require('moment-timezone');
+const { initializeFirebase } = require('../config/firebase');
 
 /**
  * Timezone Service
@@ -20,7 +20,7 @@ class TimezoneService {
   constructor() {
     const { db } = initializeFirebase();
     this.db = db;
-    this.timezonesCollection = db.collection("timezones");
+    this.timezonesCollection = db.collection('timezones');
   }
 
   /**
@@ -28,7 +28,7 @@ class TimezoneService {
    * Firestore IDs cannot contain slashes, so we replace them
    */
   static encodeTimezoneId(timezone) {
-    return timezone.replace(/\//g, "_");
+    return timezone.replace(/\//g, '_');
   }
 
   /**
@@ -36,7 +36,7 @@ class TimezoneService {
    */
   static decodeTimezoneId(timezoneId) {
     // Handle both formats for backwards compatibility
-    return timezoneId.replace(/_/g, "/");
+    return timezoneId.replace(/_/g, '/');
   }
 
   /**
@@ -60,43 +60,43 @@ class TimezoneService {
     // Fallback: Basic city name to timezone mapping
     const cityTimezoneMap = {
       // North America
-      chicago: "America/Chicago",
-      "new york": "America/New_York",
-      "los angeles": "America/Los_Angeles",
-      denver: "America/Denver",
-      phoenix: "America/Phoenix",
-      seattle: "America/Los_Angeles",
-      miami: "America/New_York",
-      dallas: "America/Chicago",
-      houston: "America/Chicago",
+      chicago: 'America/Chicago',
+      'new york': 'America/New_York',
+      'los angeles': 'America/Los_Angeles',
+      denver: 'America/Denver',
+      phoenix: 'America/Phoenix',
+      seattle: 'America/Los_Angeles',
+      miami: 'America/New_York',
+      dallas: 'America/Chicago',
+      houston: 'America/Chicago',
 
       // Europe
-      london: "Europe/London",
-      paris: "Europe/Paris",
-      berlin: "Europe/Berlin",
-      madrid: "Europe/Madrid",
-      rome: "Europe/Rome",
+      london: 'Europe/London',
+      paris: 'Europe/Paris',
+      berlin: 'Europe/Berlin',
+      madrid: 'Europe/Madrid',
+      rome: 'Europe/Rome',
 
       // Asia
-      seoul: "Asia/Seoul",
-      tokyo: "Asia/Tokyo",
-      beijing: "Asia/Shanghai",
-      shanghai: "Asia/Shanghai",
-      "hong kong": "Asia/Hong_Kong",
-      singapore: "Asia/Singapore",
-      bangkok: "Asia/Bangkok",
-      mumbai: "Asia/Kolkata",
-      delhi: "Asia/Kolkata",
+      seoul: 'Asia/Seoul',
+      tokyo: 'Asia/Tokyo',
+      beijing: 'Asia/Shanghai',
+      shanghai: 'Asia/Shanghai',
+      'hong kong': 'Asia/Hong_Kong',
+      singapore: 'Asia/Singapore',
+      bangkok: 'Asia/Bangkok',
+      mumbai: 'Asia/Kolkata',
+      delhi: 'Asia/Kolkata',
 
       // Australia
-      sydney: "Australia/Sydney",
-      melbourne: "Australia/Melbourne",
-      brisbane: "Australia/Brisbane",
+      sydney: 'Australia/Sydney',
+      melbourne: 'Australia/Melbourne',
+      brisbane: 'Australia/Brisbane',
 
       // South America
-      "sao paulo": "America/Sao_Paulo",
-      "buenos aires": "America/Argentina/Buenos_Aires",
-      santiago: "America/Santiago",
+      'sao paulo': 'America/Sao_Paulo',
+      'buenos aires': 'America/Argentina/Buenos_Aires',
+      santiago: 'America/Santiago',
     };
 
     const normalizedCity = cityName.toLowerCase().trim();
@@ -104,7 +104,7 @@ class TimezoneService {
 
     if (!timezone) {
       console.warn(`⚠️  Unknown city "${cityName}", defaulting to UTC`);
-      return "UTC";
+      return 'UTC';
     }
 
     return timezone;
@@ -182,7 +182,7 @@ class TimezoneService {
 
       if (!timezoneDoc.exists) {
         console.warn(`⚠️  Timezone ${timezone} not found`);
-        return { success: false, reason: "timezone_not_found" };
+        return { success: false, reason: 'timezone_not_found' };
       }
 
       const data = timezoneDoc.data();
@@ -202,7 +202,11 @@ class TimezoneService {
         console.log(`✓ Removed device ${deviceId} from timezone ${timezone}`);
       }
 
-      return { success: true, timezone, remainingDevices: deviceIds.length };
+      return {
+        success: true,
+        timezone,
+        remainingDevices: deviceIds.length,
+      };
     } catch (error) {
       console.error(`❌ Error removing device from timezone:`, error);
       throw error;

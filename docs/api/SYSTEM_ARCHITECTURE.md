@@ -1,6 +1,7 @@
 # PuriCare System Architecture
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [System Architecture Diagram](#system-architecture-diagram)
 3. [Component Details](#component-details)
@@ -22,15 +23,15 @@ The PuriCare system consists of **4 main components** that work together to prov
 
 ### Technology Stack
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| Frontend | React PWA / React Native | Mobile-first user interface |
-| Firebase API | Node.js + Express + Firebase Admin SDK | Main backend service |
-| AQI Proxy | Node.js + Express OR Python Flask | External API gateway with caching |
-| Hardware Simulator | Node.js + Express OR Python Flask | Device simulation for testing |
-| Database | Firebase Firestore | Primary data storage |
-| Cache | In-memory OR Redis | Short-term AQI data caching |
-| Authentication | Firebase Auth | User authentication (Google OAuth, Email/Password) |
+| Component          | Technology                             | Purpose                                            |
+| ------------------ | -------------------------------------- | -------------------------------------------------- |
+| Frontend           | React PWA / React Native               | Mobile-first user interface                        |
+| Firebase API       | Node.js + Express + Firebase Admin SDK | Main backend service                               |
+| AQI Proxy          | Node.js + Express OR Python Flask      | External API gateway with caching                  |
+| Hardware Simulator | Node.js + Express OR Python Flask      | Device simulation for testing                      |
+| Database           | Firebase Firestore                     | Primary data storage                               |
+| Cache              | In-memory OR Redis                     | Short-term AQI data caching                        |
+| Authentication     | Firebase Auth                          | User authentication (Google OAuth, Email/Password) |
 
 ---
 
@@ -156,6 +157,7 @@ The PuriCare system consists of **4 main components** that work together to prov
 **Technology**: React PWA / React Native
 
 **Responsibilities**:
+
 - User authentication (Google Sign-In, Email/Password)
 - Device management (QR code scanning, registration, control)
 - Real-time air quality monitoring
@@ -164,6 +166,7 @@ The PuriCare system consists of **4 main components** that work together to prov
 - Settings management
 
 **Key Features**:
+
 - Firebase Auth integration for authentication
 - Real-time Firestore listeners for live updates
 - Push notification support
@@ -171,6 +174,7 @@ The PuriCare system consists of **4 main components** that work together to prov
 - Responsive design (mobile-first)
 
 **Communication**:
+
 - ➡️ **Firebase Auth**: User authentication
 - ➡️ **Firebase API**: All CRUD operations
 - ⬅️ **Firebase API**: Device status, sensor data, user profile
@@ -186,6 +190,7 @@ The PuriCare system consists of **4 main components** that work together to prov
 **Location**: `server/src/firebase/`
 
 **Responsibilities**:
+
 - User authentication & authorization (verify Firebase ID tokens)
 - User profile management
 - Device registration & management (max 6 devices per user)
@@ -194,16 +199,19 @@ The PuriCare system consists of **4 main components** that work together to prov
 - Data aggregation & statistics
 
 **Authentication Methods**:
+
 1. **Firebase ID Token** (for users): `Authorization: Bearer <token>`
 2. **API Key** (for devices): `X-API-Key: <key>`
 
 **Key Collections**:
+
 - `users/` - User profiles
 - `devices/` - Device registrations
 - `environmentData/` - Sensor readings & ML events
 - `locationAirQuality/` - External AQI data (read-only from API 1)
 
 **Communication**:
+
 - ⬅️ **Frontend**: User requests (with Firebase ID token)
 - ⬅️ **Physical Devices/Simulator**: Sensor data uploads (with API key)
 - ↔️ **Firestore**: All database operations
@@ -220,9 +228,11 @@ The PuriCare system consists of **4 main components** that work together to prov
 **Location**: `server/src/api/` (proposed)
 
 **Problem It Solves**:
+
 > Firebase Functions (free tier) cannot make outbound HTTP requests to external APIs. We need a separate service to fetch external AQI data.
 
 **Responsibilities**:
+
 1. Fetch air quality data from external APIs (WAQI, OpenWeatherMap, IQAir)
 2. Cache responses to minimize API calls (15min - 6hr TTL)
 3. Transform external API responses to our schema
@@ -230,6 +240,7 @@ The PuriCare system consists of **4 main components** that work together to prov
 5. Handle rate limiting & error handling
 
 **Caching Strategy**:
+
 - **In-memory cache**: Simple Map/Dictionary (development)
 - **Redis cache**: Production-grade (optional)
 - **Cache duration**:
@@ -256,6 +267,7 @@ GET /api/aqi/batch?locations=Seoul,Busan,Tokyo
 ```
 
 **Scheduled Jobs**:
+
 ```javascript
 // Run every 2 hours (configurable)
 cron.schedule('0 */2 * * *', async () => {
@@ -267,11 +279,14 @@ cron.schedule('0 */2 * * *', async () => {
 ```
 
 **Firebase Integration**:
+
 ```javascript
 // After fetching from external API, upload to Firebase
 async function uploadToFirebase(locationData) {
   const db = admin.firestore();
-  const docRef = db.collection('locationAirQuality').doc(locationData.city.name);
+  const docRef = db
+    .collection('locationAirQuality')
+    .doc(locationData.city.name);
 
   await docRef.set({
     aqi: locationData.aqi,
@@ -279,17 +294,19 @@ async function uploadToFirebase(locationData) {
     dominentpol: locationData.dominentpol,
     iaqi: locationData.iaqi,
     time: locationData.time,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 }
 ```
 
 **Communication**:
+
 - ➡️ **External APIs**: Fetch AQI data
 - ➡️ **Firebase Firestore**: Write to `locationAirQuality/`
 - ⬅️ **Scheduled Jobs**: Automatic updates every 1-6 hours
 
 **Environment Variables**:
+
 ```bash
 # .env for AQI Proxy Service
 PORT=3002
@@ -310,9 +327,11 @@ CACHE_DURATION_MINUTES=30
 **Location**: `server/src/hardware/` (proposed)
 
 **Problem It Solves**:
+
 > We don't have physical air purifier hardware yet. This service simulates a real device for testing the entire system.
 
 **Responsibilities**:
+
 1. Simulate air purifier device behavior
 2. Read device configuration from Firebase
 3. Generate realistic sensor readings (AQI, PM2.5, temp, humidity)
@@ -321,6 +340,7 @@ CACHE_DURATION_MINUTES=30
 6. Later: Accept commands from mobile app via Firebase API
 
 **Device Simulation Features**:
+
 - ✅ Realistic sensor data generation (with random variations)
 - ✅ Simulated AQI fluctuations based on time of day
 - ✅ Fan speed affects simulated air quality over time
@@ -360,7 +380,7 @@ class AirPurifierSimulator {
     this.deviceId = deviceId;
     this.power = false;
     this.fanSpeed = 0;
-    this.mode = "auto"; // "auto" | "manual"
+    this.mode = 'auto'; // "auto" | "manual"
     this.currentAQI = 75; // Start with moderate air quality
   }
 
@@ -368,7 +388,7 @@ class AirPurifierSimulator {
   tick() {
     if (this.power) {
       // Fan speed affects how quickly AQI improves
-      const improvement = this.fanSpeed / 100 * 2; // Max 2 points per tick
+      const improvement = (this.fanSpeed / 100) * 2; // Max 2 points per tick
       this.currentAQI = Math.max(0, this.currentAQI - improvement);
     } else {
       // Air quality degrades when off
@@ -387,20 +407,20 @@ class AirPurifierSimulator {
       pm25: this.currentAQI * 0.5, // PM2.5 correlates with AQI
       pm10: this.currentAQI * 0.7,
       temperature: 20 + Math.random() * 5, // 20-25°C
-      humidity: 40 + Math.random() * 20,   // 40-60%
-      timestamp: new Date().toISOString()
+      humidity: 40 + Math.random() * 20, // 40-60%
+      timestamp: new Date().toISOString(),
     };
   }
 
   setCommand(command, value) {
-    switch(command) {
-      case "power":
+    switch (command) {
+      case 'power':
         this.power = value;
         break;
-      case "fan_speed":
+      case 'fan_speed':
         this.fanSpeed = value;
         break;
-      case "mode":
+      case 'mode':
         this.mode = value;
         break;
     }
@@ -442,23 +462,31 @@ async function initializeSimulator(deviceId) {
 // Upload sensor data to Firebase API
 async function uploadSensorData(deviceId, readings) {
   try {
-    const response = await axios.post('http://localhost:3001/api/data/upload', {
-      deviceId: deviceId,
-      data: readings
-    }, {
-      headers: {
-        'X-API-Key': process.env.DEVICE_API_KEY
+    const response = await axios.post(
+      'http://localhost:3001/api/data/upload',
+      {
+        deviceId: deviceId,
+        data: readings,
+      },
+      {
+        headers: {
+          'X-API-Key': process.env.DEVICE_API_KEY,
+        },
       }
-    });
+    );
 
     console.log(`✅ [${deviceId}] Sensor data uploaded:`, readings);
   } catch (error) {
-    console.error(`❌ [${deviceId}] Failed to upload sensor data:`, error.message);
+    console.error(
+      `❌ [${deviceId}] Failed to upload sensor data:`,
+      error.message
+    );
   }
 }
 ```
 
 **Console Output** (for now):
+
 ```
 🟢 [DEVICE-001] Simulator Started
   Name: Living Room Purifier
@@ -480,11 +508,13 @@ async function uploadSensorData(deviceId, readings) {
 ```
 
 **Communication**:
+
 - ⬅️ **Firebase Firestore**: Read device configuration
 - ➡️ **Firebase API**: Upload sensor data (via `/api/data/upload`)
 - ➡️ **Console**: Output current state (for debugging)
 
 **Environment Variables**:
+
 ```bash
 # .env for Hardware Simulator
 PORT=3003
@@ -731,12 +761,13 @@ SIMULATION_INTERVAL_MS=15000
 **Data Flow**: External API → AQI Proxy → Firestore → Firebase API → Frontend
 
 **Code Example** (AQI Proxy):
+
 ```javascript
 const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccountKey.json');
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
@@ -748,7 +779,7 @@ async function uploadAQI(location, aqiData) {
     dominentpol: aqiData.dominentpol,
     iaqi: aqiData.iaqi,
     time: aqiData.time,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 }
 ```
@@ -768,26 +799,31 @@ async function uploadAQI(location, aqiData) {
 **Data Flow**: Simulator → Firebase API → Firestore → Frontend
 
 **Code Example** (Hardware Simulator):
+
 ```javascript
 const axios = require('axios');
 
 async function uploadSensorData(deviceId, readings) {
-  await axios.post('http://localhost:3001/api/data/upload', {
-    deviceId: deviceId,
-    data: {
-      aqi: readings.aqi,
-      pm25: readings.pm25,
-      temperature: readings.temperature,
-      humidity: readings.humidity,
-      eventType: readings.eventType, // "cough" | "sneeze" | null
-      confidence: readings.confidence
+  await axios.post(
+    'http://localhost:3001/api/data/upload',
+    {
+      deviceId: deviceId,
+      data: {
+        aqi: readings.aqi,
+        pm25: readings.pm25,
+        temperature: readings.temperature,
+        humidity: readings.humidity,
+        eventType: readings.eventType, // "cough" | "sneeze" | null
+        confidence: readings.confidence,
+      },
+    },
+    {
+      headers: {
+        'X-API-Key': process.env.DEVICE_API_KEY,
+        'Content-Type': 'application/json',
+      },
     }
-  }, {
-    headers: {
-      'X-API-Key': process.env.DEVICE_API_KEY,
-      'Content-Type': 'application/json'
-    }
-  });
+  );
 }
 ```
 
@@ -804,6 +840,7 @@ async function uploadSensorData(deviceId, readings) {
 **Data Flow**: Firestore → Hardware Simulator
 
 **Code Example** (Hardware Simulator):
+
 ```javascript
 const admin = require('firebase-admin');
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -811,7 +848,8 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
 async function loadDeviceConfig(deviceId) {
-  const snapshot = await db.collection('devices')
+  const snapshot = await db
+    .collection('devices')
     .where('deviceId', '==', deviceId)
     .limit(1)
     .get();
@@ -823,7 +861,7 @@ async function loadDeviceConfig(deviceId) {
   const deviceDoc = snapshot.docs[0];
   return {
     id: deviceDoc.id,
-    ...deviceDoc.data()
+    ...deviceDoc.data(),
   };
 }
 ```
@@ -964,6 +1002,7 @@ locationAirQuality/{locationId}  // locationId = city name
 ### Phase 1: Setup & Foundation (Week 1)
 
 **Completed**:
+
 - ✅ Firebase project created
 - ✅ Firebase API implemented (`server/src/firebase/`)
 - ✅ User authentication endpoints
@@ -972,6 +1011,7 @@ locationAirQuality/{locationId}  // locationId = city name
 - ✅ Firebase API documentation (FIREBASE_API_GUIDE.md)
 
 **Next Steps**:
+
 - [ ] Create project structure for API 1 (AQI Proxy)
 - [ ] Create project structure for API 2 (Hardware Simulator)
 - [ ] Set up environment variables for all services
@@ -984,6 +1024,7 @@ locationAirQuality/{locationId}  // locationId = city name
 **Goals**: Implement external AQI data fetching with caching
 
 **Tasks**:
+
 1. [ ] Initialize Node.js/Express project in `server/src/api/`
 2. [ ] Install dependencies: `express`, `axios`, `node-cron`, `firebase-admin`
 3. [ ] Implement WAQI API integration
@@ -998,6 +1039,7 @@ locationAirQuality/{locationId}  // locationId = city name
 9. [ ] Document API endpoints
 
 **Deliverables**:
+
 - Working AQI Proxy service on port 3002
 - `locationAirQuality/` collection populated with real data
 - Scheduled updates working
@@ -1010,6 +1052,7 @@ locationAirQuality/{locationId}  // locationId = city name
 **Goals**: Simulate air purifier device for testing
 
 **Tasks**:
+
 1. [ ] Initialize Node.js/Express project in `server/src/hardware/`
 2. [ ] Install dependencies: `express`, `axios`, `firebase-admin`
 3. [ ] Implement AirPurifierSimulator class
@@ -1031,6 +1074,7 @@ locationAirQuality/{locationId}  // locationId = city name
 9. [ ] Document simulator API
 
 **Deliverables**:
+
 - Working Hardware Simulator on port 3003
 - Console output showing device state
 - Sensor data flowing to Firebase
@@ -1043,6 +1087,7 @@ locationAirQuality/{locationId}  // locationId = city name
 **Goals**: Test all components working together
 
 **Test Scenarios**:
+
 1. [ ] **User Registration Flow**
    - Register new user via Firebase API
    - Verify user document in Firestore
@@ -1066,6 +1111,7 @@ locationAirQuality/{locationId}  // locationId = city name
    - Simulated air quality improves faster
 
 **Deliverables**:
+
 - All 3 services running simultaneously
 - Data flowing through entire pipeline
 - Integration test suite (manual or automated)
@@ -1078,6 +1124,7 @@ locationAirQuality/{locationId}  // locationId = city name
 **Goals**: Connect React PWA to backend services
 
 **Tasks**:
+
 1. [ ] Implement Firebase Auth in frontend
 2. [ ] Create device management screens
 3. [ ] Create air quality dashboard
@@ -1093,17 +1140,22 @@ locationAirQuality/{locationId}  // locationId = city name
 Based on your current state (Firebase DB partially set up, locationAirQuality collection created), here are your next 3 steps:
 
 ### Step 1: Explore Existing Codebase (5 minutes)
+
 Let me help you explore what you already have in `server/` to understand what needs refactoring.
 
 ### Step 2: Set Up API 1 Structure (30 minutes)
+
 Create the AQI Proxy Service:
+
 ```bash
 cd server/src/api/routes/
 # Create locationAirQuality.js (you mentioned this exists)
 ```
 
 ### Step 3: Set Up API 2 Structure (30 minutes)
+
 Create the Hardware Simulator:
+
 ```bash
 mkdir server/src/hardware/
 cd server/src/hardware/

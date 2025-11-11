@@ -17,7 +17,7 @@ class UserService {
         username: userData.username || userData.email.split('@')[0],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        deviceCount: 0
+        deviceCount: 0,
       };
 
       await this.usersCollection.doc(uid).set(userDoc);
@@ -69,7 +69,7 @@ class UserService {
     try {
       const updateData = {
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       await this.usersCollection.doc(uid).update(updateData);
@@ -86,7 +86,7 @@ class UserService {
       const userRef = this.usersCollection.doc(uid);
       await userRef.update({
         deviceCount: this.db.FieldValue.increment(1),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error incrementing device count:', error);
@@ -100,7 +100,7 @@ class UserService {
       const userRef = this.usersCollection.doc(uid);
       await userRef.update({
         deviceCount: this.db.FieldValue.increment(-1),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error decrementing device count:', error);
@@ -130,7 +130,7 @@ class UserService {
       const snapshot = await this.usersCollection.limit(limit).get();
 
       const users = [];
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         users.push({ id: doc.id, ...doc.data() });
       });
 
