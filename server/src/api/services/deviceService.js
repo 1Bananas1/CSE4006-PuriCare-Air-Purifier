@@ -1,3 +1,9 @@
+/**
+ * Device Service - Handles device registration to a user,
+ * deletion (unregistering)
+ * Renaming
+ */
+
 const { db } = require('../config/firebase');
 
 async function registerDevice(secureUserId, deviceData) {
@@ -28,7 +34,7 @@ async function registerDevice(secureUserId, deviceData) {
       const newDevicePayload = {
         data: {
           version: '1.0.0',
-          customLocation: customLocation,
+          customLocation: customLocation || 'Bedroom',
           deviceID: deviceID,
           geo: geo || [null, null],
           measurements: {},
@@ -71,20 +77,29 @@ async function renameDevice(secureUserId, deviceID, newName) {
 }
 
 async function deleteDevice(secureUserId, deviceID) {
-  const device = await db.collection('devices').doc(deviceID).get();
-  if (!device.exists || device.data().linkedUserID !== secureUserId) {
-    throw new Error('Not Authorized');
+  const userDeviceRef = db.collection('devices').doc(deviceID);
+  const masterDeviceRef = db.collection('masterDeviceList').doc(deviceID);
+
+  try {
+    await db.runTransaction(async (t) => {
+      const device = await t.get(userDeviceRef);
+      if (!device.exists || device.data().linkedUserID !== secureUserId) {
+        throw new Error('Not Authorized');
+      }
+
+      const masterDevice = await t.get(masterDeviceRef);
+      if (!masterDevice.exists || masterDevice.data().claimedAt === null) {
+        throw new Error('Not authorized');
+      }
+
+      t.update(masterDeviceRef, {
+        claimedAt: null,
+      });
+    });
+  } catch (error) {
+    console.error('transaction failed:', error.message);
+    throw error;
   }
-  const masterDevice = await db
-    .collection('masterDeviceList')
-    .doc(deviceID)
-    .get();
-  if (masterDevice.data().claimedAt === null) {
-    throw new Error('Not authorized');
-  }
-  await db.collection('masterDeviceList').doc(deviceID).update({
-    claimedAt: null,
-  });
 }
 
 module.exports = {
