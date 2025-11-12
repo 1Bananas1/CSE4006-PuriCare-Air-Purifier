@@ -1,0 +1,33 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:setup": "node test/setupTestData.js",
+    "test:register": "node test/testWithRestAPI.js",
+    "midnight": "node scripts/midnightRoutine.js",
+    "test-timezones": "node scripts/testTimezoneSystem.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "helmet": "^8.1.0",
+    "moment-timezone": "^0.6.0",
+    "morgan": "^1.10.1",
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
