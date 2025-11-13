@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function IndexPage() {
+export default function RootPage() {
   redirect("/login");  // 또는 "/auth/login"
 }
