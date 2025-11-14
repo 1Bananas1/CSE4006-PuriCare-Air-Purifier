@@ -14,7 +14,10 @@ export async function GET(req: Request) {
   }
   const key = process.env.OPENWEATHER_API_KEY;
   if (!key) {
-    return NextResponse.json({ error: 'OPENWEATHER_API_KEY missing' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'OPENWEATHER_API_KEY missing' },
+      { status: 500 }
+    );
   }
 
   try {
@@ -23,7 +26,10 @@ export async function GET(req: Request) {
     const r = await fetch(url, { cache: 'no-store' });
 
     if (!r.ok) {
-      return NextResponse.json({ error: 'upstream_error', detail: await r.text() }, { status: 502 });
+      return NextResponse.json(
+        { error: 'upstream_error', detail: await r.text() },
+        { status: 502 }
+      );
     }
     const j = await r.json();
 
@@ -46,6 +52,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ hourly, daily, ts: Date.now() });
   } catch (e: any) {
-    return NextResponse.json({ error: 'server_error', detail: e?.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'server_error', detail: e?.message },
+      { status: 500 }
+    );
   }
 }

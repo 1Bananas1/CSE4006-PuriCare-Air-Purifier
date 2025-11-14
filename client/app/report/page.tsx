@@ -75,9 +75,7 @@ function RangeTabs({
               fontSize: 13,
               fontWeight: active ? 700 : 500,
               letterSpacing: active ? 0.1 : 0,
-              boxShadow: active
-                ? '0 6px 18px rgba(15,23,42,0.3)'
-                : 'none',
+              boxShadow: active ? '0 6px 18px rgba(15,23,42,0.3)' : 'none',
               transition: 'all .18s ease-out',
             }}
           >
@@ -100,8 +98,7 @@ function Card({ title, body }: { title: string; body?: React.ReactNode }) {
         padding: 16,
         display: 'grid',
         gap: 8,
-        boxShadow:
-          '0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(15,23,42,0.7)',
+        boxShadow: '0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(15,23,42,0.7)',
         backdropFilter: 'blur(16px)',
       }}
     >
@@ -300,7 +297,8 @@ export default function ReportPage() {
                 <span>높은 사용</span>
               </div>
               <div style={{ fontSize: 12, opacity: 0.85 }}>
-                시간대별/일별 패턴은 백엔드와 ml 연동 후 확인 가능. 지금 전부 예시임.
+                시간대별/일별 패턴은 백엔드와 ml 연동 후 확인 가능. 지금 전부
+                예시임.
               </div>
             </div>
           }
@@ -365,4 +363,3 @@ export default function ReportPage() {
     </main>
   );
 }
-

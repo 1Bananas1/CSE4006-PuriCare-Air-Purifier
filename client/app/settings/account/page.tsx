@@ -30,7 +30,11 @@ export default function AccountSettingsPage() {
   return (
     <main
       className="pb-safe"
-      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
+      style={{
+        minHeight: '100dvh',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+      }}
     >
       {/* 헤더 */}
       <div
@@ -56,7 +60,10 @@ export default function AccountSettingsPage() {
         <div style={{ fontWeight: 800, fontSize: 18 }}>계정</div>
       </div>
 
-      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 16 }}>
+      <section
+        className="mobile-wrap"
+        style={{ padding: 16, display: 'grid', gap: 16 }}
+      >
         {/* 프로필 카드 */}
         <div
           style={{

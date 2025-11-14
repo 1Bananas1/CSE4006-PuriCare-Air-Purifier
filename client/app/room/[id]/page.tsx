@@ -75,7 +75,7 @@ function InfoCard({
 
 export default function RoomPage() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();   // ✅ 여기서 params를 훅으로
+  const params = useParams<{ id: string }>(); // ✅ 여기서 params를 훅으로
   const id = (params?.id as string) ?? 'living';
 
   const data = ROOM_DETAIL[id] ?? ROOM_DETAIL['living'];
@@ -144,4 +144,3 @@ export default function RoomPage() {
     </main>
   );
 }
-

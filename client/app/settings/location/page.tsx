@@ -12,7 +12,7 @@ declare global {
 }
 
 type SavedLocation = {
-  city: string;       // 예: '서울특별시'
+  city: string; // 예: '서울특별시'
   fullLabel?: string; // 예: '서울특별시 성동구 사근동'
 };
 
@@ -88,21 +88,18 @@ export default function LocationSettingsPage() {
     const places = new window.kakao.maps.services.Places();
 
     // 키워드 검색
-    places.keywordSearch(
-      query.trim(),
-      (data: any[], status: string) => {
-        setSearching(false);
+    places.keywordSearch(query.trim(), (data: any[], status: string) => {
+      setSearching(false);
 
-        // @ts-ignore
-        if (status !== window.kakao.maps.services.Status.OK) {
-          setResults([]);
-          return;
-        }
-
-        // 상위 5개만 보여주자 (모바일)
-        setResults(data.slice(0, 5));
+      // @ts-ignore
+      if (status !== window.kakao.maps.services.Status.OK) {
+        setResults([]);
+        return;
       }
-    );
+
+      // 상위 5개만 보여주자 (모바일)
+      setResults(data.slice(0, 5));
+    });
   };
 
   // Enter 누르면 검색
@@ -116,10 +113,11 @@ export default function LocationSettingsPage() {
   // 4) 결과 선택
   const handleSelect = (place: any) => {
     // address_name: '서울특별시 성동구 사근동'
-    const address: string = place.address_name || place.road_address_name || place.place_name;
+    const address: string =
+      place.address_name || place.road_address_name || place.place_name;
     const tokens = address.split(' ');
-    const city = tokens[0] || address;       // '서울특별시'
-    const fullLabel = address;              // 전체 주소
+    const city = tokens[0] || address; // '서울특별시'
+    const fullLabel = address; // 전체 주소
 
     setSelected({ city, fullLabel });
     setQuery(city);
@@ -152,7 +150,10 @@ export default function LocationSettingsPage() {
 
   // 7) 삭제
   const handleDelete = () => {
-    if (!confirm('저장된 위치를 삭제할까요?\n홈 화면은 기본 도시로 표시됩니다.')) return;
+    if (
+      !confirm('저장된 위치를 삭제할까요?\n홈 화면은 기본 도시로 표시됩니다.')
+    )
+      return;
 
     localStorage.removeItem(STORAGE_KEY);
     setSelected(null);
@@ -163,7 +164,14 @@ export default function LocationSettingsPage() {
   };
 
   return (
-    <main className="pb-safe" style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}>
+    <main
+      className="pb-safe"
+      style={{
+        minHeight: '100dvh',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+      }}
+    >
       {/* 헤더 */}
       <div
         className="mobile-wrap"
@@ -178,7 +186,11 @@ export default function LocationSettingsPage() {
           gap: 8,
         }}
       >
-        <button onClick={() => router.back()} aria-label="뒤로" style={{ fontSize: 20, height: 44, width: 44 }}>
+        <button
+          onClick={() => router.back()}
+          aria-label="뒤로"
+          style={{ fontSize: 20, height: 44, width: 44 }}
+        >
           ←
         </button>
 
@@ -200,7 +212,10 @@ export default function LocationSettingsPage() {
         </button>
       </div>
 
-      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 14 }}>
+      <section
+        className="mobile-wrap"
+        style={{ padding: 16, display: 'grid', gap: 14 }}
+      >
         {/* 검색 박스 + 자동완성 */}
         <div
           style={{
@@ -250,7 +265,14 @@ export default function LocationSettingsPage() {
           </div>
 
           {/* 검색 버튼 / 상태 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, opacity: 0.8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 12,
+              opacity: 0.8,
+            }}
+          >
             <button
               type="button"
               onClick={handleSearch}
@@ -282,7 +304,9 @@ export default function LocationSettingsPage() {
             >
               {results.map((place) => {
                 const addr: string =
-                  place.address_name || place.road_address_name || place.place_name;
+                  place.address_name ||
+                  place.road_address_name ||
+                  place.place_name;
 
                 const tokens = addr.split(' ');
                 const city = tokens[0] || addr;
@@ -304,7 +328,9 @@ export default function LocationSettingsPage() {
                     }}
                   >
                     <div style={{ fontWeight: 600 }}>{city}</div>
-                    <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>{addr}</div>
+                    <div style={{ fontSize: 11, opacity: 0.75, marginTop: 2 }}>
+                      {addr}
+                    </div>
                   </button>
                 );
               })}
@@ -326,7 +352,9 @@ export default function LocationSettingsPage() {
 
           {selected ? (
             <>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>{selected.city}</div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>
+                {selected.city}
+              </div>
               {selected.fullLabel && (
                 <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
                   {selected.fullLabel}
@@ -364,4 +392,3 @@ export default function LocationSettingsPage() {
     </main>
   );
 }
-

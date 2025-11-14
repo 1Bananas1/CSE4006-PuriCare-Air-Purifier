@@ -44,7 +44,11 @@ export default function DevicesSettingsPage() {
   return (
     <main
       className="pb-safe"
-      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
+      style={{
+        minHeight: '100dvh',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+      }}
     >
       {/* 헤더 */}
       <div
@@ -84,7 +88,10 @@ export default function DevicesSettingsPage() {
         </button>
       </div>
 
-      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 12 }}>
+      <section
+        className="mobile-wrap"
+        style={{ padding: 16, display: 'grid', gap: 12 }}
+      >
         {MOCK_DEVICES.length === 0 ? (
           <div
             style={{

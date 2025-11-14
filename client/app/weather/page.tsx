@@ -20,7 +20,8 @@ function weatherEmoji(main?: string, icon?: string) {
   if (m.includes('thunder')) return '⛈️';
   if (m.includes('drizzle') || m.includes('rain')) return '🌧️';
   if (m.includes('snow')) return '❄️';
-  if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return '🌫️';
+  if (m.includes('mist') || m.includes('fog') || m.includes('haze'))
+    return '🌫️';
   if (m.includes('clear')) return icon?.endsWith('n') ? '🌙' : '☀️';
   if (m.includes('cloud')) return '☁️';
   return '🌤️';
@@ -166,15 +167,19 @@ export default function WeatherPage() {
     locStatus === 'loading'
       ? '현재 위치를 불러오는 중입니다…'
       : locStatus === 'denied'
-      ? '위치 권한이 거부되어, 이전 위치 또는 서울 기준으로 표시 중입니다.'
-      : locStatus === 'error'
-      ? '위치 정보를 가져오지 못해, 이전 위치 또는 서울 기준으로 표시 중입니다.'
-      : '';
+        ? '위치 권한이 거부되어, 이전 위치 또는 서울 기준으로 표시 중입니다.'
+        : locStatus === 'error'
+          ? '위치 정보를 가져오지 못해, 이전 위치 또는 서울 기준으로 표시 중입니다.'
+          : '';
 
   return (
     <main
       className="pb-safe"
-      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
+      style={{
+        minHeight: '100dvh',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+      }}
     >
       {/* 헤더 : 도시만 */}
       <div
@@ -375,9 +380,7 @@ export default function WeatherPage() {
                             fontSize: 11,
                           }}
                         >
-                          <div style={{ opacity: 0.8 }}>
-                            {formatHour(h.dt)}
-                          </div>
+                          <div style={{ opacity: 0.8 }}>{formatHour(h.dt)}</div>
                           <div style={{ fontSize: 18 }}>
                             {weatherEmoji(h.main, h.icon)}
                           </div>
@@ -435,9 +438,7 @@ export default function WeatherPage() {
                               background: 'rgba(255,255,255,0.02)',
                             }}
                           >
-                            <div style={{ width: 68 }}>
-                              {formatDay(d.dt)}
-                            </div>
+                            <div style={{ width: 68 }}>{formatDay(d.dt)}</div>
                             <div style={{ width: 28, textAlign: 'center' }}>
                               {weatherEmoji(d.main, d.icon)}
                             </div>
@@ -474,6 +475,3 @@ export default function WeatherPage() {
     </main>
   );
 }
-
-
-
