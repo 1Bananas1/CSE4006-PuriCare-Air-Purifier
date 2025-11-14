@@ -18,8 +18,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const url =
-      `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lon}&y=${lat}`;
+    const url = `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lon}&y=${lat}`;
 
     const res = await fetch(url, {
       headers: {
@@ -42,8 +41,8 @@ export async function GET(req: Request) {
     const region = json.documents?.[0];
 
     // 전부 한글 기준
-    const city = region?.region_1depth_name ?? null;        // 서울특별시
-    const district = region?.region_2depth_name ?? null;    // 성동구
+    const city = region?.region_1depth_name ?? null; // 서울특별시
+    const district = region?.region_2depth_name ?? null; // 성동구
     const neighborhood = region?.region_3depth_name ?? null; // 금호3가동 등
 
     return NextResponse.json({
@@ -59,4 +58,3 @@ export async function GET(req: Request) {
     );
   }
 }
-

@@ -43,14 +43,19 @@ export default function PrivacySettingsPage() {
   };
 
   const handleDeleteAccount = () => {
-    if (!confirm('내 계정을 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.')) return;
+    if (!confirm('내 계정을 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.'))
+      return;
     alert('백엔드 계정 삭제 API와 연동되면 실제 삭제가 수행됩니다.');
   };
 
   return (
     <main
       className="pb-safe"
-      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
+      style={{
+        minHeight: '100dvh',
+        background: 'var(--bg)',
+        color: 'var(--text)',
+      }}
     >
       {/* 헤더 */}
       <div
@@ -76,7 +81,10 @@ export default function PrivacySettingsPage() {
         <div style={{ fontWeight: 800, fontSize: 18 }}>개인정보 보호</div>
       </div>
 
-      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 14 }}>
+      <section
+        className="mobile-wrap"
+        style={{ padding: 16, display: 'grid', gap: 14 }}
+      >
         {/* 설명 / 정책 링크 자리 */}
         <div
           style={{

@@ -23,9 +23,9 @@ const MOCK_INDOOR_AQI = {
 };
 
 type RoomSummary = {
-  id: string;          // URL segment (living, bath, master...)
-  name: string;        // 카드 타이틀
-  subtitle: string;    // 상태 요약
+  id: string; // URL segment (living, bath, master...)
+  name: string; // 카드 타이틀
+  subtitle: string; // 상태 요약
   lastUpdated: string; // "10분 전" 등
   aqi: number;
   aqiLabel: string;
@@ -66,7 +66,8 @@ function weatherEmoji(main?: string, icon?: string) {
   if (m.includes('thunder')) return '⛈️';
   if (m.includes('drizzle') || m.includes('rain')) return '🌧️';
   if (m.includes('snow')) return '❄️';
-  if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return '🌫️';
+  if (m.includes('mist') || m.includes('fog') || m.includes('haze'))
+    return '🌫️';
   if (m.includes('clear')) return icon?.endsWith('n') ? '🌙' : '☀️';
   if (m.includes('cloud')) return '☁️';
   return '🌤️';
@@ -99,7 +100,13 @@ function ShellCard({
   );
 }
 
-function RoomCard({ room, onClick }: { room: RoomSummary; onClick: () => void }) {
+function RoomCard({
+  room,
+  onClick,
+}: {
+  room: RoomSummary;
+  onClick: () => void;
+}) {
   return (
     <ShellCard onClick={onClick}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -139,7 +146,7 @@ export default function HomePage() {
 
   const name = useMemo(
     () => auth.profile?.name ?? '사용자',
-    [auth.profile?.name],
+    [auth.profile?.name]
   );
 
   // 현재 좌표 상태
@@ -161,7 +168,7 @@ export default function HomePage() {
       {
         enableHighAccuracy: true,
         timeout: 8000,
-      },
+      }
     );
   }, []);
 
@@ -169,13 +176,13 @@ export default function HomePage() {
   const { data: weather } = useSWR(
     coords ? `/api/weather?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const { data: geo } = useSWR(
     coords ? `/api/geocode?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const city = geo?.city ?? 'Seoul';
@@ -309,8 +316,8 @@ export default function HomePage() {
 
             <div style={{ fontSize: 12, opacity: 0.8 }}>
               Humidity {humidity}% · Aqi Value {aqiValue}
-              {aqiLabel ? ` (${aqiLabel})` : ''} if you touch,
-              you can see more information.
+              {aqiLabel ? ` (${aqiLabel})` : ''} if you touch, you can see more
+              information.
             </div>
           </div>
         </ShellCard>
@@ -337,5 +344,3 @@ export default function HomePage() {
     </main>
   );
 }
-
-

@@ -21,7 +21,7 @@ export default function KakaoMap({
     if (!mapRef.current) return;
 
     const drawMap = () => {
-      const { kakao } = window as any;   // 👈 여기서 kakao 가져옴
+      const { kakao } = window as any; // 👈 여기서 kakao 가져옴
 
       kakao.maps.load(() => {
         const map = new kakao.maps.Map(mapRef.current, {
@@ -46,8 +46,7 @@ export default function KakaoMap({
 
     // 처음 로드하는 경우
     const script = document.createElement('script');
-    script.src =
-      `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY}&autoload=false`;
     script.async = true;
     script.onload = drawMap;
     document.head.appendChild(script);
@@ -68,4 +67,3 @@ export default function KakaoMap({
     />
   );
 }
-

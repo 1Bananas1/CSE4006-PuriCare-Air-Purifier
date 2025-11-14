@@ -7,7 +7,9 @@ import { useAuth } from '@/lib/auth';
 
 // 타입 가드
 declare global {
-  interface Window { google?: any }
+  interface Window {
+    google?: any;
+  }
 }
 
 /** UTF-8 안전 JWT Payload 디코더 (Base64URL → Uint8Array → TextDecoder → JSON) */
@@ -32,22 +34,45 @@ function decodeJwtPayload(token: string) {
 /** 간단 스플래시 */
 function Splash() {
   return (
-    <div style={{
-      minHeight: '100dvh',
-      display: 'grid',
-      placeItems: 'center',
-      background: '#0b0f14',
-      color: 'white'
-    }}>
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 9999,
-          background:'rgba(255,255,255,0.08)',
-          border:'1px solid rgba(255,255,255,0.12)',
-          animation:'pulse 1.2s ease-in-out infinite'
-        }} />
-        <div style={{ marginTop: 12, fontSize: 22, fontWeight: 800, letterSpacing: .2 }}>PuriCare</div>
-        <div style={{ marginTop: 6, fontSize: 12, opacity: .65 }}>breathing made smarter</div>
+    <div
+      style={{
+        minHeight: '100dvh',
+        display: 'grid',
+        placeItems: 'center',
+        background: '#0b0f14',
+        color: 'white',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 9999,
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            animation: 'pulse 1.2s ease-in-out infinite',
+          }}
+        />
+        <div
+          style={{
+            marginTop: 12,
+            fontSize: 22,
+            fontWeight: 800,
+            letterSpacing: 0.2,
+          }}
+        >
+          PuriCare
+        </div>
+        <div style={{ marginTop: 6, fontSize: 12, opacity: 0.65 }}>
+          breathing made smarter
+        </div>
       </div>
       <style>{`@keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.06);opacity:1}}`}</style>
     </div>
@@ -83,7 +108,9 @@ export default function LoginPage() {
     if (showSplash || !gisLoaded || !clientId) return;
     if (!window.google || !btnRef.current) return;
 
-    try { window.google.accounts.id.disableAutoSelect(); } catch {}
+    try {
+      window.google.accounts.id.disableAutoSelect();
+    } catch {}
 
     window.google.accounts.id.initialize({
       client_id: clientId,
@@ -95,7 +122,11 @@ export default function LoginPage() {
           // 1) 로그인 상태 저장
           setAuth({
             idToken,
-            profile: { name: payload.name, email: payload.email, picture: payload.picture },
+            profile: {
+              name: payload.name,
+              email: payload.email,
+              picture: payload.picture,
+            },
           });
 
           // 2) ✅ 환영 팝업용 이름/시간 기록 (홈에서 읽어 1회 노출)
@@ -112,7 +143,7 @@ export default function LoginPage() {
           alert('로그인에 실패했습니다. 다시 시도해주세요.');
         }
       },
-      auto_select: false,            // 버튼 클릭으로만
+      auto_select: false, // 버튼 클릭으로만
       ux_mode: 'popup',
       cancel_on_tap_outside: true,
       // use_fedcm_for_prompt: false, // 필요 시 주석 해제
@@ -137,29 +168,36 @@ export default function LoginPage() {
         onLoad={() => setGisLoaded(true)}
       />
 
-      <div style={{
-        minHeight: '100dvh',
-        display: 'grid',
-        placeItems: 'center',
-        background: '#0b0f14',
-        color: 'white',
-        padding: 16
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: 420,
-          borderRadius: 16,
-          padding: 24,
-          background: '#101418',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.25)'
-        }}>
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'grid',
+          placeItems: 'center',
+          background: '#0b0f14',
+          color: 'white',
+          padding: 16,
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 420,
+            borderRadius: 16,
+            padding: 24,
+            background: '#101418',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
+          }}
+        >
           <h1 style={{ fontSize: 22, fontWeight: 800 }}>PuriCare 로그인</h1>
           <p style={{ opacity: 0.8, marginTop: 8, fontSize: 14 }}>
             서비스를 이용을 위해 구글 계정으로 로그인/회원가입 해주세요.
           </p>
 
           {/* 이미 로그인 상태여도 버튼은 그대로 보여줌 */}
-          <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }} ref={btnRef} />
+          <div
+            style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}
+            ref={btnRef}
+          />
 
           {/* 현재 로그인된 계정 표시 + 선택지 제공 */}
           {ready && auth?.idToken && (
@@ -167,13 +205,23 @@ export default function LoginPage() {
               현재 로그인됨: <b>{auth.profile?.email ?? '알 수 없음'}</b>
               <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                 <button
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px' }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.12)',
+                    borderRadius: 8,
+                    padding: '10px 12px',
+                  }}
                   onClick={() => router.replace('/home')}
                 >
                   홈으로 가기
                 </button>
                 <button
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 12px' }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.08)',
+                    borderRadius: 8,
+                    padding: '10px 12px',
+                  }}
                   onClick={() => {
                     signOut();
                     // 새로고침하여 버튼을 새 상태로 (원탭 캐시도 무력화)
@@ -189,12 +237,24 @@ export default function LoginPage() {
           {/* 개발 우회 버튼(선택) */}
           {process.env.NEXT_PUBLIC_DEV_SKIP_GOOGLE_VERIFY === 'true' && (
             <button
-              style={{ marginTop: 12, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px 12px' }}
+              style={{
+                marginTop: 12,
+                width: '100%',
+                background: 'rgba(255,255,255,0.08)',
+                borderRadius: 8,
+                padding: '10px 12px',
+              }}
               onClick={() => {
-                setAuth({ idToken: 'dev-token', profile: { name: 'Dev User', email: 'dev@local' } });
+                setAuth({
+                  idToken: 'dev-token',
+                  profile: { name: 'Dev User', email: 'dev@local' },
+                });
                 try {
                   localStorage.setItem('purecare_welcome_name', 'Dev User');
-                  localStorage.setItem('purecare_welcome_at', String(Date.now()));
+                  localStorage.setItem(
+                    'purecare_welcome_at',
+                    String(Date.now())
+                  );
                   sessionStorage.removeItem('purecare_welcome_consumed');
                 } catch {}
                 router.replace('/home');
