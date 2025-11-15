@@ -47,4 +47,15 @@ router.delete(
   }
 );
 
+router.get('/', authenticateFirebaseToken, async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const devices = await deviceService.getDevicesByUser(userId);
+    res.status(200).json(devices);
+  } catch (error) {
+    console.error('Error in GET /api/devices: ', error);
+    res.status(500).send({ error: 'An internal server error occurred.' });
+  }
+});
+
 module.exports = router;
