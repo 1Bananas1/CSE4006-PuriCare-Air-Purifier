@@ -71,7 +71,7 @@ function Splash() {
           PuriCare
         </div>
         <div style={{ marginTop: 6, fontSize: 12, opacity: 0.65 }}>
-          breathing made smarter
+          Breathing Made Smarter
         </div>
       </div>
       <style>{`@keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.06);opacity:1}}`}</style>

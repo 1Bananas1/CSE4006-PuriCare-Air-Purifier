@@ -194,6 +194,31 @@ export default function HomePage() {
   const aqiLabel = weather?.aqi?.label ?? '';
   const emoji = weatherEmoji(main, icon);
 
+  const authedFetcher = (url: string) => {
+    if (!auth.idToken) {
+      throw new Error('not authorized');
+    }
+    return fetch(url, {
+      headers: {
+        Authorization: `Bearer ${auth.idToken}`,
+      },
+    }).then((r) => {
+      if (!r.ok) {
+        throw new Error('failed to fetch data');
+      }
+      return r.json();
+    });
+  };
+
+  const {
+    data: rooms, // This will contain the device list
+    error: roomsError,
+    isLoading: isLoadingRooms,
+  } = useSWR<RoomSummary[]>(
+    auth.idToken ? '/api/devices' : null, // Only fetch if logged in
+    authedFetcher // Use the new authenticated fetcher
+  );
+
   return (
     <main
       className="pb-safe"
