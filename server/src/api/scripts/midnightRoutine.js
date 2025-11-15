@@ -1,6 +1,6 @@
 require('dotenv').config();
 const moment = require('moment-timezone');
-const { initializeFirebase } = require('../config/firebase');
+const { db } = require('../config/firebase');
 const TimezoneService = require('../services/timezoneService');
 
 async function runMidnightRoutine() {
@@ -9,7 +9,6 @@ async function runMidnightRoutine() {
 
   try {
     // Initialize services
-    const { db } = initializeFirebase();
     const timezoneService = new TimezoneService();
 
     const now = new Date();
