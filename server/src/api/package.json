@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:setup": "node test/setupTestData.js",
+    "test:setup": "node test/device/setupTestData.js",
     "test:register": "node test/testWithRestAPI.js",
     "midnight": "node scripts/midnightRoutine.js",
     "test-timezones": "node scripts/testTimezoneSystem.js",

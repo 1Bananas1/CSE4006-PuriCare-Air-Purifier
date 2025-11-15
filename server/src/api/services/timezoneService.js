@@ -1,5 +1,5 @@
 const moment = require('moment-timezone');
-const { initializeFirebase } = require('../config/firebase');
+const { db } = require('../config/firebase');
 
 /**
  * Timezone Service
@@ -18,7 +18,6 @@ const { initializeFirebase } = require('../config/firebase');
 
 class TimezoneService {
   constructor() {
-    const { db } = initializeFirebase();
     this.db = db;
     this.timezonesCollection = db.collection('timezones');
   }

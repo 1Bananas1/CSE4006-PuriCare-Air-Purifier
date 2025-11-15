@@ -23,29 +23,25 @@ router.post('/register', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
-router.delete(
-  '/devices/:deviceId',
-  authenticateFirebaseToken,
-  async (req, res) => {
-    try {
-      const deviceId = req.params.deviceId;
-      const userId = req.user.uid;
-      await deviceService.deleteDevice(userId, deviceId);
-      res
-        .status(200)
-        .send({ success: true, message: 'Device deleted successfully' });
-    } catch (error) {
-      if (error.message === 'Not Authorized') {
-        return res.status(403).send({ error: error.message });
-      }
-      if (error.message === 'Not authorized') {
-        return res.status(403).send({ error: error.message });
-      }
-      console.error('Error in DELETE /api/devices/:deviceId:', error);
-      res.status(500).send({ error: 'An internal server error occurred.' });
+router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    const userId = req.user.uid;
+    await deviceService.deleteDevice(userId, deviceId);
+    res
+      .status(200)
+      .send({ success: true, message: 'Device deleted successfully' });
+  } catch (error) {
+    if (error.message === 'Not Authorized') {
+      return res.status(403).send({ error: error.message });
     }
+    if (error.message === 'Not authorized') {
+      return res.status(403).send({ error: error.message });
+    }
+    console.error('Error in DELETE /api/devices/:deviceId:', error);
+    res.status(500).send({ error: 'An internal server error occurred.' });
   }
-);
+});
 
 router.get('/', authenticateFirebaseToken, async (req, res) => {
   try {

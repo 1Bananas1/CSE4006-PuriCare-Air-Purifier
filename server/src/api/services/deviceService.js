@@ -5,6 +5,7 @@
  */
 
 const { db } = require('../config/firebase');
+const TimezoneService = require('./timezoneService');
 
 function getAqiLabel(pm25) {
   if (pm25 <= 15) return '좋음'; // Good
@@ -66,6 +67,15 @@ async function registerDevice(secureUserId, deviceData) {
       });
       return customDocID;
     });
+    const timezoneService = new TimezoneService();
+    const deviceTimezone = timezone || 'UTC';
+    const cityName = customLocation || 'Unknown';
+    await timezoneService.addDeviceToTimezone(
+      newDeviceID,
+      cityName,
+      deviceTimezone
+    );
+    console.log(`✅ Device ${newDeviceID} added to timezone ${deviceTimezone}`);
     return newDeviceID;
   } catch (error) {
     console.error('transaction failed:', error.message);
