@@ -21,7 +21,9 @@ async function registerDevice(secureUserId, deviceData) {
   if (!deviceID) {
     throw new Error('Missing required field: deviceID');
   }
-
+  if (geo[0] > 90 || geo[0] < -90 || geo[1] > 180 || geo[1] < -180) {
+    geo = [null, null];
+  }
   const customDocID = deviceID.toString();
   const masterDeviceRef = db.collection('masterDeviceList').doc(customDocID);
   const userDeviceRef = db.collection('devices').doc(customDocID);

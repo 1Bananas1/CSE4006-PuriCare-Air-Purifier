@@ -224,4 +224,4 @@ finally:
     else:
         print("Buffer was empty, no plot to show.")
         
-    print("Program exited.")
+    print("Program exited.") 
