@@ -1,5 +1,7 @@
-const { auth } = require('../config/firebase');
-// Middleware to verify Firebase ID tokens
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Middleware to verify Google ID tokens
 async function authenticateFirebaseToken(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -13,14 +15,22 @@ async function authenticateFirebaseToken(req, res, next) {
 
     const token = authHeader.split('Bearer ')[1];
 
-    // Verify the Firebase ID token
-    const decodedToken = await auth.verifyIdToken(token);
+    console.log('Received token:', token.substring(0, 50) + '...');
+    console.log('Token length:', token.length);
 
-    // Attach user info to request
+    // Verify the Google ID token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    // Attach user info to request (use Google's sub as uid)
     req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      emailVerified: decodedToken.email_verified,
+      uid: payload.sub, // Google's unique user ID
+      email: payload.email,
+      emailVerified: payload.email_verified,
     };
 
     next();

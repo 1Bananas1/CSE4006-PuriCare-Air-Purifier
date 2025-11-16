@@ -1,11 +1,18 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 
 const { db } = require('./config/firebase');
 const deviceRoutes = require('./routes/deviceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3020;
+
+// Enable CORS for frontend running on port 3000
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 
 app.use(express.json());
 
