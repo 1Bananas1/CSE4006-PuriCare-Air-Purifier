@@ -147,31 +147,42 @@ Authorization: Bearer <firebase-id-token>
 Content-Type: application/json
 
 {
-  "deviceId": "TEST-DEVICE-001",
+  "deviceID": "34566543",
+  "name": "Living Room Purifier",
   "customLocation": "Living Room",
-  "timezone": "America/Chicago"
+  "geo": [37.542036, 127.049685]
 }
 ```
+
+**Request Fields**:
+- `deviceID` (required): Device serial number from masterDeviceList
+- `name` (optional): Custom display name for the device
+- `customLocation` (optional): Room/location name (default: "Bedroom")
+- `geo` (optional): [latitude, longitude] coordinates for AQI data
+
+**AQI Integration**:
+- If valid `geo` coordinates provided, API automatically:
+  - Fetches nearest air quality station from WAQI API
+  - Extracts timezone from station data (e.g., "+09:00")
+  - Caches station AQI data in `stations` collection
+  - Associates device with station index
+- If `geo` is invalid or omitted, timezone defaults to "UTC" and no AQI data is fetched
 
 **Response**: `201 Created`
 
 ```json
 {
   "message": "Device registered successfully",
-  "device": {
-    "deviceId": "TEST-DEVICE-001",
-    "linkedUserID": "user-uid-123",
-    "data": { ... }
-  }
+  "deviceID": "34566543"
 }
 ```
 
 **Error Responses**:
 
-- `400`: Missing deviceId
+- `400`: Missing required field: deviceID
 - `403`: Unauthorized (invalid token)
-- `404`: Device not found
-- `409`: Device already claimed
+- `404`: Invalid device ID. The device does not exist in our system.
+- `409`: This device has already been registered.
 
 #### Device Deletion
 
@@ -233,9 +244,10 @@ POST /api/auth/custom-token
 1. **users**: User profiles and metadata
 2. **devices**: User-owned device instances
 3. **masterDeviceList**: Global device registry
-4. **timezones**: Timezone-grouped device lists
-5. **cities**: City cached weather data
-6. **locationAirQuality**: Detailed weather station AQI
+4. **timezones**: Timezone-grouped device lists for midnight routine
+5. **stations**: AQI station data cache (indexed by station ID)
+6. **cities**: City cached weather data (legacy)
+7. **locationAirQuality**: Detailed weather station AQI (legacy)
 
 ### Device Document (`devices/{deviceId}`)
 
@@ -244,9 +256,9 @@ POST /api/auth/custom-token
   linkedUserID: "user-uid",
   data: {
     version: "1.0.0",
-    customLocation: "Bedroom",
-    deviceID: "123456789",
-    geo: [latitude, longitude],
+    customLocation: "Living Room",
+    deviceID: "34566543",
+    geo: [37.542036, 127.049685],  // From registration
     measurements: {
       RH: 22,
       co: null,
@@ -256,8 +268,9 @@ POST /api/auth/custom-token
       temp: 23,
       tvoc: 0,
     },
-    name: "My Air Purifier",
-    timezone: "America/Chicago"
+    name: "Living Room Purifier",
+    timezone: "+09:00",              // From WAQI API
+    stationIdx: 1682                 // From WAQI API
   },
   settings: {
     autoMode: false,
@@ -284,7 +297,7 @@ POST /api/auth/custom-token
 
 ```javascript
 {
-  timezone: "America_Chicago",
+  timezone: "America_Chicago",  // Or UTC offset like "+09:00"
   deviceIds: ["device-1", "device-2"],
   cityNames: ["Chicago", "Dallas"],
   deviceCount: 2,
@@ -294,7 +307,44 @@ POST /api/auth/custom-token
 }
 ```
 
-### locationAirQuality (locationAirQuality/city)
+### Station Document (`stations/{stationIdx}`)
+
+**NEW**: AQI station data cache from WAQI API
+
+```javascript
+{
+  stationIdx: 1682,
+  timezone: "+09:00",
+  aqi: 40,
+  dominentPol: "pm10",
+  // Air Quality Index measurements
+  co: 2.8,
+  dew: -10.6,
+  h: 34.1,        // Humidity
+  no2: 7.5,
+  o3: 15.7,
+  p: 1020.3,      // Pressure
+  pm10: 40,
+  pm25: 25,
+  r: 99.3,
+  so2: 4,
+  t: 3.8,         // Temperature
+  w: 3.6,         // Wind
+  // Station metadata
+  cityName: "Seongdong-gu, Seoul, South Korea",
+  cityUrl: "https://aqicn.org/city/korea/seoul/seongdong-gu",
+  cityGeo: [37.542036, 127.049685],
+  lastUpdated: Timestamp,
+  createdAt: Timestamp
+}
+```
+
+**Purpose**:
+- Caches AQI data from WAQI API during device registration
+- Updated by midnight routine for all stations in a timezone
+- Devices query this data to display current air quality
+
+### locationAirQuality (locationAirQuality/city) [LEGACY]
 
 ```javascript
 {
@@ -332,20 +382,30 @@ POST /api/auth/custom-token
 
 ### Device Service ([services/deviceService.js](services/deviceService.js))
 
-Handles device registration, deletion, and management.
+Handles device registration, deletion, and management with AQI integration.
 
 **Key Methods**:
 
-- `registerDevice(userId, deviceId, customLocation, timezone)`: Register device to user
-- `deleteDevice(deviceId, userId)`: Unregister and unclaim device
-- `renameDevice(deviceId, newName)`: Update device display name
+- `registerDevice(secureUserId, deviceData)`: Register device to user with AQI integration
+  - Validates geo coordinates
+  - Fetches nearest AQI station if geo provided
+  - Caches station data in Firestore
+  - Associates device with timezone and station
+- `deleteDevice(secureUserId, deviceID)`: Unregister and unclaim device
+- `renameDevice(secureUserId, deviceID, newName)`: Update device display name
+- `getDevicesByUser(secureUserId)`: Get all devices for a user
+- `firstRegistrationCall(geo)`: Fetch AQI data from WAQI API
+- `cacheStationData(aqiData)`: Cache/update station data in Firestore
 
 **Features**:
 
-- Atomic transactions for claiming
-- Authorization checks
-- Timezone service integration
-- Prevents duplicate claims
+- **AQI Integration**: Automatically fetches air quality data on registration
+- **Station Caching**: Stores AQI station data for efficient queries
+- **Timezone Auto-Detection**: Extracts timezone from WAQI API response
+- **Geo Validation**: Validates and sanitizes coordinate inputs
+- **Atomic Transactions**: Ensures device claiming is atomic
+- **Authorization Checks**: Verifies user ownership
+- **Fallback Handling**: Gracefully handles missing/invalid geo data
 
 ### Timezone Service ([services/timezoneService.js](services/timezoneService.js))
 
@@ -552,9 +612,24 @@ NODE_ENV=development
 
 # API Keys
 DEVICE_API_KEY=your-device-api-key
-AQICN_TOKEN=your-air-quality-api-token
 FIREBASE_WEB_API_KEY=your-web-api-key
 ```
+
+### Required for AQI Integration
+
+```env
+# World Air Quality Index API Token
+AQICN_TOKEN=your-waqi-api-token
+```
+
+**Get your WAQI API token**:
+
+1. Visit [WAQI API Token Request](https://aqicn.org/data-platform/token/)
+2. Sign up for a free account
+3. Request an API token
+4. Add the token to your `.env` file
+
+**Note**: Free tier allows 1,000 requests/second, which is more than sufficient for most use cases.
 
 ### Getting Firebase Credentials
 
@@ -620,23 +695,32 @@ CMD ["npm", "start"]
 ### Current Limitations
 
 1. **Auth Routes Not Mounted**: User authentication routes defined but not active
-2. **Incomplete Services**: AQI proxy and hardware simulator are stubs
-3. **Midnight Routine Logic**: Framework exists but business logic is TODO
+2. **Incomplete Services**: Hardware simulator is a stub
+3. **Midnight Routine Logic**: Needs implementation to update station data at midnight
 4. **Device Rename**: Endpoint incomplete (DELETE route issues)
 5. **No Rate Limiting**: Production deployment should add rate limiting
+
+### Recent Updates
+
+- [x] ✅ **AQI Integration**: Automatic air quality data fetching via WAQI API
+- [x] ✅ **Station Caching**: Efficient caching of AQI station data in Firestore
+- [x] ✅ **Timezone Auto-Detection**: Automatic timezone extraction from AQI API
+- [x] ✅ **Geo Validation**: Coordinate validation and sanitization
+- [x] ✅ **Comprehensive Tests**: Full test suite for registration with AQI integration
 
 ### Planned Enhancements
 
 - [ ] Implement user profile management service
-- [ ] Add air quality index proxy integration
 - [ ] Complete hardware simulator for testing
-- [ ] Implement midnight routine business logic
+- [ ] Implement midnight routine to update all stations at local midnight
 - [ ] Add real-time database listeners for device status
-- [ ] Implement device measurement data persistence
-- [ ] Add comprehensive input validation
+- [ ] Implement device measurement data persistence from IoT devices
+- [ ] Add comprehensive input validation with Joi/Yup
 - [ ] Set up API documentation (Swagger/OpenAPI)
 - [ ] Add WebSocket support for real-time updates
 - [ ] Implement device command queue
+- [ ] Add station data query endpoints for frontend
+- [ ] Implement forecast data storage from WAQI API
 
 ---
 

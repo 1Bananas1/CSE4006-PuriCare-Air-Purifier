@@ -6,6 +6,7 @@
 
 const { db } = require('../config/firebase');
 const TimezoneService = require('./timezoneService');
+const aqiScripts = require('../scripts/aqiScripts');
 
 function getAqiLabel(pm25) {
   if (pm25 <= 15) return '좋음'; // Good
@@ -15,15 +16,43 @@ function getAqiLabel(pm25) {
 }
 
 async function registerDevice(secureUserId, deviceData) {
-  const { customLocation, deviceID, geo, measurements, name, timezone } =
-    deviceData;
-
+  const { customLocation, deviceID, geo, measurements, name } = deviceData;
+  // Validation Phase
   if (!deviceID) {
     throw new Error('Missing required field: deviceID');
   }
-  if (geo[0] > 90 || geo[0] < -90 || geo[1] > 180 || geo[1] < -180) {
-    geo = [null, null];
+  const [lat, long] = deviceData.geo || [null, null];
+  if (
+    lat === null ||
+    long === null ||
+    lat < -90 ||
+    lat > 90 ||
+    long < -180 ||
+    long > 180
+  ) {
+    deviceData.geo = [null, null];
   }
+
+  // Fetch Phase
+  let aqiData = null;
+  let stationIdx = null;
+  if (deviceData.geo[0] !== null && deviceData.geo[1] !== null) {
+    try {
+      // Make API call to get nearest station data
+      aqiData = await firstRegistrationCall(deviceData.geo);
+
+      // Extract timezone and station ID from response
+      deviceData.timezone = aqiData.data.time.tz; // e.g., "+09:00"
+      stationIdx = aqiData.data.idx; // e.g., 1682
+    } catch (error) {
+      console.error('AQI fetch failed during registration:', error);
+      // Continue with registration even if AQI call fails
+      deviceData.timezone = null;
+    }
+  } else {
+    deviceData.timezone = null;
+  }
+  // Registering the device
   const customDocID = deviceID.toString();
   const masterDeviceRef = db.collection('masterDeviceList').doc(customDocID);
   const userDeviceRef = db.collection('devices').doc(customDocID);
@@ -31,16 +60,17 @@ async function registerDevice(secureUserId, deviceData) {
   try {
     const newDeviceID = await db.runTransaction(async (t) => {
       const masterDoc = await t.get(masterDeviceRef);
-
+      // Validate if it is an actual serial code
       if (!masterDoc.exists) {
         throw new Error(
           'Invalid device ID. The device does not exist in our system.'
         );
       }
+      // Validate if already claimed
       if (masterDoc.data().claimedAt != null) {
         throw new Error('This device has already been registered.');
       }
-
+      // Device payload
       const newDevicePayload = {
         data: {
           version: '1.0.0',
@@ -49,7 +79,8 @@ async function registerDevice(secureUserId, deviceData) {
           geo: geo || [null, null],
           measurements: {},
           name: name || masterDoc.data().model || 'New Device',
-          timezone: timezone || 'UTC',
+          timezone: deviceData.timezone || 'UTC',
+          stationIdx: stationIdx || null,
         },
         linkedUserID: secureUserId,
         settings: {
@@ -62,6 +93,7 @@ async function registerDevice(secureUserId, deviceData) {
           online: false,
         },
       };
+      // update master device list
       t.set(userDeviceRef, newDevicePayload);
       t.update(masterDeviceRef, {
         claimedAt: new Date(),
@@ -69,12 +101,16 @@ async function registerDevice(secureUserId, deviceData) {
       });
       return customDocID;
     });
+    if (aqiData && deviceData.timezone) {
+      cacheStationData(aqiData).catch((err) => {
+        console.error('Failed to cache station data: ', err);
+      });
+    }
     const timezoneService = new TimezoneService();
-    const deviceTimezone = timezone || 'UTC';
-    const cityName = customLocation || 'Unknown';
+    const deviceTimezone = deviceData.timezone || 'UTC';
     await timezoneService.addDeviceToTimezone(
       newDeviceID,
-      cityName,
+      customLocation || 'Unknown',
       deviceTimezone
     );
     console.log(`✅ Device ${newDeviceID} added to timezone ${deviceTimezone}`);
@@ -82,6 +118,68 @@ async function registerDevice(secureUserId, deviceData) {
   } catch (error) {
     console.error('transaction failed:', error.message);
     throw error;
+  }
+}
+
+async function firstRegistrationCall(geo) {
+  const [lat, long] = geo;
+  const apiToken = process.env.AQICN_TOKEN;
+  const response = await fetch(
+    `https://api.waqi.info/feed/geo:${lat};${long}/?token=${apiToken}`
+  );
+  if (!response.ok) {
+    throw new Error(`AQI API request failed: ${response.status}`);
+  }
+  const data = await response.json();
+  if (data.status !== 'ok') {
+    throw new Error(`AQI API returned error: ${data.data}`);
+  }
+  return data;
+}
+
+async function cacheStationData(aqiData) {
+  const { data } = aqiData;
+  const timezone = data.time.tz;
+  const stationIdx = data.idx;
+
+  // Reference to this specific station document
+  const stationRef = db.collection('stations').doc(stationIdx.toString());
+  const stationDoc = await stationRef.get();
+
+  const stationData = {
+    stationIdx: stationIdx,
+    timezone: timezone,
+    dominentPol: data.dominentpol,
+    aqi: data.aqi,
+    co: data.iaqi.co?.v || null,
+    dew: data.iaqi.dew?.v || null,
+    h: data.iaqi.h?.v || null,
+    no2: data.iaqi.no2?.v || null,
+    o3: data.iaqi.o3?.v || null,
+    p: data.iaqi.p?.v || null,
+    pm10: data.iaqi.pm10?.v || null,
+    pm25: data.iaqi.pm25?.v || null,
+    r: data.iaqi.r?.v || null,
+    so2: data.iaqi.so2?.v || null,
+    t: data.iaqi.t?.v || null,
+    w: data.iaqi.w?.v || null,
+    cityName: data.city.name,
+    cityUrl: data.city.url,
+    cityGeo: data.city.geo,
+    lastUpdated: new Date(),
+  };
+
+  if (!stationDoc.exists) {
+    // Station doesn't exist - create it
+    await stationRef.set({
+      ...stationData,
+      createdAt: new Date(),
+    });
+    console.log(`Created new station ${stationIdx} (${timezone})`);
+  } else {
+    // Station exists - update with fresh data
+    await stationRef.update(stationData);
+    console.log(`Updated station ${stationIdx} with fresh data`);
   }
 }
 
