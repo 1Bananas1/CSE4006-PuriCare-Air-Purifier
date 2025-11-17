@@ -5,29 +5,12 @@ import { useState, useEffect } from 'react';
 /**
  * Test Page - Clean slate for testing components and features
  * Access at: http://localhost:3000/test
+ *
+ * Features:
+ * - Device registration with AQI integration
+ * - Auto-detect timezone from geolocation
+ * - Fetch nearest air quality station
  */
-
-// Common timezones list
-const TIMEZONES = [
-  'UTC',
-  'America/New_York',
-  'America/Chicago',
-  'America/Denver',
-  'America/Los_Angeles',
-  'America/Anchorage',
-  'Pacific/Honolulu',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Europe/Moscow',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Shanghai',
-  'Asia/Tokyo',
-  'Asia/Seoul',
-  'Australia/Sydney',
-  'Pacific/Auckland',
-];
 
 export default function TestPage() {
   const [showModal, setShowModal] = useState(false);
@@ -38,7 +21,6 @@ export default function TestPage() {
     customLocation: '',
     deviceID: '',
     name: '',
-    timezone: 'UTC',
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -48,6 +30,8 @@ export default function TestPage() {
   const [geoLocation, setGeoLocation] = useState<[number, number] | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [devices, setDevices] = useState<any[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(false);
 
   // Check if already authenticated on mount
   useEffect(() => {
@@ -57,12 +41,41 @@ export default function TestPage() {
         const parsed = JSON.parse(authData);
         if (parsed.idToken) {
           setIsAuthenticated(true);
+          fetchDevices(); // Fetch devices on auth
         }
       } catch (e) {
         // Ignore
       }
     }
   }, []);
+
+  // Fetch user's devices
+  const fetchDevices = async () => {
+    setDevicesLoading(true);
+    try {
+      const authData = localStorage.getItem('purecare_auth');
+      if (!authData) return;
+
+      const parsed = JSON.parse(authData);
+      const idToken = parsed.idToken;
+
+      const response = await fetch('http://localhost:3020/api/devices', {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Backend returns devices array directly, not wrapped in an object
+        setDevices(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch devices:', error);
+    } finally {
+      setDevicesLoading(false);
+    }
+  };
 
   // Automatically get location when modal opens
   useEffect(() => {
@@ -92,7 +105,8 @@ export default function TestPage() {
         let errorMessage = 'Failed to get location';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Location permission denied. Please enable location access.';
+            errorMessage =
+              'Location permission denied. Please enable location access.';
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = 'Location information unavailable';
@@ -162,21 +176,22 @@ export default function TestPage() {
       }
 
       // Make API call to backend
-      const response = await fetch('http://localhost:3020/api/devices/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          customLocation: formData.customLocation || 'Bedroom',
-          deviceID: formData.deviceID,
-          name: formData.name || 'New Device',
-          timezone: formData.timezone,
-          geo: geoLocation || [null, null], // Use user's location if available
-          measurements: {}, // Optional: will be populated by device
-        }),
-      });
+      const response = await fetch(
+        'http://localhost:3020/api/devices/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            deviceID: formData.deviceID,
+            name: formData.name || 'New Device',
+            customLocation: formData.customLocation || 'Bedroom',
+            geo: geoLocation || [null, null], // Timezone auto-detected from AQI API
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -186,7 +201,7 @@ export default function TestPage() {
 
       setResult({
         type: 'success',
-        message: `Device registered successfully! Device ID: ${data.deviceId}`,
+        message: `Device registered successfully! Device ID: ${data.deviceID || formData.deviceID}`,
       });
 
       // Reset form
@@ -194,8 +209,11 @@ export default function TestPage() {
         customLocation: '',
         deviceID: '',
         name: '',
-        timezone: 'UTC',
       });
+      setGeoLocation(null);
+
+      // Refresh device list
+      fetchDevices();
 
       // Close modal after 2 seconds
       setTimeout(() => {
@@ -311,6 +329,188 @@ export default function TestPage() {
             </button>
           )}
         </div>
+
+        {/* My Devices Section */}
+        {isAuthenticated && (
+          <div style={{ marginTop: 48 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>My Devices</h2>
+              <button
+                onClick={fetchDevices}
+                disabled={devicesLoading}
+                style={{
+                  padding: '8px 16px',
+                  background: 'transparent',
+                  color: 'white',
+                  border: '1px solid var(--divider)',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: devicesLoading ? 'not-allowed' : 'pointer',
+                  opacity: devicesLoading ? 0.5 : 1,
+                }}
+              >
+                {devicesLoading ? 'Loading...' : '↻ Refresh'}
+              </button>
+            </div>
+
+            {devicesLoading ? (
+              <div style={{ textAlign: 'center', padding: 40, opacity: 0.7 }}>
+                Loading devices...
+              </div>
+            ) : devices.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: 40,
+                  background: 'var(--surface)',
+                  borderRadius: 12,
+                  border: '1px dashed var(--divider)',
+                }}
+              >
+                <p style={{ fontSize: 16, marginBottom: 8, opacity: 0.7 }}>
+                  No devices registered yet
+                </p>
+                <p style={{ fontSize: 14, opacity: 0.5 }}>
+                  Click "Register Device" to add your first device
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  overflowX: 'auto',
+                  gap: 16,
+                  paddingBottom: 8,
+                }}
+              >
+                {devices.map((device) => {
+                  const getAqiColor = (aqi: number) => {
+                    if (aqi <= 50) return '#22c55e';
+                    if (aqi <= 100) return '#eab308';
+                    if (aqi <= 150) return '#f97316';
+                    if (aqi <= 200) return '#ef4444';
+                    return '#991b1b';
+                  };
+
+                  const getAqiLabel = (aqi: number) => {
+                    if (aqi <= 50) return 'Good';
+                    if (aqi <= 100) return 'Moderate';
+                    if (aqi <= 150) return 'Unhealthy for Sensitive';
+                    if (aqi <= 200) return 'Unhealthy';
+                    return 'Very Unhealthy';
+                  };
+
+                  const aqiColor = getAqiColor(device.aqi || 0);
+                  const aqiLabel = getAqiLabel(device.aqi || 0);
+
+                  return (
+                    <div
+                      key={device.id}
+                      style={{
+                        minWidth: 280,
+                        background: 'var(--surface)',
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        border: '1px solid var(--divider)',
+                      }}
+                    >
+                      {/* Device Image */}
+                      <div
+                        style={{
+                          width: '100%',
+                          aspectRatio: '4/3',
+                          background: 'rgba(0, 0, 0, 0.2)',
+                          backgroundImage:
+                            "url('https://i.imgur.com/g055z5j.png')",
+                          backgroundSize: 'contain',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      />
+
+                      {/* Device Info */}
+                      <div style={{ padding: 16 }}>
+                        <div style={{ marginBottom: 12 }}>
+                          <p
+                            style={{
+                              fontSize: 16,
+                              fontWeight: 700,
+                              marginBottom: 4,
+                            }}
+                          >
+                            {device.name || 'Unnamed Device'}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: aqiColor,
+                            }}
+                          >
+                            AQI: {device.aqi || 0} - {aqiLabel}
+                          </p>
+                        </div>
+
+                        {/* Status */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              background: device.subtitle?.includes('온라인')
+                                ? '#22c55e'
+                                : '#6b7280',
+                              animation: device.subtitle?.includes('온라인')
+                                ? 'pulse 2s infinite'
+                                : 'none',
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontSize: 13,
+                              opacity: 0.8,
+                            }}
+                          >
+                            {device.subtitle || 'Unknown status'}
+                          </span>
+                        </div>
+
+                        {/* Last Updated */}
+                        {device.lastUpdated && (
+                          <div
+                            style={{
+                              marginTop: 12,
+                              fontSize: 11,
+                              opacity: 0.5,
+                            }}
+                          >
+                            Updated:{' '}
+                            {new Date(device.lastUpdated).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Auth Token Modal */}
@@ -344,11 +544,27 @@ export default function TestPage() {
             <p style={{ fontSize: 14, opacity: 0.7, marginBottom: 16 }}>
               To get your Google ID token:
               <br />
-              1. Go to <a href="/login" style={{ color: '#4f46e5', textDecoration: 'underline' }}>Login Page</a> and sign in
+              1. Go to{' '}
+              <a
+                href="/login"
+                style={{ color: '#4f46e5', textDecoration: 'underline' }}
+              >
+                Login Page
+              </a>{' '}
+              and sign in
               <br />
               2. Open browser DevTools (F12) → Console tab
               <br />
-              3. Run: <code style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: 4 }}>JSON.parse(localStorage.getItem('purecare_auth')).idToken</code>
+              3. Run:{' '}
+              <code
+                style={{
+                  background: 'rgba(0,0,0,0.3)',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                }}
+              >
+                JSON.parse(localStorage.getItem('purecare_auth')).idToken
+              </code>
               <br />
               4. Copy the token and paste it here
             </p>
@@ -550,40 +766,26 @@ export default function TestPage() {
                 />
               </div>
 
-              {/* Timezone */}
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    marginBottom: 6,
-                  }}
-                >
-                  Timezone
-                </label>
-                <select
-                  value={formData.timezone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, timezone: e.target.value })
-                  }
-                  disabled={loading}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1px solid var(--divider)',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    color: 'inherit',
-                    fontSize: 14,
-                  }}
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz} value={tz}>
-                      {tz}
-                    </option>
-                  ))}
-                </select>
+              {/* AQI Integration Info */}
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  background: 'rgba(79, 70, 229, 0.1)',
+                  border: '1px solid rgba(79, 70, 229, 0.3)',
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  🌍 AQI Integration
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>
+                  If you provide your location, we'll automatically:
+                  <br />
+                  • Find the nearest air quality monitoring station
+                  <br />
+                  • Detect your timezone (no manual selection needed!)
+                  <br />• Cache real-time AQI data for your device
+                </div>
               </div>
 
               {/* Geolocation */}
@@ -596,7 +798,7 @@ export default function TestPage() {
                     marginBottom: 6,
                   }}
                 >
-                  Location (Latitude, Longitude)
+                  Location (Optional - Enables AQI)
                 </label>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button
@@ -631,6 +833,9 @@ export default function TestPage() {
                         ? geoError
                         : 'Click to get your location'}
                   </div>
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4 }}>
+                  Without location, timezone will default to UTC
                 </div>
               </div>
 
