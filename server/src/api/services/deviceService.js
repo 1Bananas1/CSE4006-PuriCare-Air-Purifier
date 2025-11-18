@@ -209,9 +209,32 @@ async function deleteDevice(secureUserId, deviceID) {
         throw new Error('Not authorized');
       }
 
+      // Get the device's timezone to update the timezone document
+      const deviceData = device.data();
+      const timezone = deviceData.timezone;
+
+      // Update master device list to unclaim the device
       t.update(masterDeviceRef, {
         claimedAt: null,
       });
+
+      // Remove device from timezone's devices array if timezone exists
+      if (timezone) {
+        const timezoneRef = db.collection('timezones').doc(timezone);
+        const timezoneDoc = await t.get(timezoneRef);
+
+        if (timezoneDoc.exists) {
+          const timezoneData = timezoneDoc.data();
+          const devices = timezoneData.devices || [];
+
+          // Remove deviceID from the array
+          const updatedDevices = devices.filter((id) => id !== deviceID);
+
+          t.update(timezoneRef, {
+            devices: updatedDevices,
+          });
+        }
+      }
     });
   } catch (error) {
     console.error('transaction failed:', error.message);
