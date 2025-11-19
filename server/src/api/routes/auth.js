@@ -114,16 +114,23 @@ router.get('/verify', authenticateFirebaseToken, async (req, res) => {
 // Delete user account
 router.delete('/me', authenticateFirebaseToken, async (req, res) => {
   try {
-    await userService.deleteUser(req.user.uid);
+    const uid = req.user.uid;
+
+    // Step 1: Delete Firestore document
+    await userService.deleteUser(uid);
+
+    // Step 2: Delete Firebase Auth user record
+    const { auth } = initializeFirebase();
+    await auth.deleteUser(uid);
 
     res.json({
-      message: 'User account deleted successfully',
+      message: 'User account deleted successfully (Firestore + Firebase Auth)'
     });
   } catch (error) {
     console.error('Delete account error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error.message,
+      message: error.message
     });
   }
 });
