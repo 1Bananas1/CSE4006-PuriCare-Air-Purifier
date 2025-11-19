@@ -24,7 +24,7 @@ router.post('/register', authenticateFirebaseToken, async (req, res) => {
 });
 
 router.delete(
-  '/devices/:deviceId',
+  '/:deviceId',
   authenticateFirebaseToken,
   async (req, res) => {
     try {
@@ -35,10 +35,7 @@ router.delete(
         .status(200)
         .send({ success: true, message: 'Device deleted successfully' });
     } catch (error) {
-      if (error.message === 'Not Authorized') {
-        return res.status(403).send({ error: error.message });
-      }
-      if (error.message === 'Not authorized') {
+      if (error.message.toLowerCase().includes('not authorized')) {
         return res.status(403).send({ error: error.message });
       }
       console.error('Error in DELETE /api/devices/:deviceId:', error);
