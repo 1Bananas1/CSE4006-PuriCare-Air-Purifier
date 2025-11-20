@@ -1,2 +1,6 @@
 #TEMP FILE FOR FILE STRUCTURE
 # CREATE TEMPLATE EXPO APP HERE
+
+node_modules
+.next
+.turbo
