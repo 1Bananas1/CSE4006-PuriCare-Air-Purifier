@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
+<<<<<<< HEAD:client/src/app/weather/page.tsx
 import KakaoMap from '@/components/features/kakao-map';
+=======
+import KakaoMap from '@/components/features/KakaoMap';
+>>>>>>> 98d5033 (add device and modified):client/app/weather/page.tsx
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 

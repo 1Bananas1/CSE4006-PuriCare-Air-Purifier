@@ -1,13 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD:client/src/app/settings/page.tsx
 import BottomNav from '@/components/layout/bottom-nav';
+=======
+import BottomNav from '@/components/layout/BottomNav';
+>>>>>>> 98d5033 (add device and modified):client/app/settings/page.tsx
 
 type MenuItem = {
   label: string;
   description: string;
   href: string;
-  icon: string;
+  icon: string; 
 };
 
 const MENU: MenuItem[] = [
@@ -25,15 +29,13 @@ const MENU: MenuItem[] = [
   },
   {
     label: 'Location',
-    description:
-      '도시 / 위치 기반 추천 설정(City / Location Based Recommendation Settings)',
+    description: '도시 / 위치 기반 추천 설정(City / Location Based Recommendation Settings)',
     href: '/settings/location',
     icon: '📍',
   },
   {
     label: 'Privacy',
-    description:
-      '오디오·위치 데이터 처리 동의(Consent to audio and location data processing)',
+    description: '오디오·위치 데이터 처리 동의(Consent to audio and location data processing)',
     href: '/settings/privacy',
     icon: '🛡️',
   },
@@ -45,11 +47,7 @@ export default function SettingsPage() {
   return (
     <main
       className="pb-safe"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-      }}
+      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
     >
       {/* 헤더 */}
       <div
@@ -102,9 +100,7 @@ export default function SettingsPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>{item.label}</div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>
-                {item.description}
-              </div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>{item.description}</div>
             </div>
             <div style={{ fontSize: 18, opacity: 0.6 }}>›</div>
           </button>

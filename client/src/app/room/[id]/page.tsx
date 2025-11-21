@@ -2,7 +2,11 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
+<<<<<<< HEAD:client/src/app/room/[id]/page.tsx
 import BottomNav from '@/components/layout/bottom-nav';
+=======
+import BottomNav from '@/components/layout/BottomNav';
+>>>>>>> 98d5033 (add device and modified):client/app/room/[id]/page.tsx
 
 type RoomDetail = {
   name: string;
@@ -16,9 +20,10 @@ type RoomDetail = {
 };
 
 // 방별 목업 데이터 (추후 백엔드 연동)
+// key는 Home에서 쓰는 roomType 또는 기본 id(living/bath/master)와 맞춰둠
 const ROOM_DETAIL: Record<string, RoomDetail> = {
   living: {
-    name: 'Living room',
+    name: '거실',
     state: '켜짐',
     mode: 'AUTO',
     wind: '2단',
@@ -27,18 +32,8 @@ const ROOM_DETAIL: Record<string, RoomDetail> = {
     pm25: 'PM2.5 12 µg/m³',
     voc: 'VOC 낮음',
   },
-  bath: {
-    name: 'Bathroom',
-    state: '켜짐',
-    mode: 'DEHUMIDIFY',
-    wind: '1단',
-    filterPercent: 54,
-    filterEta: '교체까지 예상 2주',
-    pm25: 'PM2.5 18 µg/m³',
-    voc: 'VOC 보통',
-  },
   master: {
-    name: 'Master room',
+    name: '안방',
     state: '대기',
     mode: 'SLEEP',
     wind: '1단',
@@ -47,8 +42,49 @@ const ROOM_DETAIL: Record<string, RoomDetail> = {
     pm25: 'PM2.5 9 µg/m³',
     voc: 'VOC 매우 낮음',
   },
+  small: {
+    name: '작은방',
+    state: '켜짐',
+    mode: 'AUTO',
+    wind: '1단',
+    filterPercent: 74,
+    filterEta: '교체까지 예상 4주',
+    pm25: 'PM2.5 15 µg/m³',
+    voc: 'VOC 보통',
+  },
+  small2: {
+    name: '작은방2',
+    state: '켜짐',
+    mode: 'AUTO',
+    wind: '1단',
+    filterPercent: 60,
+    filterEta: '교체까지 예상 2주',
+    pm25: 'PM2.5 18 µg/m³',
+    voc: 'VOC 보통',
+  },
+  toilet: {
+    name: '화장실',
+    state: '켜짐',
+    mode: 'DEODORIZE',
+    wind: '강풍',
+    filterPercent: 55,
+    filterEta: '교체까지 예상 2주',
+    pm25: 'PM2.5 20 µg/m³',
+    voc: 'VOC 높음',
+  },
+  bath: {
+    name: '욕실',
+    state: '켜짐',
+    mode: 'DEHUMIDIFY',
+    wind: '1단',
+    filterPercent: 54,
+    filterEta: '교체까지 예상 2주',
+    pm25: 'PM2.5 18 µg/m³',
+    voc: 'VOC 보통',
+  },
 };
 
+// 공통 카드
 function InfoCard({
   title,
   children,
@@ -75,10 +111,22 @@ function InfoCard({
 
 export default function RoomPage() {
   const router = useRouter();
-  const params = useParams<{ id: string }>(); // ✅ 여기서 params를 훅으로
+  const params = useParams<{ id: string }>();
   const id = (params?.id as string) ?? 'living';
 
-  const data = ROOM_DETAIL[id] ?? ROOM_DETAIL['living'];
+  // 1) roomType(living/master/...)로 찾고
+  // 2) 없으면 generic(새 기기) 정보로 fallback
+  const data: RoomDetail =
+    ROOM_DETAIL[id] ?? {
+      name: '새 기기',
+      state: '정보 준비 중',
+      mode: '-',
+      wind: '-',
+      filterPercent: 100,
+      filterEta: '백엔드 연동 후 표시됩니다.',
+      pm25: 'PM2.5 데이터 준비 중',
+      voc: 'VOC 데이터 준비 중',
+    };
 
   return (
     <main

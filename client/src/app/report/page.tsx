@@ -2,7 +2,11 @@
 'use client';
 
 import { useState } from 'react';
+<<<<<<< HEAD:client/src/app/report/page.tsx
 import BottomNav from '@/components/layout/bottom-nav';
+=======
+import BottomNav from '@/components/layout/BottomNav';
+>>>>>>> 98d5033 (add device and modified):client/app/report/page.tsx
 
 type Range = 'day' | 'week' | 'month';
 

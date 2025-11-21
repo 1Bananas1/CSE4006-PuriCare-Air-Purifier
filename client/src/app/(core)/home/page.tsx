@@ -5,16 +5,41 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useAuth } from '@/lib/auth';
+<<<<<<< HEAD:client/src/app/(core)/home/page.tsx
 import { getDevices, Device } from '@/app/lib/api';
 import BottomNav from '@/components/layout/bottom-nav';
 import WelcomeModal from '@/components/features/welcome-modal';
 import DeviceCarousel from '@/components/features/device-carousel';
+=======
+import BottomNav from '@/components/layout/BottomNav';
+import WelcomeModal from '@/components/features/WelcomeModel';
+>>>>>>> 98d5033 (add device and modified):client/app/(core)/home/page.tsx
 
+// ─────────────────────────────
+// 공통 상수/타입
+// ─────────────────────────────
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-// 기본 위치: 서울시청
 type Coords = { lat: number; lon: number };
+
+// 위치 설정 화면에서 쓰는 저장 타입과 키 (fallback 용)
+const LOCATION_STORAGE_KEY = 'purecare_location_pref';
+
+type SavedLocation = {
+  city: string;
+  fullLabel?: string;
+  lat?: number;
+  lon?: number;
+};
+
+// 기본 위치: 서울시청
 const SEOUL: Coords = { lat: 37.5665, lon: 126.978 };
+
+// 백엔드 베이스 URL (Heroku 등)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+// QR/시리얼로 등록한 목업 기기를 저장하는 key
+const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
 
 // 실내 공기질 목업 (추후 백엔드 + ML 연동)
 const MOCK_INDOOR_AQI = {
@@ -24,21 +49,22 @@ const MOCK_INDOOR_AQI = {
   humidity: 41,
 };
 
-type RoomSummary = {
-  id: string; // URL segment (living, bath, master...)
-  name: string; // 카드 타이틀
-  subtitle: string; // 상태 요약
-  lastUpdated: string; // "10분 전" 등
+export type RoomSummary = {
+  id: string;
+  name: string;
+  subtitle: string;
+  lastUpdated: string;
   aqi: number;
   aqiLabel: string;
 };
 
+// 백엔드 연동 실패 시 사용할 목업 룸 데이터
 const MOCK_ROOMS: RoomSummary[] = [
   {
     id: 'living',
     name: 'Living room',
     subtitle: '온라인 · 자동 모드 · 약풍',
-    lastUpdated: '10분 전 (추후 연동 데이터)',
+    lastUpdated: '10분 전 (목업 데이터)',
     aqi: 32,
     aqiLabel: '좋음',
   },
@@ -46,7 +72,7 @@ const MOCK_ROOMS: RoomSummary[] = [
     id: 'bath',
     name: 'Bathroom',
     subtitle: '온라인 · 제습 모드 · 약풍',
-    lastUpdated: '5분 전 (추후 연동 데이터)',
+    lastUpdated: '5분 전 (목업 데이터)',
     aqi: 40,
     aqiLabel: '보통',
   },
@@ -54,22 +80,35 @@ const MOCK_ROOMS: RoomSummary[] = [
     id: 'master',
     name: 'Master room',
     subtitle: '대기 중 · 수면 모드',
-    lastUpdated: '어제 (추후 연동 데이터)',
+    lastUpdated: '어제 (목업 데이터)',
     aqi: 28,
     aqiLabel: '좋음',
   },
 ];
 
+// 간단 상대 시간 포맷터
+function formatRelativeTime(isoOrText: string) {
+  if (!isoOrText.includes('T')) return isoOrText;
+  const date = new Date(isoOrText);
+  if (Number.isNaN(date.getTime())) return isoOrText;
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (minutes < 1) return '방금 전';
+  if (minutes < 60) return `${minutes}분 전`;
+  if (hours < 24) return `${hours}시간 전`;
+  return `${days}일 전`;
+}
+
 // 날씨 이모지
 function weatherEmoji(main?: string, icon?: string) {
   if (!main) return '🌤️';
   const m = main.toLowerCase();
-
   if (m.includes('thunder')) return '⛈️';
   if (m.includes('drizzle') || m.includes('rain')) return '🌧️';
   if (m.includes('snow')) return '❄️';
-  if (m.includes('mist') || m.includes('fog') || m.includes('haze'))
-    return '🌫️';
+  if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return '🌫️';
   if (m.includes('clear')) return icon?.endsWith('n') ? '🌙' : '☀️';
   if (m.includes('cloud')) return '☁️';
   return '🌤️';
@@ -102,13 +141,7 @@ function ShellCard({
   );
 }
 
-function RoomCard({
-  room,
-  onClick,
-}: {
-  room: RoomSummary;
-  onClick: () => void;
-}) {
+function RoomCard({ room, onClick }: { room: RoomSummary; onClick: () => void }) {
   return (
     <ShellCard onClick={onClick}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
@@ -118,7 +151,7 @@ function RoomCard({
             {room.subtitle}
           </div>
           <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
-            마지막 업데이트: {room.lastUpdated}
+            마지막 업데이트: {formatRelativeTime(room.lastUpdated)}
           </div>
         </div>
         <div
@@ -137,6 +170,10 @@ function RoomCard({
   );
 }
 
+// ─────────────────────────────
+// 메인 페이지 컴포넌트
+// ─────────────────────────────
+
 export default function HomePage() {
   const { auth } = useAuth();
   const router = useRouter();
@@ -148,14 +185,44 @@ export default function HomePage() {
 
   const name = useMemo(
     () => auth.profile?.name ?? '사용자',
-    [auth.profile?.name]
+    [auth.profile?.name],
   );
 
   // 현재 좌표 상태
   const [coords, setCoords] = useState<Coords>(SEOUL);
 
+  // ✅ GPS + 저장된 위치 fallback
   useEffect(() => {
-    if (!('geolocation' in navigator)) return;
+    // window.localStorage 사용 시 SSR 방지
+    const useSavedLocation = () => {
+      try {
+        const raw =
+          typeof window !== 'undefined'
+            ? window.localStorage.getItem(LOCATION_STORAGE_KEY)
+            : null;
+        if (raw) {
+          const saved: SavedLocation = JSON.parse(raw);
+          if (
+            typeof saved.lat === 'number' &&
+            typeof saved.lon === 'number'
+          ) {
+            setCoords({ lat: saved.lat, lon: saved.lon });
+            return true;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return false;
+    };
+
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      // geolocation 자체가 없으면 바로 fallback 시도
+      if (!useSavedLocation()) {
+        setCoords(SEOUL);
+      }
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -165,12 +232,15 @@ export default function HomePage() {
         });
       },
       () => {
-        setCoords(SEOUL);
+        // 권한 거부 or 오류 → 저장된 위치 사용 시도, 실패 시 서울 기본값
+        if (!useSavedLocation()) {
+          setCoords(SEOUL);
+        }
       },
       {
         enableHighAccuracy: true,
         timeout: 8000,
-      }
+      },
     );
   }, []);
 
@@ -178,16 +248,31 @@ export default function HomePage() {
   const { data: weather } = useSWR(
     coords ? `/api/weather?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
 
   const { data: geo } = useSWR(
     coords ? `/api/geocode?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
 
-  const city = geo?.city ?? 'Seoul';
+  // ✅ 도시 이름도 저장된 위치를 우선 fallback 으로 활용
+  let city: string = geo?.city ?? 'Seoul';
+  try {
+    if (typeof window !== 'undefined') {
+      const raw = window.localStorage.getItem(LOCATION_STORAGE_KEY);
+      if (raw) {
+        const saved: SavedLocation = JSON.parse(raw);
+        if (!geo?.city && saved.city) {
+          city = saved.city;
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   const temp = weather?.current?.temp ?? '-';
   const humidity = weather?.current?.humidity ?? '-';
   const main = weather?.current?.main;
@@ -196,22 +281,22 @@ export default function HomePage() {
   const aqiLabel = weather?.aqi?.label ?? '';
   const emoji = weatherEmoji(main, icon);
 
-  const authedFetcher = (url: string) => {
-    if (!auth.idToken) {
-      throw new Error('not authorized');
-    }
-    return fetch(url, {
-      headers: {
-        Authorization: `Bearer ${auth.idToken}`,
-      },
-    }).then((r) => {
-      if (!r.ok) {
-        throw new Error('failed to fetch data');
-      }
-      return r.json();
+  // ─────────────────────────────
+  // 디바이스 리스트 (백엔드 + 목업 + 로컬 추가분)
+  // ─────────────────────────────
+
+  const authedFetcher = async (path: string) => {
+    if (!auth.idToken || !API_BASE_URL) throw new Error('no-auth-or-api-url');
+
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      headers: { Authorization: `Bearer ${auth.idToken}` },
     });
+
+    if (!res.ok) throw new Error(`failed-to-fetch-devices: ${res.status}`);
+    return res.json();
   };
 
+<<<<<<< HEAD:client/src/app/(core)/home/page.tsx
   const {
     data: rooms, // This will contain the device list
     error: roomsError,
@@ -224,6 +309,11 @@ export default function HomePage() {
       revalidateOnFocus: true,
       refreshInterval: 30000,
     }
+=======
+  const { data: roomsFromApi, error: roomsError } = useSWR<RoomSummary[]>(
+    auth.idToken && API_BASE_URL ? '/api/devices' : null,
+    authedFetcher,
+>>>>>>> 98d5033 (add device and modified):client/app/(core)/home/page.tsx
   );
   const averageIndoorAQI = useMemo(() => {
     if (!rooms || rooms.length === 0) return { value: 0, lbel: 'No Data' };
@@ -238,6 +328,41 @@ export default function HomePage() {
     return { value: avgAQI, label };
   }, [rooms]);
 
+  const usingMock =
+    !API_BASE_URL || roomsError || !roomsFromApi || roomsFromApi.length === 0;
+
+  const baseRooms: RoomSummary[] = usingMock ? MOCK_ROOMS : roomsFromApi!;
+
+  // 🔽 QR/시리얼로 프론트에서 임시로 추가한 기기들(localStorage)
+  const [extraRooms, setExtraRooms] = useState<RoomSummary[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem(LOCAL_DEVICES_KEY)
+          : null;
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as RoomSummary[];
+
+      // 🔽 이름 정규화 : "새 기기 (QR 등록)" → "새 기기"
+      const normalized = parsed.map((room) => ({
+        ...room,
+        name:
+          room.name && room.name.startsWith('새 기기')
+            ? '새 기기'
+            : room.name ?? '새 기기',
+      }));
+
+      setExtraRooms(normalized);
+    } catch {
+      // 파싱 실패 무시
+    }
+  }, []);
+
+  const displayRooms = [...baseRooms, ...extraRooms];
+
   return (
     <main
       className="pb-safe"
@@ -249,7 +374,6 @@ export default function HomePage() {
     >
       <WelcomeModal />
 
-      {/* 헤더 */}
       <div
         className="mobile-wrap"
         style={{
@@ -263,12 +387,11 @@ export default function HomePage() {
         <div style={{ fontSize: 18, fontWeight: 800 }}>홈</div>
       </div>
 
-      {/* 컨텐츠 */}
       <section
         className="mobile-wrap"
         style={{ padding: 16, display: 'grid', gap: 14 }}
       >
-        {/* 1. 인사 + 실내 AQI 요약 */}
+        {/* 1. 인사 + 실내 AQI */}
         <ShellCard onClick={() => router.push('/profile')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -351,7 +474,6 @@ export default function HomePage() {
                 gap: 12,
               }}
             >
-              {/* 실내 AQI 텍스트 */}
               <div style={{ display: 'grid', gap: 2 }}>
                 <div style={{ fontSize: 11, opacity: 0.8 }}>
                   실내 공기질 요약 · {MOCK_INDOOR_AQI.room}
@@ -367,7 +489,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* 동그라미 게이지 */}
               <div
                 style={{
                   width: 64,
@@ -412,7 +533,7 @@ export default function HomePage() {
           </div>
         </ShellCard>
 
-        {/* 2. 현재 위치 / 날씨 카드 */}
+        {/* 2. 현재 위치 / 날씨 */}
         <ShellCard onClick={() => router.push('/weather')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div
@@ -438,6 +559,7 @@ export default function HomePage() {
           </div>
         </ShellCard>
 
+<<<<<<< HEAD:client/src/app/(core)/home/page.tsx
         {/* device carousel */}
         <section style={{ marginTop: 8 }}>
           <div
@@ -492,6 +614,24 @@ export default function HomePage() {
 
         {/* 3. 방 / 기기 카드들 */}
         {MOCK_ROOMS.map((room) => (
+=======
+        {/* 3. 기기 리스트 */}
+        {usingMock && (
+          <div
+            style={{
+              fontSize: 11,
+              opacity: 0.7,
+              marginTop: 4,
+              marginBottom: -4,
+            }}
+          >
+            ※ 현재 서버와 연동되지 않아 예시(목업) 데이터가 표시되는
+            상태입니다.
+          </div>
+        )}
+
+        {displayRooms.map((room) => (
+>>>>>>> 98d5033 (add device and modified):client/app/(core)/home/page.tsx
           <RoomCard
             key={room.id}
             room={room}
@@ -499,7 +639,7 @@ export default function HomePage() {
           />
         ))}
 
-        {/* 4. 기기 추가 */}
+        {/* 4. add device */}
         <ShellCard onClick={() => router.push('/devices/add')}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>+ add device</div>
           <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>

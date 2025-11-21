@@ -1,8 +1,14 @@
+// app/settings/privacy/page.tsx (예시 경로)
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+<<<<<<< HEAD:client/src/app/settings/privacy/page.tsx
 import BottomNav from '@/components/layout/bottom-nav';
+=======
+import BottomNav from '@/components/layout/BottomNav';
+import { useAuth } from '@/lib/auth';
+>>>>>>> 98d5033 (add device and modified):client/app/settings/privacy/page.tsx
 
 type PrivacyState = {
   dataCollection: boolean;
@@ -11,51 +17,144 @@ type PrivacyState = {
 };
 
 const STORAGE_KEY = 'purecare_privacy';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const DEFAULT_STATE: PrivacyState = {
+  dataCollection: true,
+  audioProcessing: true,
+  location: true,
+};
 
 export default function PrivacySettingsPage() {
   const router = useRouter();
-  const [state, setState] = useState<PrivacyState>({
-    dataCollection: true,
-    audioProcessing: true,
-    location: true,
-  });
+  const { auth } = useAuth();
+  const [state, setState] = useState<PrivacyState>(DEFAULT_STATE);
+  const [loading, setLoading] = useState(true);
 
+  // 1) 최초 로드: 백엔드 > 없으면 localStorage > 기본값
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    const load = async () => {
       try {
-        setState(JSON.parse(raw));
-      } catch {
-        /* ignore */
-      }
-    }
-  }, []);
+        // 백엔드 사용 가능하면 서버에서 불러오기
+        if (auth.idToken && API_BASE_URL) {
+          const res = await fetch(`${API_BASE_URL}/api/privacy`, {
+            headers: {
+              Authorization: `Bearer ${auth.idToken}`,
+            },
+          });
 
+          if (res.ok) {
+            const serverState = (await res.json()) as Partial<PrivacyState>;
+            const merged = { ...DEFAULT_STATE, ...serverState };
+            setState(merged);
+            // 로컬에도 캐시
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            }
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 여기까지 왔으면: 백엔드 사용 불가 or 실패 → localStorage 사용
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw) as PrivacyState;
+              setState({ ...DEFAULT_STATE, ...parsed });
+              setLoading(false);
+              return;
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+
+        setState(DEFAULT_STATE);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [auth.idToken]);
+
+  // 2) 상태 변경 시: localStorage + 백엔드에 저장
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (loading) return; // 초기 로딩 중일 땐 저장 X
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    const syncToServer = async () => {
+      if (!auth.idToken || !API_BASE_URL) return;
+
+      try {
+        await fetch(`${API_BASE_URL}/api/privacy`, {
+          method: 'PUT', // or PATCH
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${auth.idToken}`,
+          },
+          body: JSON.stringify(state),
+        });
+      } catch (e) {
+        console.error('privacy sync failed', e);
+        // 실패해도 UI는 그대로 두고 조용히 무시 (필요하면 토스트 추가)
+      }
+    };
+
+    syncToServer();
+  }, [state, auth.idToken, loading]);
 
   const toggle = (key: keyof PrivacyState) =>
     setState((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const handleDownload = () => {
+    if (!auth.idToken || !API_BASE_URL) {
+      alert('로그인 후 데이터 다운로드가 가능합니다.');
+      return;
+    }
+    // 실제 구현 시: 다운로드 페이지로 이동하거나 파일 다운로드 API 호출
     alert('실제 데이터 다운로드는 백엔드 구현 후 제공됩니다.');
   };
 
-  const handleDeleteAccount = () => {
-    if (!confirm('내 계정을 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.'))
+  const handleDeleteAccount = async () => {
+    if (!confirm('내 계정을 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.')) return;
+
+    if (!auth.idToken || !API_BASE_URL) {
+      alert('로그인 또는 서버 연결 상태를 확인해 주세요.');
       return;
-    alert('백엔드 계정 삭제 API와 연동되면 실제 삭제가 수행됩니다.');
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/account`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${auth.idToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        alert('계정 삭제 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+
+      // TODO: useAuth에 logout 함수가 있다면 여기서 호출
+      alert('계정이 삭제되었습니다.');
+      router.replace('/login');
+    } catch (e) {
+      console.error(e);
+      alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
   };
 
   return (
     <main
       className="pb-safe"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-      }}
+      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
     >
       {/* 헤더 */}
       <div
@@ -81,11 +180,8 @@ export default function PrivacySettingsPage() {
         <div style={{ fontWeight: 800, fontSize: 18 }}>개인정보 보호</div>
       </div>
 
-      <section
-        className="mobile-wrap"
-        style={{ padding: 16, display: 'grid', gap: 14 }}
-      >
-        {/* 설명 / 정책 링크 자리 */}
+      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 14 }}>
+        {/* 설명 */}
         <div
           style={{
             background: 'var(--surface)',
@@ -116,29 +212,29 @@ export default function PrivacySettingsPage() {
             padding: 12,
             display: 'grid',
             gap: 10,
+            opacity: loading ? 0.6 : 1,
           }}
         >
           <ToggleRow
             label="데이터 수집 동의"
             desc="기기 로그와 사용 패턴을 수집하여 루틴 추천과 성능 개선에 사용합니다."
             value={state.dataCollection}
-            onChange={() => toggle('dataCollection')}
+            onChange={() => !loading && toggle('dataCollection')}
           />
           <ToggleRow
             label="오디오 처리 (기침/재채기 감지)"
             desc="로컬 또는 서버에서 기침, 재채기, 코골이 등의 소리를 분석합니다."
             value={state.audioProcessing}
-            onChange={() => toggle('audioProcessing')}
+            onChange={() => !loading && toggle('audioProcessing')}
           />
           <ToggleRow
             label="위치 서비스"
             desc="도시별 AQI / 날씨 데이터를 가져와 실내 운전을 조정합니다."
             value={state.location}
-            onChange={() => toggle('location')}
+            onChange={() => !loading && toggle('location')}
           />
         </div>
 
-        {/* 데이터 다운로드 */}
         <button
           onClick={handleDownload}
           style={{
@@ -155,7 +251,6 @@ export default function PrivacySettingsPage() {
           내 데이터 다운로드
         </button>
 
-        {/* 계정 삭제 */}
         <button
           onClick={handleDeleteAccount}
           style={{
