@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { useAuth } from '@/lib/auth';
+import { getDevices, Device } from '@/app/lib/api';
 import BottomNav from '@/components/layout/bottom-nav';
 import WelcomeModal from '@/components/features/welcome-modal';
+import DeviceCarousel from '@/components/features/device-carousel';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -214,10 +216,27 @@ export default function HomePage() {
     data: rooms, // This will contain the device list
     error: roomsError,
     isLoading: isLoadingRooms,
-  } = useSWR<RoomSummary[]>(
-    auth.idToken ? '/api/devices' : null, // Only fetch if logged in
-    authedFetcher // Use the new authenticated fetcher
+    mutate: refreshDevices,
+  } = useSWR<Device[]>(
+    auth.idToken ? 'devices' : null, // Only fetch if logged in
+    () => getDevices(),
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 30000,
+    }
   );
+  const averageIndoorAQI = useMemo(() => {
+    if (!rooms || rooms.length === 0) return { value: 0, lbel: 'No Data' };
+
+    const totalAQI = rooms.reduce((sum, room) => sum + room.aqi, 0);
+    const avgAQI = Math.round(totalAQI / rooms.length);
+
+    let label = 'Good';
+    if (avgAQI > 100) label = 'Unhealthy';
+    else if (avgAQI > 50) label = 'Moderate';
+
+    return { value: avgAQI, label };
+  }, [rooms]);
 
   return (
     <main
@@ -252,13 +271,74 @@ export default function HomePage() {
         {/* 1. 인사 + 실내 AQI 요약 */}
         <ShellCard onClick={() => router.push('/profile')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>
-              Hello, {name} 님
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontSize: 24 }}>💙</div>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>
+                Welcome back, {name}!
+              </div>
             </div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>
-              if we need to add something like more infomation, i will modify.
+            <div style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5 }}>
+              {rooms && rooms.length > 0
+                ? averageIndoorAQI.value <= 50
+                  ? "Your air quality is looking great today. I'm here to keep your home healthy and comfortable."
+                  : averageIndoorAQI.value <= 100
+                    ? "Your air quality is moderate. I'm monitoring things and will alert you if anything changes."
+                    : "I've noticed the air quality needs attention. I'm working to improve it for you."
+                : "Add your first device to start monitoring your home's air quality."}
             </div>
-
+            <div
+              style={{
+                marginTop: 4,
+                padding: 12,
+                borderRadius: 14,
+                background:
+                  averageIndoorAQI.value <= 50
+                    ? 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15))'
+                    : averageIndoorAQI.value <= 100
+                      ? 'linear-gradient(135deg, rgba(234,179,8,0.25), rgba(202,138,4,0.15))'
+                      : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.15))',
+                border:
+                  averageIndoorAQI.value <= 50
+                    ? '1.5px solid rgba(34,197,94,0.4)'
+                    : averageIndoorAQI.value <= 100
+                      ? '1.5px solid rgba(234,179,8,0.4)'
+                      : '1.5px solid rgba(239,68,68,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            ></div>
+            <div style={{ display: 'grid', gap: 2 }}>
+              <div style={{ fontSize: 11, opacity: 0.8 }}>
+                Indoor Air Quality ·{' '}
+                {rooms && rooms.length > 0
+                  ? `${rooms.length} ${rooms.length === 1 ? 'device' : 'devices'}`
+                  : 'No devices'}
+              </div>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color:
+                    averageIndoorAQI.value <= 50
+                      ? '#22c55e'
+                      : averageIndoorAQI.value <= 100
+                        ? '#eab308'
+                        : '#ef4444',
+                }}
+              >
+                AQI {averageIndoorAQI.value}{' '}
+                <span style={{ fontSize: 13, color: '#fff', opacity: 0.9 }}>
+                  ({averageIndoorAQI.label})
+                </span>
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.8 }}>
+                {rooms && rooms.length > 0
+                  ? `Monitoring ${rooms.length} ${rooms.length === 1 ? 'room' : 'rooms'}`
+                  : 'Add devices to start monitoring'}
+              </div>
+            </div>
             <div
               style={{
                 marginTop: 4,
@@ -293,8 +373,19 @@ export default function HomePage() {
                   width: 64,
                   height: 64,
                   borderRadius: '999px',
-                  background:
-                    'conic-gradient(#22c55e 0deg, #22c55e 240deg, rgba(15,23,42,0.8) 240deg)',
+                  background: `conic-gradient(${
+                    averageIndoorAQI.value <= 50
+                      ? '#22c55e'
+                      : averageIndoorAQI.value <= 100
+                        ? '#eab308'
+                        : '#ef4444'
+                  } 0deg, ${
+                    averageIndoorAQI.value <= 50
+                      ? '#22c55e'
+                      : averageIndoorAQI.value <= 100
+                        ? '#eab308'
+                        : '#ef4444'
+                  } ${Math.min((averageIndoorAQI.value / 300) * 360, 360)}deg, rgba(15,23,42,0.8) ${Math.min((averageIndoorAQI.value / 300) * 360, 360)}deg)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -314,7 +405,7 @@ export default function HomePage() {
                     fontWeight: 700,
                   }}
                 >
-                  {MOCK_INDOOR_AQI.value}
+                  {averageIndoorAQI.value}
                 </div>
               </div>
             </div>
@@ -346,6 +437,58 @@ export default function HomePage() {
             </div>
           </div>
         </ShellCard>
+
+        {/* device carousel */}
+        <section style={{ marginTop: 8 }}>
+          <div
+            className="mobile-wrap"
+            style={{ paddingLeft: 16, marginBottom: 12 }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 800 }}>My Devices</div>
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+              {isLoadingRooms
+                ? 'Loading devices...'
+                : rooms && rooms.length > 0
+                  ? 'Tap any device to view details and controls'
+                  : 'No devices registered yet'}
+            </div>
+          </div>
+          {isLoadingRooms ? (
+            <div
+              className="mobile-wrap"
+              style={{ textAlign: 'center', padding: 40, opacity: 0.7 }}
+            >
+              Loading devices...
+            </div>
+          ) : rooms && rooms.length > 0 ? (
+            <DeviceCarousel
+              devices={rooms.map((room) => ({
+                id: room.id,
+                name: room.name,
+                aqi: room.aqi,
+                aqiLabel: room.aqiLabel,
+                status: room.status.online ? 'online' : 'offline',
+                mode: room.settings.autoMode ? 'Auto' : 'Manual',
+              }))}
+            />
+          ) : (
+            <div
+              className="mobile-wrap"
+              style={{
+                padding: '40px 16px',
+                textAlign: 'center',
+                opacity: 0.7,
+              }}
+            >
+              <div style={{ fontSize: 14, marginBottom: 8 }}>
+                No devices registered yet
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Click "Add Device" below to get started
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* 3. 방 / 기기 카드들 */}
         {MOCK_ROOMS.map((room) => (
