@@ -20,20 +20,17 @@
       }
     ],
     "paths": {
-<<<<<<< HEAD
       "@/*": ["./src/*"],
       "@/app/*": ["./src/app/*"],
       "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/types/*": ["./src/types/*"]
-=======
+      "@/types/*": ["./src/types/*"],
       "@/*": ["./*"],
       "@/app/*": ["app/*"],
       "@/components/*": ["components/*"],
       "@/lib/*": ["lib/*", "src/lib/*"],
       "@/src/*": ["src/*"],
       "@/types/*": ["types/*"]
->>>>>>> 98d5033 (add device and modified)
     }
   },
   "include": [
