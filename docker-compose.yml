@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: puricare-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-puricare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-puricare}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U puricare"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: puricare-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-puricare}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-puricare}
+      PORT: 3020
+      NODE_ENV: development
+      CLIENT_URL: http://localhost:3000
+      # Add your Firebase credentials here or use .env file
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      AQICN_TOKEN: ${AQICN_TOKEN}
+    ports:
+      - "3020:3020"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+      - /app/src/api/node_modules
+    command: sh -c "cd src/api && npm install && npm run dev"
+
+  # Frontend
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: puricare-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3020
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client/src:/app/src
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  postgres-data:

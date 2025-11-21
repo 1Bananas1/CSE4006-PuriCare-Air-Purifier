@@ -1,0 +1,60 @@
+{
+  "name": "PuriCare Backend",
+  "description": "Real-time air purifier sensor data system with WebSocket support",
+  "repository": "https://github.com/1Bananas1/CSE4006-PuriCare-Air-Purifier",
+  "logo": "https://i.imgur.com/g055z5j.png",
+  "keywords": ["nodejs", "express", "postgresql", "websocket", "iot", "air-quality"],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini",
+      "options": {
+        "version": "16"
+      }
+    }
+  ],
+  "env": {
+    "FIREBASE_PROJECT_ID": {
+      "description": "Firebase project ID",
+      "required": true
+    },
+    "FIREBASE_CLIENT_EMAIL": {
+      "description": "Firebase service account email",
+      "required": true
+    },
+    "FIREBASE_PRIVATE_KEY": {
+      "description": "Firebase private key (with \\n newlines)",
+      "required": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "Google OAuth client ID for token verification",
+      "required": true
+    },
+    "AQICN_TOKEN": {
+      "description": "Air Quality API token from aqicn.org",
+      "required": false
+    },
+    "CLIENT_URL": {
+      "description": "Frontend URL for CORS (e.g., https://your-app.vercel.app)",
+      "value": "http://localhost:3000",
+      "required": false
+    },
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    }
+  },
+  "scripts": {
+    "postdeploy": "cd src/api && echo 'Database migrations run automatically on startup'"
+  }
+}

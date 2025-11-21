@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -205,3 +205,24 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Frontend (Next.js / Node) ---
+
+# client 폴더 안의 node_modules, 빌드 결과물은 올리지 않기
+client/node_modules/
+client/.next/
+client/.turbo/
+client/out/
+
+# 프론트 환경변수는 로컬에서만 사용
+client/.env.local
+client/.env.*.local
+
+# 로그/임시파일
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+
+# Vercel 관련 로컬 설정
+client/.vercel/
+

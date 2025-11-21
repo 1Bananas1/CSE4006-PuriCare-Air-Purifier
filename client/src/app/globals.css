@@ -1,0 +1,51 @@
+:root {
+  --bg: #0b0f14;
+  --surface: #121923;
+  --text: #ffffff;
+  --text-dim: rgba(255, 255, 255, 0.8);
+  --divider: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 모바일 래퍼: 화면 폭 고정(읽기쉬움) + 가운데 정렬 */
+.mobile-wrap {
+  width: 100%;
+  max-width: 480px; /* 아이폰 프로 맥스 기준도 알맞게 */
+  margin: 0 auto;
+}
+
+/* 안전영역 유틸 */
+.pb-safe {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
