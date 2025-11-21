@@ -9,6 +9,9 @@ Course project for **Hanyang University (Fall 2025)**.
 
 https://1bananas1.github.io/CSE4006-PuriCare-Air-Purifier/
 
+## Overleaf
+https://www.overleaf.com/project/68d534e91db8eb0749899db6
+
 ---
 
 ## 📁 What’s Inside
