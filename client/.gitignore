@@ -64,3 +64,4 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+package-lock.json
