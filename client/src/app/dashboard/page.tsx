@@ -2,15 +2,17 @@
 
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { AppNav } from '@/components/layout/app-nav';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/lib/auth';
 import { useDevices } from '@/lib/firestore-hooks';
 import { DeviceCard } from '@/components/devices/device-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Wind, Droplets, Thermometer } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const { devices, loading } = useDevices(user?.uid);
+  const { auth } = useAuth();
+  // Create a simple uid from email for compatibility
+  const uid = auth.profile?.email;
+  const { devices, loading } = useDevices(uid);
 
   if (loading) {
     return (

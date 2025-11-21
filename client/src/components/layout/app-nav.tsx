@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,10 +26,10 @@ const navigation = [
 
 export function AppNav() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { auth, signOut } = useAuth();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    signOut();
   };
 
   return (
@@ -82,8 +82,8 @@ export function AppNav() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{user?.displayName || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    <p className="text-sm font-medium">{auth.profile?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{auth.profile?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

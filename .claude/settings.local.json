@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(\"client/src/app/(auth)/login/page.tsx\")",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 120 npm run build)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

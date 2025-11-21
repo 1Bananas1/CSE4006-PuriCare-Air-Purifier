@@ -2,7 +2,7 @@
 
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { AppNav } from '@/components/layout/app-nav';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/lib/auth';
 import { useDevices } from '@/lib/firestore-hooks';
 import { DeviceCard } from '@/components/devices/device-card';
 import { Card, CardContent } from '@/components/ui/card';

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { AppNav } from '@/components/layout/app-nav';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/lib/auth';
 import { useDevice, useDeviceEvents } from '@/lib/firestore-hooks';
 import { SensorPanel } from '@/components/devices/sensor-panel';
 import { EventLog } from '@/components/devices/event-log';

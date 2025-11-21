@@ -2,19 +2,19 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/lib/auth';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { auth, ready } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (ready && !auth.idToken) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [auth.idToken, ready, router]);
 
-  if (loading) {
+  if (!ready) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
@@ -22,7 +22,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!auth.idToken) {
     return null;
   }
 

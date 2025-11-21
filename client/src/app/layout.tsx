@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { AuthProvider } from '@/contexts/auth-context'
+import { AuthProvider } from '@/lib/auth'
 import { Toaster } from '@/components/ui/toaster'
 import { InstallPrompt } from '@/components/pwa/install-prompt'
 import { PWALifecycle } from '@/components/pwa/pwa-lifecycle'
