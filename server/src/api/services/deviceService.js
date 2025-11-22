@@ -299,9 +299,24 @@ async function getDevicesByUser(secureUserId) {
   }
 }
 
+async function getStationData(stationIdx) {
+  try {
+    const station = await db.collection('stations').doc(stationIdx).get();
+    if (!station.exists) {
+      throw new Error('Station does not exist');
+    }
+    const stationData = station.data();
+    return stationData;
+  } catch (error) {
+    console.error('Error fetching station:', error.message);
+    throw error;
+  }
+}
+
 module.exports = {
   registerDevice,
   renameDevice,
   deleteDevice,
   getDevicesByUser,
+  getStationData,
 };
