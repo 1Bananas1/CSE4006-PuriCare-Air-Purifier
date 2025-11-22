@@ -1,16 +1,16 @@
 {
-  "name": "api",
+  "name": "puricare-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "PuriCare Air Purifier Backend API",
+  "main": "src/api/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:setup": "node test/device/setupTestData.js",
-    "test:register": "node test/testWithRestAPI.js",
-    "midnight": "node scripts/midnightRoutine.js",
-    "test-timezones": "node scripts/testTimezoneSystem.js",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "test:setup": "node src/api/test/device/setupTestData.js",
+    "test:register": "node src/api/test/testWithRestAPI.js",
+    "midnight": "node src/api/scripts/midnightRoutine.js",
+    "test-timezones": "node src/api/scripts/testTimezoneSystem.js",
+    "start": "node src/api/index.js",
+    "dev": "nodemon src/api/index.js"
   },
   "keywords": [],
   "author": "",
