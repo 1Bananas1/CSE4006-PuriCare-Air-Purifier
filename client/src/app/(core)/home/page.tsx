@@ -12,55 +12,8 @@ import DeviceCarousel from '@/components/features/device-carousel';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-// 기본 위치: 서울시청
 type Coords = { lat: number; lon: number };
-const SEOUL: Coords = { lat: 37.5665, lon: 126.978 };
 
-// 실내 공기질 목업 (추후 백엔드 + ML 연동)
-const MOCK_INDOOR_AQI = {
-  room: '거실',
-  value: 32,
-  label: '좋음',
-  humidity: 41,
-};
-
-type RoomSummary = {
-  id: string; // URL segment (living, bath, master...)
-  name: string; // 카드 타이틀
-  subtitle: string; // 상태 요약
-  lastUpdated: string; // "10분 전" 등
-  aqi: number;
-  aqiLabel: string;
-};
-
-const MOCK_ROOMS: RoomSummary[] = [
-  {
-    id: 'living',
-    name: 'Living room',
-    subtitle: '온라인 · 자동 모드 · 약풍',
-    lastUpdated: '10분 전 (추후 연동 데이터)',
-    aqi: 32,
-    aqiLabel: '좋음',
-  },
-  {
-    id: 'bath',
-    name: 'Bathroom',
-    subtitle: '온라인 · 제습 모드 · 약풍',
-    lastUpdated: '5분 전 (추후 연동 데이터)',
-    aqi: 40,
-    aqiLabel: '보통',
-  },
-  {
-    id: 'master',
-    name: 'Master room',
-    subtitle: '대기 중 · 수면 모드',
-    lastUpdated: '어제 (추후 연동 데이터)',
-    aqi: 28,
-    aqiLabel: '좋음',
-  },
-];
-
-// 날씨 이모지
 function weatherEmoji(main?: string, icon?: string) {
   if (!main) return '🌤️';
   const m = main.toLowerCase();
@@ -102,41 +55,6 @@ function ShellCard({
   );
 }
 
-function RoomCard({
-  room,
-  onClick,
-}: {
-  room: RoomSummary;
-  onClick: () => void;
-}) {
-  return (
-    <ShellCard onClick={onClick}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>{room.name}</div>
-          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-            {room.subtitle}
-          </div>
-          <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
-            마지막 업데이트: {room.lastUpdated}
-          </div>
-        </div>
-        <div
-          style={{
-            padding: '4px 10px',
-            borderRadius: 999,
-            fontSize: 11,
-            background: 'rgba(22,163,74,0.25)',
-            alignSelf: 'flex-start',
-          }}
-        >
-          실내 AQI {room.aqi} · {room.aqiLabel}
-        </div>
-      </div>
-    </ShellCard>
-  );
-}
-
 export default function HomePage() {
   const { auth } = useAuth();
   const router = useRouter();
@@ -152,7 +70,7 @@ export default function HomePage() {
   );
 
   // 현재 좌표 상태
-  const [coords, setCoords] = useState<Coords>(SEOUL);
+  const [coords, setCoords] = useState<Coords | null>(null);
 
   useEffect(() => {
     if (!('geolocation' in navigator)) return;
@@ -165,7 +83,8 @@ export default function HomePage() {
         });
       },
       () => {
-        setCoords(SEOUL);
+        // Geolocation failed - will try to use device location as fallback
+        console.log('Geolocation permission denied or unavailable');
       },
       {
         enableHighAccuracy: true,
@@ -187,14 +106,14 @@ export default function HomePage() {
     { revalidateOnFocus: false }
   );
 
-  const city = geo?.city ?? 'Seoul';
+  const city = coords ? (geo?.city ?? 'Unknown') : 'Location unavailable';
   const temp = weather?.current?.temp ?? '-';
   const humidity = weather?.current?.humidity ?? '-';
   const main = weather?.current?.main;
   const icon = weather?.current?.icon;
   const aqiValue = weather?.aqi?.value ?? '-';
   const aqiLabel = weather?.aqi?.label ?? '';
-  const emoji = weatherEmoji(main, icon);
+  const emoji = coords ? weatherEmoji(main, icon) : '📍';
 
   const authedFetcher = (url: string) => {
     if (!auth.idToken) {
@@ -237,6 +156,31 @@ export default function HomePage() {
 
     return { value: avgAQI, label };
   }, [rooms]);
+
+  // Fallback: Use first device's location if geolocation failed
+  useEffect(() => {
+    // Only use device location if we don't already have coords
+    if (coords) return;
+
+    // Check if we have devices with geo data
+    if (rooms && rooms.length > 0) {
+      // Find first device with valid geo coordinates
+      const deviceWithGeo = rooms.find(
+        (device) =>
+          device.data?.geo &&
+          device.data.geo[0] !== null &&
+          device.data.geo[1] !== null
+      );
+
+      if (deviceWithGeo && deviceWithGeo.data?.geo) {
+        const [lat, lon] = deviceWithGeo.data.geo;
+        setCoords({ lat, lon });
+        console.log(
+          `Using location from device "${deviceWithGeo.name}": ${lat}, ${lon}`
+        );
+      }
+    }
+  }, [coords, rooms]);
 
   return (
     <main
@@ -339,76 +283,6 @@ export default function HomePage() {
                   : 'Add devices to start monitoring'}
               </div>
             </div>
-            <div
-              style={{
-                marginTop: 4,
-                padding: 10,
-                borderRadius: 14,
-                background: 'rgba(15,118,110,0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
-              {/* 실내 AQI 텍스트 */}
-              <div style={{ display: 'grid', gap: 2 }}>
-                <div style={{ fontSize: 11, opacity: 0.8 }}>
-                  실내 공기질 요약 · {MOCK_INDOOR_AQI.room}
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800 }}>
-                  AQI {MOCK_INDOOR_AQI.value}{' '}
-                  <span style={{ fontSize: 13 }}>
-                    ({MOCK_INDOOR_AQI.label})
-                  </span>
-                </div>
-                <div style={{ fontSize: 11, opacity: 0.8 }}>
-                  현재 실내 습도 {MOCK_INDOOR_AQI.humidity}% · 자동 모드 유지 중
-                </div>
-              </div>
-
-              {/* 동그라미 게이지 */}
-              <div
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '999px',
-                  background: `conic-gradient(${
-                    averageIndoorAQI.value <= 50
-                      ? '#22c55e'
-                      : averageIndoorAQI.value <= 100
-                        ? '#eab308'
-                        : '#ef4444'
-                  } 0deg, ${
-                    averageIndoorAQI.value <= 50
-                      ? '#22c55e'
-                      : averageIndoorAQI.value <= 100
-                        ? '#eab308'
-                        : '#ef4444'
-                  } ${Math.min((averageIndoorAQI.value / 300) * 360, 360)}deg, rgba(15,23,42,0.8) ${Math.min((averageIndoorAQI.value / 300) * 360, 360)}deg)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 7,
-                    borderRadius: '999px',
-                    background: 'rgba(15,23,42,0.96)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                >
-                  {averageIndoorAQI.value}
-                </div>
-              </div>
-            </div>
           </div>
         </ShellCard>
 
@@ -490,16 +364,7 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* 3. 방 / 기기 카드들 */}
-        {MOCK_ROOMS.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onClick={() => router.push(`/room/${room.id}`)}
-          />
-        ))}
-
-        {/* 4. 기기 추가 */}
+        {/* 기기 추가 */}
         <ShellCard onClick={() => router.push('/devices/add')}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>+ add device</div>
           <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>

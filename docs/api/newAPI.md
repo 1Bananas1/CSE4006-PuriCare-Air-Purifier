@@ -1,6 +1,7 @@
 # PuriCare Air Purifier - API Documentation
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Base URL](#base-url)
 - [Authentication](#authentication)
@@ -22,6 +23,7 @@
 The PuriCare API is a RESTful service built with Express.js that provides comprehensive control and monitoring of air purifier devices. It supports real-time communication via WebSockets and stores data in both Firebase Firestore (device metadata) and PostgreSQL (time-series sensor data).
 
 **Key Features:**
+
 - Device registration and management
 - Real-time device control (fan speed, auto mode, sensitivity)
 - Sensor data collection and analysis
@@ -36,21 +38,25 @@ The PuriCare API is a RESTful service built with Express.js that provides compre
 The API can be accessed at two different URLs depending on your environment:
 
 **Development (Local):**
+
 ```
 http://localhost:3020
 ```
 
 **Production (Heroku):**
+
 ```
 https://your-app-name.herokuapp.com
 ```
 
 **Server Configuration:**
+
 - Default Port: 3020 (local)
 - CORS Enabled: Configurable via environment variables
 - Framework: Express.js with Socket.io
 
 **Environment Variables:**
+
 - `PORT` - Server port (default: 3020)
 - `CLIENT_URL` - Frontend URL for CORS configuration
 
@@ -75,6 +81,7 @@ const idToken = auth.idToken; // Google ID token
 ```
 
 Or retrieve directly from localStorage:
+
 ```javascript
 const getAuthToken = () => {
   try {
@@ -90,6 +97,7 @@ const getAuthToken = () => {
 ```
 
 **2. Include Token in Requests**
+
 ```javascript
 headers: {
   'Authorization': `Bearer ${idToken}`,
@@ -98,13 +106,17 @@ headers: {
 ```
 
 ### Protected Endpoints
+
 The following endpoints require authentication:
+
 - `POST /api/devices/register`
 - `DELETE /api/devices/:deviceId`
 - `GET /api/devices`
 
 ### Security Notes
+
 ⚠️ **Current Security Gaps:**
+
 - Device control endpoints (`/api/control/*`) are NOT authenticated
 - Sensor data read endpoints should verify device ownership
 - Export endpoints should verify device ownership
@@ -121,10 +133,11 @@ Create a reusable API client for your frontend:
 // lib/api-client.js
 
 // Configure based on environment
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
-                     process.env.REACT_APP_API_BASE_URL ||
-                     process.env.NEXT_PUBLIC_API_BASE_URL ||
-                     'http://localhost:3020';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:3020';
 
 class PuriCareAPI {
   constructor(getAuthToken, baseURL = API_BASE_URL) {
@@ -244,6 +257,7 @@ export default PuriCareAPI;
 Create environment files for different deployment environments:
 
 **.env.local** (Development)
+
 ```env
 VITE_API_BASE_URL=http://localhost:3020
 # or for Create React App
@@ -253,6 +267,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3020
 ```
 
 **.env.production** (Production)
+
 ```env
 VITE_API_BASE_URL=https://your-app-name.herokuapp.com
 # or for Create React App
@@ -326,6 +341,7 @@ const MyComponent = () => {
 ### Health Check
 
 #### Get Server Health
+
 Check if the API server is running and Firebase is connected.
 
 **Endpoint:** `GET /health`
@@ -333,6 +349,7 @@ Check if the API server is running and Firebase is connected.
 **Authentication:** None
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -343,6 +360,7 @@ Check if the API server is running and Firebase is connected.
 ```
 
 **Frontend Example:**
+
 ```javascript
 const checkHealth = async () => {
   const response = await fetch(`${API_BASE_URL}/health`);
@@ -362,6 +380,7 @@ const checkHealth = async () => {
 ### Device Management
 
 #### Register a Device
+
 Register a new air purifier device to your account.
 
 **Endpoint:** `POST /api/devices/register`
@@ -369,6 +388,7 @@ Register a new air purifier device to your account.
 **Authentication:** Required (Bearer Token)
 
 **Request Body:**
+
 ```json
 {
   "deviceId": "string",
@@ -378,6 +398,7 @@ Register a new air purifier device to your account.
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "success": true,
@@ -386,17 +407,19 @@ Register a new air purifier device to your account.
 ```
 
 **Error Responses:**
+
 - `400` - Invalid device ID format
 - `409` - Device already registered
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const registerDevice = async (deviceInfo) => {
   const response = await api.registerDevice({
     deviceId: deviceInfo.id,
     name: deviceInfo.name,
-    location: deviceInfo.location
+    location: deviceInfo.location,
   });
   console.log('Device registered:', response.deviceId);
 };
@@ -405,38 +428,107 @@ const registerDevice = async (deviceInfo) => {
 ---
 
 #### Get All Devices
-Get all devices owned by the authenticated user.
+
+Get all devices owned by the authenticated user. Returns the complete device document structure from Firestore.
 
 **Endpoint:** `GET /api/devices`
 
 **Authentication:** Required (Bearer Token)
 
 **Response:** `200 OK`
+
+Returns an array of device objects with the complete Firestore document structure:
+
 ```json
 [
   {
-    "deviceId": "AP-001",
-    "name": "Living Room Purifier",
-    "location": "Living Room",
-    "ownerId": "user123",
-    "createdAt": "2025-01-15T10:00:00.000Z",
-    "online": true,
-    "lastSeen": "2025-01-21T10:30:00.000Z"
+    "id": "AP-001",
+    "linkedUserID": "user123",
+    "data": {
+      "version": "1.0.0",
+      "customLocation": "Living Room",
+      "deviceID": "AP-001",
+      "geo": [37.5665, 126.978],
+      "measurements": {
+        "RH": 45.5,
+        "CO": 0.2,
+        "CO2": 450,
+        "NO2": 15.3,
+        "PM10": 25.8,
+        "PM25": 12.4,
+        "TEMP": 22.5,
+        "TVOC": 120
+      },
+      "name": "Living Room Purifier",
+      "timezone": "+09:00",
+      "stationIdx": 1682
+    },
+    "settings": {
+      "autoMode": false,
+      "fanSpeed": 5,
+      "sensitivity": 1
+    },
+    "status": {
+      "lastSeen": "2025-01-21T10:30:00.000Z",
+      "online": true
+    }
   }
 ]
 ```
 
+**Field Descriptions:**
+
+- `id` - Device identifier (same as `deviceID`)
+- `linkedUserID` - User ID who owns this device
+- `data` - Device metadata and latest sensor readings
+  - `version` - Data structure version
+  - `customLocation` - User-defined location name (e.g., "Living Room", "Bedroom")
+  - `deviceID` - Device serial number
+  - `geo` - Geographic coordinates [latitude, longitude] or [null, null]
+  - `measurements` - Latest sensor readings (RH, CO, CO2, NO2, PM10, PM25, TEMP, TVOC)
+  - `name` - Device name
+  - `timezone` - Device timezone offset (e.g., "+09:00")
+  - `stationIdx` - Nearest outdoor air quality station ID (for comparison)
+- `settings` - Device control settings
+  - `autoMode` - Auto mode enabled (boolean)
+  - `fanSpeed` - Fan speed (0-10)
+  - `sensitivity` - Auto mode sensitivity (0=low, 1=medium, 2=high)
+- `status` - Device online status
+  - `lastSeen` - Last connection timestamp (ISO 8601 string)
+  - `online` - Currently connected (boolean)
+
+**Important Notes:**
+
+- The backend returns the **raw Firestore structure** - no server-side transformation
+- Frontend should handle AQI calculation, label generation, and formatting
+- `status.lastSeen` is converted to ISO 8601 string for JSON compatibility
+- Empty devices array `[]` returned if user has no registered devices
+
 **Frontend Example:**
+
 ```javascript
 const fetchDevices = async () => {
   const devices = await api.getDevices();
-  setDevices(devices);
+
+  // Frontend transforms the data
+  const transformedDevices = devices.map(device => ({
+    id: device.id,
+    name: device.data?.name || 'Unnamed Device',
+    location: device.data?.customLocation || 'Unknown',
+    aqi: calculateAQI(device.data?.measurements),
+    online: device.status?.online || false,
+    lastSeen: new Date(device.status?.lastSeen),
+    // ... etc
+  }));
+
+  setDevices(transformedDevices);
 };
 ```
 
 ---
 
 #### Delete a Device
+
 Delete/unregister a device from your account.
 
 **Endpoint:** `DELETE /api/devices/:deviceId`
@@ -444,6 +536,7 @@ Delete/unregister a device from your account.
 **Authentication:** Required (Bearer Token - must be device owner)
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -452,11 +545,13 @@ Delete/unregister a device from your account.
 ```
 
 **Error Responses:**
+
 - `403` - Not authorized (not the owner)
 - `404` - Device not found
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const deleteDevice = async (deviceId) => {
   await api.deleteDevice(deviceId);
@@ -466,11 +561,107 @@ const deleteDevice = async (deviceId) => {
 
 ---
 
+#### Get Station Data
+
+Get air quality data from a monitoring station.
+
+**Endpoint:** `GET /api/devices/stations/:stationIdx`
+
+**Authentication:** Required (Bearer Token)
+
+**URL Parameters:**
+
+- `stationIdx` - The station index/ID (e.g., "1682")
+
+**Response:** `200 OK`
+
+```json
+{
+  "stationIdx": 1682,
+  "timezone": "+09:00",
+  "dominentPol": "pm25",
+  "aqi": 45,
+  "co": 0.3,
+  "dew": 12,
+  "h": 65,
+  "no2": 15,
+  "o3": 25,
+  "p": 1013,
+  "pm10": 30,
+  "pm25": 45,
+  "r": 0,
+  "so2": 5,
+  "t": 18,
+  "w": 3.5,
+  "cityName": "Seoul, South Korea",
+  "cityUrl": "seoul/south-korea",
+  "cityGeo": [37.5665, 126.978],
+  "lastUpdated": "2025-01-21T10:30:00.000Z",
+  "createdAt": "2025-01-15T08:00:00.000Z"
+}
+```
+
+**Field Descriptions:**
+
+- `stationIdx` - Station ID number
+- `timezone` - Timezone offset (e.g., "+09:00")
+- `dominentPol` - Dominant pollutant (e.g., "pm25", "pm10", "o3")
+- `aqi` - Air Quality Index value
+- `co` - Carbon monoxide level
+- `dew` - Dew point
+- `h` - Humidity (%)
+- `no2` - Nitrogen dioxide level
+- `o3` - Ozone level
+- `p` - Atmospheric pressure
+- `pm10` - PM10 particulate matter (μg/m³)
+- `pm25` - PM2.5 particulate matter (μg/m³)
+- `r` - Rain/precipitation
+- `so2` - Sulfur dioxide level
+- `t` - Temperature (°C)
+- `w` - Wind speed
+- `cityName` - Station location name
+- `cityUrl` - URL-friendly city name
+- `cityGeo` - Geographic coordinates [latitude, longitude]
+- `lastUpdated` - Last update timestamp
+- `createdAt` - Station creation timestamp
+
+**Error Responses:**
+
+- `404` - Station does not exist
+- `500` - Server error
+
+**Frontend Example:**
+
+```javascript
+const getStationData = async (stationIdx) => {
+  const response = await api.request(`/api/devices/stations/${stationIdx}`);
+  console.log('Station AQI:', response.aqi);
+  console.log('PM2.5 Level:', response.pm25);
+  console.log('Temperature:', response.t, '°C');
+  return response;
+};
+
+// Or add to your API client class:
+class PuriCareAPI {
+  // ... existing methods ...
+
+  async getStationData(stationIdx) {
+    return this.request(`/api/devices/stations/${stationIdx}`);
+  }
+}
+```
+
+**Use Case:**
+This endpoint is useful for displaying outdoor air quality data from nearby monitoring stations. Devices can reference a `stationIdx` (stored during registration) to compare indoor vs outdoor air quality.
+
+---
+
 ### Device Control
 
 All control endpoints emit WebSocket events to notify connected clients and devices.
 
 #### Set Fan Speed
+
 Control the device fan speed (0-10).
 
 **Endpoint:** `POST /api/control/:deviceId/fan-speed`
@@ -478,6 +669,7 @@ Control the device fan speed (0-10).
 **Authentication:** None (⚠️ Should be protected)
 
 **Request Body:**
+
 ```json
 {
   "speed": 5
@@ -485,9 +677,11 @@ Control the device fan speed (0-10).
 ```
 
 **Validation:**
+
 - `speed`: Integer between 0 and 10
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -500,11 +694,13 @@ Control the device fan speed (0-10).
 **WebSocket Event:** Emits `device_control` to room `device:AP-001`
 
 **Error Responses:**
+
 - `400` - Invalid speed (not 0-10)
 - `404` - Device not found
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const setFanSpeed = async (deviceId, speed) => {
   // Validate before sending
@@ -519,6 +715,7 @@ const setFanSpeed = async (deviceId, speed) => {
 ---
 
 #### Set Auto Mode
+
 Enable or disable automatic mode (device adjusts fan speed based on air quality).
 
 **Endpoint:** `POST /api/control/:deviceId/auto-mode`
@@ -526,6 +723,7 @@ Enable or disable automatic mode (device adjusts fan speed based on air quality)
 **Authentication:** None (⚠️ Should be protected)
 
 **Request Body:**
+
 ```json
 {
   "enabled": true
@@ -533,6 +731,7 @@ Enable or disable automatic mode (device adjusts fan speed based on air quality)
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -545,6 +744,7 @@ Enable or disable automatic mode (device adjusts fan speed based on air quality)
 **WebSocket Event:** Emits `device_control` to device room
 
 **Frontend Example:**
+
 ```javascript
 const toggleAutoMode = async (deviceId, enabled) => {
   await api.setAutoMode(deviceId, enabled);
@@ -554,6 +754,7 @@ const toggleAutoMode = async (deviceId, enabled) => {
 ---
 
 #### Set Sensitivity
+
 Set device sensitivity level for automatic mode.
 
 **Endpoint:** `POST /api/control/:deviceId/sensitivity`
@@ -561,6 +762,7 @@ Set device sensitivity level for automatic mode.
 **Authentication:** None (⚠️ Should be protected)
 
 **Request Body:**
+
 ```json
 {
   "level": "medium"
@@ -568,11 +770,13 @@ Set device sensitivity level for automatic mode.
 ```
 
 **Valid Levels:**
+
 - `"low"` (0)
 - `"medium"` (1)
 - `"high"` (2)
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -585,6 +789,7 @@ Set device sensitivity level for automatic mode.
 **WebSocket Event:** Emits `device_control` to device room
 
 **Frontend Example:**
+
 ```javascript
 const setSensitivity = async (deviceId, level) => {
   const validLevels = ['low', 'medium', 'high'];
@@ -599,6 +804,7 @@ const setSensitivity = async (deviceId, level) => {
 ---
 
 #### Set Power
+
 Turn device on or off.
 
 **Endpoint:** `POST /api/control/:deviceId/power`
@@ -606,6 +812,7 @@ Turn device on or off.
 **Authentication:** None (⚠️ Should be protected)
 
 **Request Body:**
+
 ```json
 {
   "on": true
@@ -613,6 +820,7 @@ Turn device on or off.
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -627,6 +835,7 @@ Turn device on or off.
 **WebSocket Event:** Emits `device_control` to device room
 
 **Frontend Example:**
+
 ```javascript
 const togglePower = async (deviceId, on) => {
   await api.setPower(deviceId, on);
@@ -636,6 +845,7 @@ const togglePower = async (deviceId, on) => {
 ---
 
 #### Get Device Status
+
 Get current device control status and online state.
 
 **Endpoint:** `GET /api/control/:deviceId/status`
@@ -643,6 +853,7 @@ Get current device control status and online state.
 **Authentication:** None (⚠️ Should be protected)
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -658,6 +869,7 @@ Get current device control status and online state.
 ```
 
 **Frontend Example:**
+
 ```javascript
 const getStatus = async (deviceId) => {
   const { status } = await api.getDeviceStatus(deviceId);
@@ -673,6 +885,7 @@ const getStatus = async (deviceId) => {
 Requires PostgreSQL database to be configured via `DATABASE_URL` environment variable.
 
 #### Submit Sensor Data
+
 Submit sensor readings from a device or simulator.
 
 **Endpoint:** `POST /api/sensor-data`
@@ -680,6 +893,7 @@ Submit sensor readings from a device or simulator.
 **Authentication:** None (device endpoint)
 
 **Request Body:**
+
 ```json
 {
   "deviceId": "AP-001",
@@ -698,6 +912,7 @@ Submit sensor readings from a device or simulator.
 ```
 
 **Field Descriptions:**
+
 - `RH` - Relative Humidity (%)
 - `CO` - Carbon Monoxide (ppm)
 - `CO2` - Carbon Dioxide (ppm)
@@ -708,6 +923,7 @@ Submit sensor readings from a device or simulator.
 - `TVOC` - Total Volatile Organic Compounds (ppb)
 
 **Response:** `201 Created`
+
 ```json
 {
   "success": true,
@@ -726,6 +942,7 @@ Submit sensor readings from a device or simulator.
 ```
 
 **Side Effects:**
+
 - Stores data in PostgreSQL
 - Updates device `lastSeen` timestamp in Firebase
 - Detects pollutant level changes
@@ -733,6 +950,7 @@ Submit sensor readings from a device or simulator.
 - Emits `sensor_alerts` via WebSocket if alerts generated
 
 **Error Responses:**
+
 - `400` - Missing required fields
 - `404` - Device not found
 - `503` - Database unavailable
@@ -741,6 +959,7 @@ Submit sensor readings from a device or simulator.
 ---
 
 #### Get Latest Sensor Data
+
 Get the most recent sensor reading for a device.
 
 **Endpoint:** `GET /api/sensor-data/:deviceId/latest`
@@ -748,6 +967,7 @@ Get the most recent sensor reading for a device.
 **Authentication:** None (⚠️ Should verify ownership)
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -767,11 +987,13 @@ Get the most recent sensor reading for a device.
 ```
 
 **Error Responses:**
+
 - `404` - No data found or device not found
 - `503` - Database unavailable
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const getLatestReadings = async (deviceId) => {
   const { data } = await api.getLatestSensorData(deviceId);
@@ -784,6 +1006,7 @@ const getLatestReadings = async (deviceId) => {
 ---
 
 #### Get Sensor History
+
 Get historical sensor readings within a time range.
 
 **Endpoint:** `GET /api/sensor-data/:deviceId/history`
@@ -791,16 +1014,19 @@ Get historical sensor readings within a time range.
 **Authentication:** None (⚠️ Should verify ownership)
 
 **Query Parameters:**
+
 - `startTime` - ISO 8601 timestamp (default: 24 hours ago)
 - `endTime` - ISO 8601 timestamp (default: now)
 - `limit` - Number of records (default: 100, max: 1000)
 
 **Example Request:**
+
 ```
 GET /api/sensor-data/AP-001/history?startTime=2025-01-20T10:00:00Z&endTime=2025-01-21T10:00:00Z&limit=500
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -823,12 +1049,14 @@ GET /api/sensor-data/AP-001/history?startTime=2025-01-20T10:00:00Z&endTime=2025-
 ```
 
 **Error Responses:**
+
 - `400` - Invalid parameters
 - `404` - Device not found
 - `503` - Database unavailable
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const getHistoricalData = async (deviceId, hours = 24) => {
   const endTime = new Date();
@@ -837,7 +1065,7 @@ const getHistoricalData = async (deviceId, hours = 24) => {
   const { data } = await api.getSensorHistory(deviceId, {
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
-    limit: 1000
+    limit: 1000,
   });
 
   return data;
@@ -847,6 +1075,7 @@ const getHistoricalData = async (deviceId, hours = 24) => {
 ---
 
 #### Get Device Alerts
+
 Get alerts generated for a device based on sensor thresholds.
 
 **Endpoint:** `GET /api/sensor-data/:deviceId/alerts`
@@ -854,15 +1083,18 @@ Get alerts generated for a device based on sensor thresholds.
 **Authentication:** None (⚠️ Should verify ownership)
 
 **Query Parameters:**
+
 - `limit` - Number of alerts (default: 20, max: 100)
 - `unacknowledged` - Only unacknowledged alerts (boolean, default: false)
 
 **Example Request:**
+
 ```
 GET /api/sensor-data/AP-001/alerts?limit=50&unacknowledged=true
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "success": true,
@@ -883,6 +1115,7 @@ GET /api/sensor-data/AP-001/alerts?limit=50&unacknowledged=true
 ```
 
 **Alert Types:**
+
 - `PM25_HIGH` / `PM25_LOW` - PM2.5 level changes
 - `PM10_HIGH` / `PM10_LOW` - PM10 level changes
 - `CO2_HIGH` / `CO2_LOW` - CO2 level changes
@@ -891,19 +1124,21 @@ GET /api/sensor-data/AP-001/alerts?limit=50&unacknowledged=true
 - `NO2_HIGH` / `NO2_LOW` - Nitrogen Dioxide changes
 
 **Severity Levels:**
+
 - `info` - Informational
 - `warning` - Warning level
 - `critical` - Critical level
 
 **Frontend Example:**
+
 ```javascript
 const getUnacknowledgedAlerts = async (deviceId) => {
   const { alerts } = await api.getAlerts(deviceId, {
     unacknowledged: true,
-    limit: 50
+    limit: 50,
   });
 
-  const criticalAlerts = alerts.filter(a => a.severity === 'critical');
+  const criticalAlerts = alerts.filter((a) => a.severity === 'critical');
   console.log(`${criticalAlerts.length} critical alerts`);
 };
 ```
@@ -911,6 +1146,7 @@ const getUnacknowledgedAlerts = async (deviceId) => {
 ---
 
 #### Check Sensor Service Health
+
 Check if the sensor data service (PostgreSQL) is available.
 
 **Endpoint:** `GET /api/sensor-data/health`
@@ -918,6 +1154,7 @@ Check if the sensor data service (PostgreSQL) is available.
 **Authentication:** None
 
 **Response:** `200 OK`
+
 ```json
 {
   "service": "Sensor Data Service",
@@ -927,6 +1164,7 @@ Check if the sensor data service (PostgreSQL) is available.
 ```
 
 Or if unavailable:
+
 ```json
 {
   "service": "Sensor Data Service",
@@ -942,6 +1180,7 @@ Or if unavailable:
 Export sensor data in various formats for analysis.
 
 #### Export as CSV
+
 Download sensor data as a CSV file.
 
 **Endpoint:** `GET /api/export/:deviceId/csv`
@@ -949,31 +1188,36 @@ Download sensor data as a CSV file.
 **Authentication:** None (⚠️ Should verify ownership)
 
 **Query Parameters:**
+
 - `startTime` - ISO 8601 timestamp (optional)
 - `endTime` - ISO 8601 timestamp (optional)
 - `limit` - Number of records (default: 10000, max: 10000)
 
 **Response:** `200 OK` (File Download)
+
 - Content-Type: `text/csv`
 - Content-Disposition: `attachment; filename="sensor-data-{deviceId}-{date}.csv"`
 
 **CSV Columns:**
+
 ```
 time, humidity, carbon_monoxide, carbon_dioxide, nitrogen_dioxide, pm10, pm25, temperature, volatile_compounds
 ```
 
 **Error Responses:**
+
 - `404` - No data found
 - `503` - Database unavailable
 - `500` - Server error
 
 **Frontend Example:**
+
 ```javascript
 const downloadCSV = (deviceId, startTime, endTime) => {
   const params = new URLSearchParams({
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
-    limit: '10000'
+    limit: '10000',
   });
 
   const url = api.getCSVExportURL(deviceId, params);
@@ -989,6 +1233,7 @@ const downloadCSV = (deviceId, startTime, endTime) => {
 ---
 
 #### Export as JSON
+
 Download sensor data as a JSON file.
 
 **Endpoint:** `GET /api/export/:deviceId/json`
@@ -996,15 +1241,18 @@ Download sensor data as a JSON file.
 **Authentication:** None (⚠️ Should verify ownership)
 
 **Query Parameters:**
+
 - `startTime` - ISO 8601 timestamp (optional)
 - `endTime` - ISO 8601 timestamp (optional)
 - `limit` - Number of records (default: 1000, max: 10000)
 
 **Response:** `200 OK` (File Download)
+
 - Content-Type: `application/json`
 - Content-Disposition: `attachment; filename="sensor-data-{deviceId}-{date}.json"`
 
 **JSON Structure:**
+
 ```json
 {
   "deviceId": "AP-001",
@@ -1027,12 +1275,13 @@ Download sensor data as a JSON file.
 ```
 
 **Frontend Example:**
+
 ```javascript
 const downloadJSON = (deviceId, startTime, endTime) => {
   const params = new URLSearchParams({
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
-    limit: '10000'
+    limit: '10000',
   });
 
   const url = api.getJSONExportURL(deviceId, params);
@@ -1054,21 +1303,23 @@ Real-time bidirectional communication using Socket.io.
 import { io } from 'socket.io-client';
 
 // Use environment variable for WebSocket URL
-const WS_URL = import.meta.env.VITE_API_BASE_URL ||
-               process.env.REACT_APP_API_BASE_URL ||
-               process.env.NEXT_PUBLIC_API_BASE_URL ||
-               'http://localhost:3020';
+const WS_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:3020';
 
 const socket = io(WS_URL, {
   auth: {
-    token: 'your-firebase-id-token'
-  }
+    token: 'your-firebase-id-token',
+  },
 });
 ```
 
 ### Client Events (Frontend → Server)
 
 #### Join Device Room
+
 Subscribe to updates for a specific device.
 
 ```javascript
@@ -1076,6 +1327,7 @@ socket.emit('join_device', deviceId);
 ```
 
 **Server Response:**
+
 ```javascript
 socket.on('joined_device', (data) => {
   console.log('Joined device:', data.deviceId);
@@ -1085,6 +1337,7 @@ socket.on('joined_device', (data) => {
 ---
 
 #### Leave Device Room
+
 Unsubscribe from device updates.
 
 ```javascript
@@ -1096,6 +1349,7 @@ socket.emit('leave_device', deviceId);
 ### Server Events (Server → Frontend)
 
 #### Device Control Updates
+
 Receive real-time device control changes.
 
 ```javascript
@@ -1112,6 +1366,7 @@ socket.on('device_control', (data) => {
 ```
 
 **Event Types:**
+
 - `fan_speed` - Fan speed changed (value: 0-10)
 - `auto_mode` - Auto mode toggled (value: boolean)
 - `sensitivity` - Sensitivity changed (value: "low" | "medium" | "high")
@@ -1120,6 +1375,7 @@ socket.on('device_control', (data) => {
 ---
 
 #### Sensor Alerts
+
 Receive alerts when sensor thresholds are exceeded.
 
 ```javascript
@@ -1144,6 +1400,7 @@ socket.on('sensor_alerts', (data) => {
 ---
 
 #### Error Events
+
 Receive error notifications.
 
 ```javascript
@@ -1235,6 +1492,7 @@ const setupWebSocket = (deviceId) => {
 **Common Error Responses:**
 
 **400 Bad Request**
+
 ```json
 {
   "error": "Invalid request parameters",
@@ -1243,6 +1501,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **401 Unauthorized**
+
 ```json
 {
   "error": "Authentication required",
@@ -1251,6 +1510,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **403 Forbidden**
+
 ```json
 {
   "error": "Access denied",
@@ -1259,6 +1519,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **404 Not Found**
+
 ```json
 {
   "error": "Device not found",
@@ -1267,6 +1528,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **409 Conflict**
+
 ```json
 {
   "error": "Device already registered",
@@ -1275,6 +1537,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **500 Internal Server Error**
+
 ```json
 {
   "error": "Internal server error",
@@ -1283,6 +1546,7 @@ const setupWebSocket = (deviceId) => {
 ```
 
 **503 Service Unavailable**
+
 ```json
 {
   "error": "Service unavailable",
@@ -1298,7 +1562,7 @@ const handleAPIError = (error) => {
     // Server responded with error status
     const { status, data } = error.response;
 
-    switch(status) {
+    switch (status) {
       case 400:
         showError('Invalid request: ' + data.details);
         break;
@@ -1474,7 +1738,7 @@ const DeviceControlPanel = ({ deviceId }) => {
     setFanSpeed,
     setAutoMode,
     setSensitivity,
-    setPower
+    setPower,
   } = useDeviceControl(deviceId);
 
   if (loading) return <div>Loading...</div>;
@@ -1555,6 +1819,7 @@ export default DeviceControlPanel;
 **Step 1: Create environment file**
 
 For **Vite**:
+
 ```bash
 # .env.local
 VITE_API_BASE_URL=http://localhost:3020
@@ -1564,6 +1829,7 @@ VITE_API_BASE_URL=https://your-heroku-app.herokuapp.com
 ```
 
 For **Create React App**:
+
 ```bash
 # .env.local
 REACT_APP_API_BASE_URL=http://localhost:3020
@@ -1573,6 +1839,7 @@ REACT_APP_API_BASE_URL=https://your-heroku-app.herokuapp.com
 ```
 
 For **Next.js**:
+
 ```bash
 # .env.local
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3020
@@ -1582,6 +1849,7 @@ NEXT_PUBLIC_API_BASE_URL=https://your-heroku-app.herokuapp.com
 ```
 
 **Step 2: Install dependencies**
+
 ```bash
 npm install socket.io-client
 ```
@@ -1592,6 +1860,7 @@ Note: You don't need the Firebase SDK since you're using a custom Google OAuth i
 Copy the `PuriCareAPI` class from the [Frontend Integration](#frontend-integration) section to your project (e.g., `lib/api-client.js`).
 
 **Step 4: Initialize in your app**
+
 ```javascript
 import PuriCareAPI from './lib/api-client';
 
@@ -1614,6 +1883,7 @@ export const api = new PuriCareAPI(getAuthToken);
 ```
 
 **Step 5: Use in components**
+
 ```javascript
 import { api } from './lib/api';
 
@@ -1632,6 +1902,7 @@ const { data } = await api.getLatestSensorData(deviceId);
 ## Additional Resources
 
 **Repository Files:**
+
 - API Routes: [server/src/api/routes/](server/src/api/routes/)
 - Controllers: [server/src/api/controllers/](server/src/api/controllers/)
 - Middleware: [server/src/api/middleware/](server/src/api/middleware/)
@@ -1641,6 +1912,7 @@ const { data } = await api.getLatestSensorData(deviceId);
 See `.env.example` for required environment variables.
 
 **Database Schema:**
+
 - Firebase: Device metadata, user profiles
 - PostgreSQL: Sensor readings (timeseries), alerts
 
@@ -1649,6 +1921,7 @@ See `.env.example` for required environment variables.
 Your Heroku server requires the following environment variables:
 
 **Authentication & Firebase:**
+
 ```bash
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 FIREBASE_PROJECT_ID=your-project-id
@@ -1657,22 +1930,26 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 ```
 
 **Database:**
+
 ```bash
 DATABASE_URL=postgres://username:password@host:5432/database
 ```
 
 **API & CORS:**
+
 ```bash
 PORT=3020  # Optional, Heroku sets this automatically
 CLIENT_URL=https://your-frontend-app.vercel.app  # Update for production frontend
 ```
 
 **Optional (Air Quality):**
+
 ```bash
 AQICN_TOKEN=your-aqicn-api-token
 ```
 
 **Important Notes:**
+
 - Update `CLIENT_URL` to match your production frontend URL (not localhost)
 - `FIREBASE_PRIVATE_KEY` must include the `\n` newline characters
 - All sensitive keys should be kept secure and never committed to git

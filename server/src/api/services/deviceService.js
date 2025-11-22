@@ -8,13 +8,6 @@ const { db } = require('../config/firebase');
 const TimezoneService = require('./timezoneService');
 const aqiScripts = require('../scripts/aqiScripts');
 
-function getAqiLabel(pm25) {
-  if (pm25 <= 15) return '좋음'; // Good
-  if (pm25 <= 35) return '보통'; // Moderate
-  if (pm25 <= 75) return '나쁨'; // Unhealthy
-  return '매우 나쁨'; // Very Unhealthy
-}
-
 async function registerDevice(secureUserId, deviceData) {
   const { customLocation, deviceID, geo, measurements, name } = deviceData;
   // Validation Phase
@@ -258,37 +251,16 @@ async function getDevicesByUser(secureUserId) {
     snapshot.forEach((doc) => {
       const docData = doc.data();
 
-      // Get all the nested data objects
-      const settings = docData.settings || {};
-      const status = docData.status || {};
-      const data = docData.data || {};
-      const measurements = data.measurements || {};
-
-      // --- Build the frontend payload ---
-
-      // 1. Determine AQI
-      const aqiValue = measurements.pm25 || 0;
-      const aqiLabel = getAqiLabel(aqiValue);
-
-      // 2. Build Subtitle
-      const onlineStatus = status.online ? '온라인' : '오프라인';
-      const mode = settings.autoMode ? '자동 모드' : '수동 모드';
-      const subtitle = `${onlineStatus} · ${mode}`;
-
-      // 3. Format lastSeen timestamp
-      // (Sends ISO string, frontend can format it)
-      const lastUpdated = status.lastSeen
-        ? status.lastSeen.toDate().toISOString()
-        : new Date(0).toISOString(); // Use epoch if not set
-
-      // 4. Push the complete RoomSummary object
+      // Return raw Firestore structure with timestamp conversion
       devices.push({
-        id: doc.id, // The deviceID
-        name: data.name || 'Unnamed Device',
-        subtitle: subtitle,
-        lastUpdated: lastUpdated,
-        aqi: aqiValue,
-        aqiLabel: aqiLabel,
+        id: doc.id, // Document ID (deviceID)
+        ...docData,
+        status: {
+          ...docData.status,
+          lastSeen: docData.status?.lastSeen
+            ? docData.status.lastSeen.toDate().toISOString()
+            : null,
+        },
       });
     });
 
