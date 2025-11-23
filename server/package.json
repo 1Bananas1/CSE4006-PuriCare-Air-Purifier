@@ -22,7 +22,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "firebase-admin": "^13.6.0",
-    "geo-tz": "^7.1.0",
+    "geo-tz": "^8.1.4",
     "google-auth-library": "^10.5.0",
     "helmet": "^8.1.0",
     "moment-timezone": "^0.6.0",
