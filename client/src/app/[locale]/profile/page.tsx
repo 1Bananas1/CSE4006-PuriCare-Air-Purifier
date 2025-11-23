@@ -21,6 +21,8 @@ function Row({ k, v }: { k: string; v?: string }) {
 }
 
 export default function ProfilePage() {
+  const t = useTranslations('ProfilePage');
+  const c = useTranslations('Common');
   const router = useRouter();
   const { auth } = useAuth();
 
@@ -43,13 +45,13 @@ export default function ProfilePage() {
       >
         <button
           onClick={() => router.back()}
-          aria-label="뒤로"
+          aria-label={t('back')}
           style={{ fontSize: 20, height: 44, width: 44 }}
         >
           ←
         </button>
         <div style={{ fontSize: 18, fontWeight: 800 }}>
-          Hello, {auth.profile?.name ?? '사용자'}
+          {t('title', { name: auth.profile?.name ?? c('user') })}
         </div>
       </div>
 
@@ -62,8 +64,8 @@ export default function ProfilePage() {
             padding: 16,
           }}
         >
-          <Row k="이름" v={auth.profile?.name || ''} />
-          <Row k="이메일" v={auth.profile?.email || ''} />
+          <Row k={t('name')} v={auth.profile?.name || ''} />
+          <Row k={t('email')} v={auth.profile?.email || ''} />
         </div>
       </section>
     </main>

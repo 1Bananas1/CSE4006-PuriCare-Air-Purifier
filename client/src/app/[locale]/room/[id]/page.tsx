@@ -76,6 +76,7 @@ function InfoCard({
 }
 
 export default function RoomPage() {
+  const t = useTranslations('RoomPage');
   const router = useRouter();
   const params = useParams<{ id: string }>(); // ✅ 여기서 params를 훅으로
   const id = (params?.id as string) ?? 'living';
@@ -109,7 +110,7 @@ export default function RoomPage() {
       >
         <button
           onClick={() => router.back()}
-          aria-label="뒤로"
+          aria-label={t('back')}
           style={{
             height: 40,
             width: 40,
@@ -129,15 +130,18 @@ export default function RoomPage() {
         className="mobile-wrap"
         style={{ padding: 16, display: 'grid', gap: 12, flex: 1 }}
       >
-        <InfoCard title="상태">
-          {data.state} · {data.mode} · {data.wind}
+        <InfoCard title={t('status')}>
+          {data.state === '켜짐' ? t('on') : t('standby')} · {data.mode} · {data.wind}
         </InfoCard>
 
-        <InfoCard title="필터 수명">
-          {data.filterPercent}% ({data.filterEta})
+        <InfoCard title={t('filterLife')}>
+          {t('filterReplacement', {
+            percent: data.filterPercent,
+            eta: data.filterEta.replace('교체까지 예상 ', '').replace('달', ' month').replace('주', ' weeks')
+          })}
         </InfoCard>
 
-        <InfoCard title="센서">
+        <InfoCard title={t('sensors')}>
           {data.pm25} · {data.voc}
         </InfoCard>
       </section>

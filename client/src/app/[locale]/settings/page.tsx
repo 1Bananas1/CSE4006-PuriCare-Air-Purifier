@@ -4,44 +4,36 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import BottomNav from '@/components/layout/bottom-nav';
 
-type MenuItem = {
-  label: string;
-  description: string;
-  href: string;
-  icon: string;
-};
-
-const MENU: MenuItem[] = [
-  {
-    label: 'Account',
-    description: 'Profile / Nickname / Logout',
-    href: '/settings/account',
-    icon: '👤',
-  },
-  {
-    label: 'My device',
-    description: '등록된 공기청정기 관리(Registered air purifier management)',
-    href: '/settings/devices',
-    icon: '📦',
-  },
-  {
-    label: 'Location',
-    description:
-      '도시 / 위치 기반 추천 설정(City / Location Based Recommendation Settings)',
-    href: '/settings/location',
-    icon: '📍',
-  },
-  {
-    label: 'Privacy',
-    description:
-      '오디오·위치 데이터 처리 동의(Consent to audio and location data processing)',
-    href: '/settings/privacy',
-    icon: '🛡️',
-  },
-];
-
 export default function SettingsPage() {
+  const t = useTranslations('SettingsPage');
   const router = useRouter();
+
+  const menu = [
+    {
+      labelKey: 'account',
+      descriptionKey: 'accountDescription',
+      href: '/settings/account',
+      icon: '👤',
+    },
+    {
+      labelKey: 'myDevice',
+      descriptionKey: 'myDeviceDescription',
+      href: '/settings/devices',
+      icon: '📦',
+    },
+    {
+      labelKey: 'location',
+      descriptionKey: 'locationDescription',
+      href: '/settings/location',
+      icon: '📍',
+    },
+    {
+      labelKey: 'privacy',
+      descriptionKey: 'privacyDescription',
+      href: '/settings/privacy',
+      icon: '🛡️',
+    },
+  ];
 
   return (
     <main
@@ -65,7 +57,7 @@ export default function SettingsPage() {
           fontSize: 18,
         }}
       >
-        설정
+        {t('title')}
       </div>
 
       {/* 메뉴 리스트 */}
@@ -73,9 +65,9 @@ export default function SettingsPage() {
         className="mobile-wrap"
         style={{ padding: 16, display: 'grid', gap: 10 }}
       >
-        {MENU.map((item) => (
+        {menu.map((item) => (
           <button
-            key={item.label}
+            key={item.labelKey}
             onClick={() => router.push(item.href)}
             style={{
               textAlign: 'left',
@@ -102,9 +94,11 @@ export default function SettingsPage() {
               <span style={{ fontSize: 18 }}>{item.icon}</span>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{item.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>
+                {t(item.labelKey as any)}
+              </div>
               <div style={{ fontSize: 12, opacity: 0.7 }}>
-                {item.description}
+                {t(item.descriptionKey as any)}
               </div>
             </div>
             <div style={{ fontSize: 18, opacity: 0.6 }}>›</div>

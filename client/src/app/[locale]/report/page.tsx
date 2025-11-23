@@ -36,14 +36,16 @@ const MOCK_SERIES: Record<Range, number[]> = {
 function RangeTabs({
   value,
   onChange,
+  labels,
 }: {
   value: Range;
   onChange: (v: Range) => void;
+  labels: { today: string; thisWeek: string; thisMonth: string };
 }) {
   const items: { label: string; value: Range }[] = [
-    { label: 'Today', value: 'day' },
-    { label: 'This Week', value: 'week' },
-    { label: 'This Month', value: 'month' },
+    { label: labels.today, value: 'day' },
+    { label: labels.thisWeek, value: 'week' },
+    { label: labels.thisMonth, value: 'month' },
   ];
 
   return (
@@ -161,6 +163,7 @@ function TinyBarChart({ values }: { values: number[] }) {
 }
 
 export default function ReportPage() {
+  const t = useTranslations('ReportPage');
   const [range, setRange] = useState<Range>('day');
 
   const usage = MOCK_USAGE[range];
@@ -169,7 +172,7 @@ export default function ReportPage() {
   const series = MOCK_SERIES[range];
 
   const rangeLabel =
-    range === 'day' ? '오늘' : range === 'week' ? '이번 주' : '이번 달';
+    range === 'day' ? t('today') : range === 'week' ? t('thisWeek') : t('thisMonth');
 
   return (
     <main
@@ -203,7 +206,7 @@ export default function ReportPage() {
             letterSpacing: 0.2,
           }}
         >
-          리포트
+          {t('title')}
         </div>
         <div
           style={{
@@ -212,7 +215,7 @@ export default function ReportPage() {
             opacity: 0.6,
           }}
         >
-          이번 공기청정기 사용을 한눈에 확인해요.
+          {t('subtitle')}
         </div>
       </div>
 
@@ -228,12 +231,20 @@ export default function ReportPage() {
       >
         {/* 기간 탭 */}
         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <RangeTabs value={range} onChange={setRange} />
+          <RangeTabs
+            value={range}
+            onChange={setRange}
+            labels={{
+              today: t('today'),
+              thisWeek: t('thisWeek'),
+              thisMonth: t('thisMonth'),
+            }}
+          />
         </div>
 
         {/* 1) 오늘/이번 주/이번 달 사용 요약 */}
         <Card
-          title={`${rangeLabel} 사용 요약`}
+          title={t('usageSummary', { period: rangeLabel })}
           body={
             <div
               style={{
@@ -244,12 +255,12 @@ export default function ReportPage() {
               }}
             >
               <div style={{ flex: 1 }}>
-                <div style={{ opacity: 0.7, fontSize: 12 }}>전력 사용량</div>
+                <div style={{ opacity: 0.7, fontSize: 12 }}>{t('powerUsage')}</div>
                 <div style={{ fontSize: 22, fontWeight: 800 }}>
-                  {usage.toFixed(1)} kWh
+                  {usage.toFixed(1)} {t('kwhUnit')}
                 </div>
                 <div style={{ opacity: 0.78, fontSize: 12 }}>
-                  추정 요금 약 {cost.toLocaleString()}원
+                  {t('estimatedCost', { cost: cost.toLocaleString() })}
                 </div>
               </div>
               <div
@@ -262,7 +273,7 @@ export default function ReportPage() {
               />
               <div style={{ flex: 1 }}>
                 <div style={{ opacity: 0.7, fontSize: 12 }}>
-                  절감율 (목표 대비)
+                  {t('savingsRate')}
                 </div>
                 <div
                   style={{
@@ -274,7 +285,7 @@ export default function ReportPage() {
                   {saving}%
                 </div>
                 <div style={{ opacity: 0.82, fontSize: 12 }}>
-                  지난 {rangeLabel} 평균보다 조금 낮은 사용량이에요.
+                  {t('savingsComparison', { period: rangeLabel })}
                 </div>
               </div>
             </div>
@@ -283,7 +294,7 @@ export default function ReportPage() {
 
         {/* 2) 에너지 사용 패턴 (미니 그래프) */}
         <Card
-          title={`에너지 사용 패턴 (${rangeLabel})`}
+          title={t('energyUsagePattern', { period: rangeLabel })}
           body={
             <div style={{ display: 'grid', gap: 8 }}>
               <TinyBarChart values={series} />
@@ -295,12 +306,11 @@ export default function ReportPage() {
                   opacity: 0.7,
                 }}
               >
-                <span>낮은 사용</span>
-                <span>높은 사용</span>
+                <span>{t('lowUsage')}</span>
+                <span>{t('highUsage')}</span>
               </div>
               <div style={{ fontSize: 12, opacity: 0.85 }}>
-                시간대별/일별 패턴은 백엔드와 ml 연동 후 확인 가능. 지금 전부
-                예시임.
+                {t('patternNote')}
               </div>
             </div>
           }
@@ -308,12 +318,11 @@ export default function ReportPage() {
 
         {/* 3) 절감 진행 상황 */}
         <Card
-          title="절감 목표 진행 상황"
+          title={t('savingsGoalProgress')}
           body={
             <div style={{ display: 'grid', gap: 8 }}>
               <div style={{ fontSize: 13 }}>
-                이번 달 목표 사용량 대비{' '}
-                <b style={{ fontWeight: 800 }}>{saving}% 절감</b> 중입니다.
+                {t('savingsGoalDescription', { percent: saving })}
               </div>
               <div
                 style={{
@@ -337,7 +346,7 @@ export default function ReportPage() {
                 />
               </div>
               <div style={{ fontSize: 11, opacity: 0.78 }}>
-                상세 절감 로직은 백엔드와 ml 연동 후 계산됩니다.
+                {t('savingsLogicNote')}
               </div>
             </div>
           }
@@ -345,17 +354,10 @@ export default function ReportPage() {
 
         {/* 4) AI 예측 */}
         <Card
-          title="AI 사용량 예측 (준비 중)"
+          title={t('aiPrediction')}
           body={
             <div style={{ fontSize: 12.5, opacity: 0.9, lineHeight: 1.45 }}>
-              다음 주 예상 사용량, 패턴 이상 탐지 등은{' '}
-              <b>AI 모델과 백엔드 연동이 끝난 후</b> 이 영역에 그래프와 함께
-              표시될 예정임.
-              <br />
-              <br />
-              프론트에서는 UI와 레이아웃이 준비되어 있으니, 나중에{' '}
-              <code style={{ fontSize: 11 }}>/api/report</code> 같은
-              엔드포인트만 연결하면 바로 데이터를 바인딩할 수 있도록 설계했음.
+              {t('aiPredictionDescription')}
             </div>
           }
         />

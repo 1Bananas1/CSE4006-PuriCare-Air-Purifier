@@ -57,16 +57,16 @@ function ShellCard({
 }
 
 export default function HomePage() {
-  const { auth } = useAuth();
+  const { auth, ready } = useAuth();
   const router = useRouter();
   const t = useTranslations('HomePage');
   const c = useTranslations('Common');
   const n = useTranslations('Navigation');
 
-  // 로그인 안 되어 있으면 /login으로
+  // 로그인 안 되어 있으면 /login으로 (localStorage 복구 완료 후)
   useEffect(() => {
-    if (!auth.idToken) router.replace('/login');
-  }, [auth.idToken, router]);
+    if (ready && !auth.idToken) router.replace('/login');
+  }, [auth.idToken, ready, router]);
 
   const name = useMemo(
     () => auth.profile?.name ?? '사용자',

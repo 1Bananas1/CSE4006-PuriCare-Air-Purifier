@@ -30,16 +30,16 @@ const MOCK_DEVICES: Device[] = [
 ];
 
 export default function DevicesSettingsPage() {
+  const t = useTranslations('SettingsDevicesPage');
+  const c = useTranslations('Common');
   const router = useRouter();
 
   const handleAdd = () => {
-    alert('QR 스캔 / 시리얼 입력 플로우는 다음 단계에서 구현합니다.');
+    alert(t('addDeviceAlert'));
   };
 
   const handleMenu = (device: Device) => {
-    alert(
-      `${device.name} 컨텍스트 메뉴\n\n- 이름 변경\n- 식별\n- 설정\n- 삭제\n\n실제 동작은 기기 API 연동 후 구현합니다.`
-    );
+    alert(t('deviceMenuAlert', { name: device.name }));
   };
 
   return (
@@ -67,15 +67,15 @@ export default function DevicesSettingsPage() {
       >
         <button
           onClick={() => router.back()}
-          aria-label="뒤로"
+          aria-label={t('back')}
           style={{ fontSize: 20, height: 44, width: 44 }}
         >
           ←
         </button>
-        <div style={{ fontWeight: 800, fontSize: 18, flex: 1 }}>내 기기</div>
+        <div style={{ fontWeight: 800, fontSize: 18, flex: 1 }}>{t('title')}</div>
         <button
           onClick={handleAdd}
-          aria-label="기기 추가"
+          aria-label={t('addDevice')}
           style={{
             fontSize: 22,
             height: 40,
@@ -103,7 +103,7 @@ export default function DevicesSettingsPage() {
               fontSize: 14,
             }}
           >
-            등록된 기기가 없습니다.
+            {t('noDevices')}
             <br />
             <button
               onClick={handleAdd}
@@ -118,7 +118,7 @@ export default function DevicesSettingsPage() {
                 fontWeight: 600,
               }}
             >
-              기기 추가
+              {t('addDevice')}
             </button>
           </div>
         ) : (
@@ -171,7 +171,7 @@ export default function DevicesSettingsPage() {
                       color: d.status === 'online' ? '#4ade80' : '#cbd5f5',
                     }}
                   >
-                    {d.status === 'online' ? '온라인' : '오프라인'}
+                    {d.status === 'online' ? t('online') : t('offline')}
                   </span>
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.8 }}>
@@ -180,7 +180,7 @@ export default function DevicesSettingsPage() {
               </div>
               <button
                 onClick={() => handleMenu(d)}
-                aria-label="기기 옵션"
+                aria-label={t('deviceOptions')}
                 style={{
                   width: 32,
                   height: 32,

@@ -26,10 +26,10 @@ const io = new Server(server, {
   },
 });
 
-// Enable CORS for frontend running on port 3000
+// Enable CORS for frontend
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
   })
 );

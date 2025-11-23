@@ -7,6 +7,8 @@ import BottomNav from '@/components/layout/bottom-nav';
 import { useState } from 'react';
 
 export default function AccountSettingsPage() {
+  const t = useTranslations('SettingsAccountPage');
+  const c = useTranslations('Common');
   const router = useRouter();
   const { auth, setAuth, signOut } = useAuth();
   const [name, setName] = useState(auth.profile?.name ?? '');
@@ -23,7 +25,7 @@ export default function AccountSettingsPage() {
   };
 
   const handleLogout = () => {
-    if (!confirm('로그아웃하시겠습니까?')) return;
+    if (!confirm(t('logoutConfirm'))) return;
     signOut();
     router.replace('/login');
   };
@@ -53,12 +55,12 @@ export default function AccountSettingsPage() {
       >
         <button
           onClick={() => router.back()}
-          aria-label="뒤로"
+          aria-label={t('back')}
           style={{ fontSize: 20, height: 44, width: 44 }}
         >
           ←
         </button>
-        <div style={{ fontWeight: 800, fontSize: 18 }}>계정</div>
+        <div style={{ fontWeight: 800, fontSize: 18 }}>{t('title')}</div>
       </div>
 
       <section
@@ -102,10 +104,10 @@ export default function AccountSettingsPage() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>
-              {auth.profile?.name ?? '이름 없음'}
+              {auth.profile?.name ?? t('noName')}
             </div>
             <div style={{ fontSize: 12, opacity: 0.7 }}>
-              {auth.profile?.email ?? '이메일 정보 없음'}
+              {auth.profile?.email ?? t('noEmail')}
             </div>
           </div>
         </div>
@@ -121,11 +123,11 @@ export default function AccountSettingsPage() {
             gap: 8,
           }}
         >
-          <div style={{ fontWeight: 700, fontSize: 14 }}>표시 이름</div>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{t('displayName')}</div>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="표시할 이름을 입력하세요"
+            placeholder={t('displayNamePlaceholder')}
             style={{
               borderRadius: 10,
               border: '1px solid var(--divider)',
@@ -149,7 +151,7 @@ export default function AccountSettingsPage() {
               fontWeight: 600,
             }}
           >
-            {saving ? '저장 중…' : '저장'}
+            {saving ? t('saving') : c('save')}
           </button>
         </div>
 
@@ -168,7 +170,7 @@ export default function AccountSettingsPage() {
             fontWeight: 600,
           }}
         >
-          로그아웃
+          {t('logout')}
         </button>
       </section>
 

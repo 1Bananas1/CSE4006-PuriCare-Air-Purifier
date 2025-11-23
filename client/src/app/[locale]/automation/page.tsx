@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import BottomNav from '@/components/layout/bottom-nav';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 
 type AutoType = 'routine' | 'schedule';
 
@@ -131,6 +130,7 @@ function Card({ title, body }: { title: string; body?: React.ReactNode }) {
 }
 
 export default function AutomationPage() {
+  const t = useTranslations('AutomationPage');
   const [items, setItems] = useState<AutomationItem[]>(INITIAL_AUTOMATIONS);
 
   const toggleItem = (id: number) => {
@@ -180,7 +180,7 @@ export default function AutomationPage() {
             letterSpacing: 0.2,
           }}
         >
-          자동화
+          {t('title')}
         </div>
         <div
           style={{
@@ -189,7 +189,7 @@ export default function AutomationPage() {
             opacity: 0.6,
           }}
         >
-          루틴/스케줄로 공기청정기를 알아서 돌게 만들어요.
+          {t('subtitle')}
         </div>
       </div>
 
@@ -205,7 +205,7 @@ export default function AutomationPage() {
       >
         {/* 요약 카드 */}
         <Card
-          title="자동화 요약"
+          title={t('automationSummary')}
           body={
             <div
               style={{
@@ -217,15 +217,13 @@ export default function AutomationPage() {
             >
               <div>
                 <div style={{ fontSize: 13, opacity: 0.8 }}>
-                  현재 활성화된 자동화
+                  {t('currentlyActive')}
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 800 }}>
-                  {activeCount}개
+                  {t('count', { count: activeCount })}
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.78 }}>
-                  루틴과 스케줄은 나중에 백엔드/ML 연동 후 실제 데이터로
-                  계산됨요. integration with backend and ml to show routine and
-                  schedule
+                  {t('backendNote')}
                 </div>
               </div>
               <div
@@ -262,12 +260,11 @@ export default function AutomationPage() {
 
         {/* 내 자동화 리스트 */}
         <Card
-          title="내 자동화"
+          title={t('myAutomations')}
           body={
             items.length === 0 ? (
               <div style={{ fontSize: 13, opacity: 0.8 }}>
-                아직 등록된 자동화가 없습니다. 아래 “새 자동화 만들기” 버튼으로
-                루틴을 추가해 보세요.
+                {t('noAutomations')}
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 10 }}>
@@ -303,7 +300,7 @@ export default function AutomationPage() {
                       >
                         {item.name}
                         <Chip
-                          label={item.type === 'routine' ? '루틴' : '스케줄'}
+                          label={item.type === 'routine' ? t('routine') : t('schedule')}
                         />
                       </div>
                       <div style={{ fontSize: 12, opacity: 0.8 }}>
@@ -339,7 +336,7 @@ export default function AutomationPage() {
                           opacity: 0.65,
                         }}
                       >
-                        {item.active ? '사용 중' : '일시 정지'}
+                        {item.active ? t('active') : t('paused')}
                       </span>
                     </div>
                   </div>
@@ -351,12 +348,11 @@ export default function AutomationPage() {
 
         {/* 추천 자동화 영역 – 실제 추천은 나중에 ML 연결 */}
         <Card
-          title="추천 자동화"
+          title={t('recommendedAutomations')}
           body={
             <div style={{ display: 'grid', gap: 8 }}>
               <div style={{ fontSize: 13 }}>
-                사용 패턴, 날씨, 실내 공기질을 보고 <b>추천 루틴</b>을 보여줄
-                예정입니다.
+                {t('recommendationDescription')}
               </div>
               <ul
                 style={{
@@ -369,13 +365,12 @@ export default function AutomationPage() {
                   opacity: 0.9,
                 }}
               >
-                <li>• 미세먼지 ‘나쁨’ 예보 시, 귀가 시간대 자동 강풍 모드</li>
-                <li>• 새벽 시간대 CO₂ 높을 때 자동 환기 모드 제안</li>
-                <li>• 집에 아무도 없을 때 절전 루틴 추천</li>
+                {t('recommendationExamples').split('\n').map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
               </ul>
               <div style={{ fontSize: 11, opacity: 0.7 }}>
-                전부 예시고, 추후 백엔드와 ml 연동을 통해야만 사용 가능
-                (integration with backend and ml)
+                {t('integrationNote')}
               </div>
             </div>
           }
@@ -402,7 +397,7 @@ export default function AutomationPage() {
         }}
         onClick={() => {
           // TODO: 나중에 router.push('/automation/new') 같은 곳으로 연결
-          alert('새 자동화 만들기는 백엔드/ML 설계 후 연결할 예정입니다.');
+          alert(t('createAlertMessage'));
         }}
       >
         +

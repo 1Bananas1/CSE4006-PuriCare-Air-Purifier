@@ -1,8 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 export default function SignupPage() {
+  const t = useTranslations('SignupPage');
   const router = useRouter();
 
   return (
@@ -19,10 +21,10 @@ export default function SignupPage() {
     >
       <div style={{ maxWidth: 400, width: '100%' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 16 }}>
-          Sign Up
+          {t('title')}
         </h1>
         <p style={{ marginBottom: 24, opacity: 0.8 }}>
-          Sign up functionality is coming soon.
+          {t('description')}
         </p>
         <button
           onClick={() => router.push('/login')}
@@ -37,7 +39,7 @@ export default function SignupPage() {
             fontWeight: 600,
           }}
         >
-          Go to Login
+          {t('goToLogin')}
         </button>
       </div>
     </main>

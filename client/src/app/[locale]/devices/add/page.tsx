@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 
 export default function AddDevicePage() {
+  const t = useTranslations('DevicesAddPage');
+  const c = useTranslations('Common');
   const router = useRouter();
 
   return (
@@ -25,12 +27,12 @@ export default function AddDevicePage() {
       >
         <button
           onClick={() => router.back()}
-          aria-label="뒤로"
+          aria-label={t('back')}
           style={{ fontSize: 20, height: 44, width: 44 }}
         >
           ←
         </button>
-        <div style={{ fontWeight: 800, fontSize: 18 }}>기기 추가</div>
+        <div style={{ fontWeight: 800, fontSize: 18 }}>{t('title')}</div>
       </div>
 
       <section
@@ -46,11 +48,11 @@ export default function AddDevicePage() {
             minHeight: 72,
             textAlign: 'left',
           }}
-          onClick={() => alert('QR 스캔: 카메라 권한 요청 → QR 인식')}
+          onClick={() => alert(t('qrScanAlert'))}
         >
-          <div style={{ fontWeight: 800, fontSize: 15 }}>QR 코드 스캔</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>{t('qrScan')}</div>
           <div style={{ opacity: 0.85, fontSize: 13 }}>
-            카메라로 제품의 QR 코드를 스캔하세요.
+            {t('qrScanDescription')}
           </div>
         </button>
 
@@ -63,11 +65,11 @@ export default function AddDevicePage() {
             minHeight: 72,
             textAlign: 'left',
           }}
-          onClick={() => alert('시리얼 입력')}
+          onClick={() => alert(t('serialInputAlert'))}
         >
-          <div style={{ fontWeight: 800, fontSize: 15 }}>시리얼 번호 입력</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>{t('serialInput')}</div>
           <div style={{ opacity: 0.85, fontSize: 13 }}>
-            수동으로 시리얼 번호를 입력하세요.
+            {t('serialInputDescription')}
           </div>
         </button>
       </section>
