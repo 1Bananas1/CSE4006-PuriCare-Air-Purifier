@@ -237,19 +237,24 @@ async function deleteDevice(secureUserId, deviceID) {
 
 async function getDevicesByUser(secureUserId) {
   try {
+    console.log('🔍 Querying devices for user:', secureUserId);
     const devicesQuery = db
       .collection('devices')
       .where('linkedUserID', '==', secureUserId);
 
     const snapshot = await devicesQuery.get();
 
+    console.log('📋 Query returned', snapshot.size, 'documents');
+
     if (snapshot.empty) {
+      console.log('⚠️ No devices found for user:', secureUserId);
       return [];
     }
 
     const devices = [];
     snapshot.forEach((doc) => {
       const docData = doc.data();
+      console.log('✅ Device found:', doc.id, 'linkedUserID:', docData.linkedUserID);
 
       // Return raw Firestore structure with timestamp conversion
       devices.push({
@@ -264,6 +269,7 @@ async function getDevicesByUser(secureUserId) {
       });
     });
 
+    console.log('✅ Returning', devices.length, 'devices');
     return devices;
   } catch (error) {
     console.error('Error fetching devices:', error.message);

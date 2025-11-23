@@ -46,7 +46,10 @@ router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
 router.get('/', authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
+    console.log('🔍 GET /api/devices called');
+    console.log('✅ User authenticated - UID:', userId);
     const devices = await deviceService.getDevicesByUser(userId);
+    console.log('📦 Devices found:', devices.length);
     res.status(200).json(devices);
   } catch (error) {
     console.error('Error in GET /api/devices: ', error);
