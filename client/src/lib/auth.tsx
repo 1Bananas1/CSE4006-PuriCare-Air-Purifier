@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useCallback,
 } from 'react';
 
 type Profile = { name?: string; email?: string; picture?: string };
@@ -50,6 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [auth]);
 
+  // 로그아웃: 상태/스토리지 초기화
+  const signOut = useCallback(() => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setAuth({ idToken: null, profile: null });
+  }, []);
+
   // 여러 탭 간 상태 동기화
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -63,15 +70,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // 로그아웃: 상태/스토리지 초기화
-  const signOut = () => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    setAuth({ idToken: null, profile: null });
-  };
+  // 토큰 만료 시 자동 로그아웃 처리
+  useEffect(() => {
+    const onAuthExpired = () => {
+      console.log('Auth token expired - logging out');
+      signOut();
+    };
+    window.addEventListener('auth:expired', onAuthExpired);
+    return () => window.removeEventListener('auth:expired', onAuthExpired);
+  }, [signOut]);
 
   const value = useMemo(
     () => ({ auth, setAuth, signOut, ready }),
-    [auth, ready]
+    [auth, ready, signOut]
   );
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
