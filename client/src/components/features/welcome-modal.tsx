@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function WelcomeModal() {
+  const t = useTranslations('Components.WelcomeModal');
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
 
@@ -43,10 +45,10 @@ export default function WelcomeModal() {
           }}
         >
           <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
-            어서 오세요{name ? `, ${name} 님!` : '!'} 👋
+            {name ? t('greetingWithName', { name }) : t('greeting')} 👋
           </div>
           <div style={{ fontSize: 14, opacity: 0.8 }}>
-            PuriCare가 더 안전한 호흡 환경을 준비 중이에요.
+            {t('message')}
           </div>
           <button
             onClick={() => setOpen(false)}
@@ -59,7 +61,7 @@ export default function WelcomeModal() {
               fontSize: 15,
             }}
           >
-            확인
+            {t('confirm')}
           </button>
         </div>
       </div>

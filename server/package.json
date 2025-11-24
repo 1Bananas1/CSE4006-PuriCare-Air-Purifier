@@ -1,0 +1,37 @@
+{
+  "name": "puricare-backend",
+  "version": "1.0.0",
+  "description": "PuriCare Air Purifier Backend API",
+  "main": "src/api/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:setup": "node src/api/test/device/setupTestData.js",
+    "test:register": "node src/api/test/testWithRestAPI.js",
+    "midnight": "node src/api/scripts/midnightRoutine.js",
+    "test-timezones": "node src/api/scripts/testTimezoneSystem.js",
+    "start": "node src/api/index.js",
+    "dev": "nodemon src/api/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "geo-tz": "^8.1.4",
+    "google-auth-library": "^10.5.0",
+    "helmet": "^8.1.0",
+    "moment-timezone": "^0.6.0",
+    "morgan": "^1.10.1",
+    "node-cron": "^4.2.1",
+    "pg": "^8.11.3",
+    "socket.io": "^4.5.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

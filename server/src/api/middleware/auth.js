@@ -18,6 +18,20 @@ async function authenticateFirebaseToken(req, res, next) {
     console.log('Received token:', token.substring(0, 50) + '...');
     console.log('Token length:', token.length);
 
+    // Decode token payload for debugging (without verification)
+    let tokenAudience = null;
+    try {
+      const base64Payload = token.split('.')[1];
+      const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
+      tokenAudience = decodedPayload.aud;
+      console.log('🔍 Token audience (aud):', tokenAudience);
+      console.log('🔍 Expected audience:', process.env.GOOGLE_CLIENT_ID);
+      console.log('🔍 Token issuer (iss):', decodedPayload.iss);
+      console.log('🔍 Match:', tokenAudience === process.env.GOOGLE_CLIENT_ID ? '✅ YES' : '❌ NO');
+    } catch (e) {
+      console.error('Failed to decode token for debugging:', e);
+    }
+
     // Verify the Google ID token
     const ticket = await client.verifyIdToken({
       idToken: token,

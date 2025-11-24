@@ -17,6 +17,27 @@ function getAuthToken(): string | null {
   }
 }
 
+// Handle token expiration and logout
+function handleAuthError(): void {
+  if (typeof window === 'undefined') return;
+
+  // Clear auth data from localStorage
+  try {
+    localStorage.removeItem('purecare_auth');
+  } catch (e) {
+    console.error('Failed to clear auth data:', e);
+  }
+
+  // Dispatch a custom event to notify the app
+  window.dispatchEvent(new CustomEvent('auth:expired'));
+
+  // Show user-friendly message
+  alert('Your session has expired. Please log in again.');
+
+  // Redirect to login page
+  window.location.href = '/login';
+}
+
 // Authenticated API request
 
 async function apiRequest<T>(
@@ -47,6 +68,13 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    // Handle authentication errors (401 Unauthorized or 403 Forbidden)
+    if (response.status === 401 || response.status === 403) {
+      console.warn('Authentication failed - token expired or invalid');
+      handleAuthError();
+      throw new Error('Authentication expired. Please log in again.');
+    }
+
     const error = await response
       .json()
       .catch(() => ({ error: 'Unknown error' }));
