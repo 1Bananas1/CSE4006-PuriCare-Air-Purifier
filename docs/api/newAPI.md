@@ -9,6 +9,7 @@
 - [API Endpoints](#api-endpoints)
   - [Health Check](#health-check)
   - [Device Management](#device-management)
+  - [Room Management](#room-management)
   - [Device Control](#device-control)
   - [Sensor Data](#sensor-data)
   - [Data Export](#data-export)
@@ -511,7 +512,7 @@ const fetchDevices = async () => {
   const devices = await api.getDevices();
 
   // Frontend transforms the data
-  const transformedDevices = devices.map(device => ({
+  const transformedDevices = devices.map((device) => ({
     id: device.id,
     name: device.data?.name || 'Unnamed Device',
     location: device.data?.customLocation || 'Unknown',
@@ -655,6 +656,484 @@ class PuriCareAPI {
 This endpoint is useful for displaying outdoor air quality data from nearby monitoring stations. Devices can reference a `stationIdx` (stored during registration) to compare indoor vs outdoor air quality.
 
 ---
+
+### Room Management
+
+Manage room graph nodes and connections for spatial visualization of your air purifier network.
+
+#### Get All Rooms
+
+Get all rooms in your room graph.
+
+**Endpoint:** `GET /api/rooms`
+
+**Authentication:** Required (Bearer Token)
+
+**Response:** `200 OK`
+
+```json
+{
+  "rooms": [
+    {
+      "id": "room_abc123",
+      "name": "Living Room",
+      "userId": "user_xyz",
+      "position": { "x": 100, "y": 200 },
+      "deviceIds": ["AP-001", "AP-002"],
+      "sensors": {
+        "avgPm25": 12.5,
+        "avgPm10": 18.3,
+        "avgVoc": 150,
+        "avgCo2": 420,
+        "avgTemperature": 22.5,
+        "avgHumidity": 45
+      },
+      "createdAt": "2025-11-24T10:00:00Z",
+      "updatedAt": "2025-11-24T10:00:00Z"
+    }
+  ]
+}
+```
+
+Frontend Example:
+
+```js
+const getRooms = async () => {
+  const response = await api.request('/api/rooms');
+  console.log('Rooms:', response.rooms);
+  return response.rooms;
+};
+
+// Or with error handling
+const loadRoomGraph = async () => {
+  try {
+    const { rooms } = await api.request('/api/rooms');
+    // Use rooms data for XYFlow graph visualization
+    return rooms;
+  } catch (error) {
+    console.error('Failed to load rooms:', error);
+    return [];
+  }
+};
+```
+
+### Create Room
+
+Create a new room node in your graph.
+
+**Endpoint:** `POST /api/rooms`
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+
+```json
+{
+  "name": "Living Room",
+  "position": { "x": 100, "y": 200 },
+  "deviceIds": ["AP-001"]
+}
+```
+
+Field Descriptions:
+
+- name (required) - Room name (e.g., "Living Room", "Bedroom")
+- position (required) - Object with x and y coordinates for graph layout
+- deviceIds (optional) - Array of device IDs assigned to this room (default: [])
+
+**Response:** 201 Created
+
+```json
+{
+  "success": true,
+  "roomId": "room_abc123",
+  "message": "Room created successfully"
+}
+```
+
+**Error Responses:**
+
+- `400` - Room name is required / Valid position required
+- `403` - Unauthorized
+- `500` - Server error
+
+Frontend Example:
+
+```js
+const createRoom = async (roomData) => {
+  const response = await api.request('/api/rooms', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: roomData.name,
+      position: roomData.position,
+      deviceIds: roomData.deviceIds || [],
+    }),
+  });
+  console.log('Room created:', response.roomId);
+  return response;
+};
+
+// React usage example
+const handleAddRoom = async () => {
+  try {
+    const newRoom = await createRoom({
+      name: 'Master Bedroom',
+      position: { x: 300, y: 150 },
+      deviceIds: [],
+    });
+    // Update your graph state
+    setRooms([...rooms, newRoom]);
+  } catch (error) {
+    toast.error('Failed to create room');
+  }
+};
+```
+
+### Update Room
+
+Update room properties (name, position, or device assignments).
+
+**Endpoint:** `PATCH /api/rooms/:roomId`
+
+**Authentication:** Required (Bearer Token)
+
+Request Body:
+
+```json
+{
+  "name": "Master Bedroom",
+  "position": { "x": 350, "y": 200 },
+  "deviceIds": ["AP-003"]
+}
+```
+
+Note: All fields are optional. Only include fields you want to update.
+
+Response: `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Room updated successfully"
+}
+```
+
+**Error Responses:**
+
+- `400` - Room name cannot be empty
+- `403` - Not authorized to update this room
+- `404` - Room not found
+- `500` - Server error
+
+**Frontend Example:**
+
+```js
+const updateRoom = async (roomId, updates) => {
+  const response = await api.request(`/api/rooms/${roomId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+  return response;
+};
+
+// Update room position (drag & drop)
+const handleRoomDrag = async (roomId, newPosition) => {
+  await updateRoom(roomId, { position: newPosition });
+};
+
+// Assign devices to room
+const handleAssignDevices = async (roomId, deviceIds) => {
+  await updateRoom(roomId, { deviceIds });
+  // Sensor averages are automatically recalculated
+};
+```
+
+### Delete Room
+
+Delete a room and all its connected edges.
+
+**Endpoint:** `DELETE /api/rooms/:roomId`
+
+**Authentication:** Required (Bearer Token)
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Room deleted successfully"
+}
+```
+
+**Error Responses:**
+
+- `403` - Not authorized to delete this room
+- `404` - Room not found
+- `500` - Server error
+
+Frontend Example:
+
+```js
+const deleteRoom = async (roomId) => {
+  const response = await api.request(`/api/rooms/${roomId}`, {
+    method: 'DELETE',
+  });
+  return response;
+};
+
+// React usage with confirmation
+const handleDeleteRoom = async (roomId) => {
+  if (!confirm('Delete this room? All connections will be removed.')) return;
+
+  try {
+    await deleteRoom(roomId);
+    // Update state
+    setRooms(rooms.filter((r) => r.id !== roomId));
+    // Edges are automatically deleted on backend
+    toast.success('Room deleted');
+  } catch (error) {
+    toast.error('Failed to delete room');
+  }
+};
+```
+
+## Get Room Edges
+
+Get all connections (edges) between rooms.
+
+**Endpoint:** `GET /api/rooms/edges`
+
+**Authentication:** Required (Bearer Token)
+
+**Response:** `200 OK`
+
+```json
+{
+  "edges": [
+    {
+      "id": "edge_xyz",
+      "userId": "user_xyz",
+      "sourceRoomId": "room_abc123",
+      "targetRoomId": "room_def456",
+      "type": "door",
+      "createdAt": "2025-11-24T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+`type` - Either `"door"` (static connection) or `"airflow"` (animated flow)
+
+**Frontend Example:**
+
+```js
+const getRoomEdges = async () => {
+  const response = await api.request('/api/rooms/edges');
+  console.log('Edges:', response.edges);
+  return response.edges;
+};
+
+// Load complete room graph
+const loadRoomGraph = async () => {
+  const [rooms, edges] = await Promise.all([
+    api.request('/api/rooms'),
+    api.request('/api/rooms/edges'),
+  ]);
+
+  return {
+    nodes: rooms.rooms.map((room) => ({
+      id: room.id,
+      type: 'roomNode',
+      position: room.position,
+      data: { name: room.name, sensors: room.sensors },
+    })),
+    edges: edges.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.sourceRoomId,
+      target: edge.targetRoomId,
+      type: 'smoothstep',
+      animated: edge.type === 'airflow',
+      label: edge.type === 'door' ? '🚪' : '💨',
+    })),
+  };
+};
+```
+
+### Create Room Edge
+
+Create a connection between two rooms.
+
+**Endpoint:** `POST /api/rooms/edges`
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+
+```json
+{
+  "sourceRoomId": "room_abc123",
+  "targetRoomId": "room_def456",
+  "type": "door"
+}
+```
+
+**Field Descriptions:**
+
+- sourceRoomId (required) - Starting room ID
+- targetRoomId (required) - Ending room ID
+- type (required) - Either "door" or "airflow"
+
+**Response:** `201 Created`
+
+```json
+{
+  "success": true,
+  "edgeId": "edge_xyz",
+  "message": "Edge created successfully"
+}
+```
+
+**Error Responses:**
+
+- `400` - Missing required fields / Cannot connect room to itself / Invalid type
+- `403` - Not authorized
+- `404` - Source or target room not found
+- `409` - Edge already exists
+- `500` - Server error
+
+**Frontend Example:**
+
+```js
+const createEdge = async (sourceId, targetId, type = 'door') => {
+  const response = await api.request('/api/rooms/edges', {
+    method: 'POST',
+    body: JSON.stringify({
+      sourceRoomId: sourceId,
+      targetRoomId: targetId,
+      type: type,
+    }),
+  });
+  return response;
+};
+
+// Create edge on node connection in XYFlow
+const onConnect = async (connection) => {
+  try {
+    const newEdge = await createEdge(
+      connection.source,
+      connection.target,
+      'door'
+    );
+    // Add to graph state
+    setEdges([...edges, newEdge]);
+  } catch (error) {
+    if (error.message.includes('already exists')) {
+      toast.error('Connection already exists');
+    } else {
+      toast.error('Failed to create connection');
+    }
+  }
+};
+```
+
+### Update Room Edge
+
+Change the edge type between door and airflow.
+
+**Endpoint:** `PATCH /api/rooms/edges/:edgeId`
+
+**Authentication:** Required (Bearer Token)
+
+**Request Body:**
+
+```json
+{
+  "type": "airflow"
+}
+```
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Edge updated successfully"
+}
+```
+
+**Error Responses:**
+
+- `400` - Edge type must be "door" or "airflow"
+- `403` - Not authorized to update this edge
+- `404` - Edge not found
+- `500` - Server error
+
+Frontend Example:
+
+```js
+const updateEdgeType = async (edgeId, newType) => {
+  const response = await api.request(`/api/rooms/edges/${edgeId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ type: newType }),
+  });
+  return response;
+};
+
+// Toggle edge type on click
+const handleEdgeClick = async (edgeId, currentType) => {
+  const newType = currentType === 'door' ? 'airflow' : 'door';
+  await updateEdgeType(edgeId, newType);
+  // Update graph state
+  setEdges(edges.map((e) => (e.id === edgeId ? { ...e, type: newType } : e)));
+};
+```
+
+### Delete Room Edge
+
+Remove a connection between rooms.
+
+**Endpoint:** `DELETE /api/rooms/edges/:edgeId`
+
+**Authentication:** Required (Bearer Token)
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Edge deleted successfully"
+}
+```
+
+**Error Responses:**
+
+- `403` - Not authorized to delete this edge
+- `404` - Edge not found
+- `500` - Server error
+
+Frontend Example:
+
+```js
+const deleteEdge = async (edgeId) => {
+  const response = await api.request(`/api/rooms/edges/${edgeId}`, {
+    method: 'DELETE',
+  });
+  return response;
+};
+
+// Delete edge on XYFlow edge removal
+const onEdgeRemove = async (edgeId) => {
+  try {
+    await deleteEdge(edgeId);
+    setEdges(edges.filter((e) => e.id !== edgeId));
+    toast.success('Connection removed');
+  } catch (error) {
+    toast.error('Failed to remove connection');
+  }
+};
+```
 
 ### Device Control
 

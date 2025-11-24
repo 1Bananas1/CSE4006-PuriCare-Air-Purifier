@@ -103,6 +103,7 @@ server/src/api/
 ├── routes/
 │   ├── auth.js                  # User authentication routes
 │   └── deviceRoutes.js          # Device management routes
+│   ├── roomRoutes.js            # Room graph management routes
 ├── services/
 │   ├── deviceService.js         # Device business logic
 │   ├── timezoneService.js       # Timezone grouping logic
