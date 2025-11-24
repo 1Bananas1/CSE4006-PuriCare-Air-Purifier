@@ -329,7 +329,7 @@
     },
     "WelcomeModal": {
       "greeting": "Welcome!",
-      "greetingWithName": "Welcome, {{name}}!",
+      "greetingWithName": "Welcome, {name}!",
       "message": "PuriCare is preparing a safer breathing environment for you.",
       "confirm": "OK"
     },

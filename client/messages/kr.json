@@ -134,7 +134,7 @@
     "serialInputAlert": "시리얼 입력"
   },
   "ProfilePage": {
-    "title": "안녕하세요, {{name}}님",
+    "title": "안녕하세요, {name}님",
     "back": "뒤로",
     "name": "이름",
     "email": "이메일"
@@ -199,7 +199,7 @@
     "addDevice": "기기 추가",
     "noDevices": "등록된 기기가 없습니다.",
     "addDeviceAlert": "QR 스캔 / 시리얼 입력 플로우는 다음 단계에서 구현됩니다.",
-    "deviceMenuAlert": "{{name}} 컨텍스트 메뉴\n\n- 이름 변경\n- 식별\n- 설정\n- 삭제\n\n실제 기능은 기기 API 연동 후 구현됩니다.",
+    "deviceMenuAlert": "{name} 컨텍스트 메뉴\n\n- 이름 변경\n- 식별\n- 설정\n- 삭제\n\n실제 기능은 기기 API 연동 후 구현됩니다.",
     "online": "온라인",
     "offline": "오프라인",
     "deviceOptions": "기기 옵션"
@@ -329,7 +329,7 @@
     },
     "WelcomeModal": {
       "greeting": "어서 오세요!",
-      "greetingWithName": "어서 오세요, {{name}} 님!",
+      "greetingWithName": "어서 오세요, {name} 님!",
       "message": "PuriCare가 더 안전한 호흡 환경을 준비 중이에요.",
       "confirm": "확인"
     },
