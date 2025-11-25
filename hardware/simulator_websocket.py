@@ -90,7 +90,7 @@ class AirPurifierSimulator:
                 self._use_default_outdoor_values()
                 return
             base_url = API_URL.replace('/api/sensor-data', '')
-            station_url = f"{base_url}/api/devices/stations/{station_idx}"
+            station_url = f"{base_url}/api/devices/public/stations/{station_idx}"
 
             print(f"📡 Fetching outdoor data from: {station_url}")
 
@@ -108,6 +108,7 @@ class AirPurifierSimulator:
                 self.outdoor_pm25 = data.get('pm25')
                 self.outdoor_pm10 = data.get('pm10')
                 self.outdoor_no2 = data.get('no2')
+                self.station_city = data.get('cityName', 'Unknown')
                 print(f"✅ Outdoor AQI data fetched successfully!")
                 print(f"   City: {self.station_city}")
                 print(f"   AQI: {self.outdoor_aqi}")
