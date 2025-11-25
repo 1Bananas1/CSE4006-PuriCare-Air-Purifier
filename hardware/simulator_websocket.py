@@ -27,7 +27,8 @@ import os
 load_dotenv()
 API_URL = os.getenv('API_URL')
 DEVICE_ID = os.getenv('DEVICE_ID')
-UPDATE_INTERVAL = os.get('UPDATE_INTERVAL')
+WEBSOCKET_URL = os.getenv('WEBSOCKET_URL')
+UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL', '300'))
 
 
 SENSOR_RANGES = {
@@ -82,30 +83,67 @@ class AirPurifierSimulator:
         """Fetch outdoor AQI data from backend station cache"""
         try:
             # Get device info to find station ID
-            device_url = f"{API_URL.replace('/api/sensor-data', '')}/api/devices/{self.device_id}"
-            # Note: This endpoint may not exist yet, but we'll use station data directly
+            station_idx = os.getenv('STATION_IDX')
 
-            # For now, we'll fetch the most recent station update from the API
-            # In production, you'd query Firestore directly or have a dedicated endpoint
+            if not station_idx:
+                print('No station found in .env file')
+                self._use_default_outdoor_values()
+                return
+            base_url = API_URL.replace('/api/sensor-data', '')
+            station_url = f"{base_url}/api/devices/stations/{station_idx}"
 
-            # Placeholder: Use a default outdoor PM2.5 value
-            # TODO: Implement proper API endpoint to fetch station data by device ID
+            print(f"📡 Fetching outdoor data from: {station_url}")
 
-            print("📡 Outdoor AQI data not yet available from API")
-            print("   Using estimated outdoor values for simulation")
+            response = requests.get(
+            station_url,
+            headers={
+                "Content-Type": "application/json"
+            },
+            timeout=10
+            )
 
-            # Default outdoor pollution (moderate levels)
-            self.outdoor_pm25 = 35.0
-            self.outdoor_pm10 = 50.0
-            self.outdoor_no2 = 40.0
-            self.outdoor_aqi = 100
-            self.station_city = "Default"
+            if response.status_code == 200:
+                data = response.json()
+                self.outdoor_aqi = data.get('aqi')
+                self.outdoor_pm25 = data.get('pm25')
+                self.outdoor_pm10 = data.get('pm10')
+                self.outdoor_no2 = data.get('no2')
+                print(f"✅ Outdoor AQI data fetched successfully!")
+                print(f"   City: {self.station_city}")
+                print(f"   AQI: {self.outdoor_aqi}")
+                print(f"   PM2.5: {self.outdoor_pm25} µg/m³")
+                print(f"   PM10: {self.outdoor_pm10} µg/m³")
+                print(f"   NO2: {self.outdoor_no2} ppb")
+            elif response.status_code == 401:
+                print(f"❌ Authentication failed: Invalid token")
+                self._use_default_outdoor_values()
+            elif response.status_code == 404:
+                print(f"❌ Station {station_idx} not found")
+                self._use_default_outdoor_values()
+            else:
+                print(f"❌ Error fetching station data: {response.status_code}")
+                print(f"   Response: {response.text}")
+                self._use_default_outdoor_values()
+            
+            
 
+        except requests.exceptions.ConnectionError:
+            print(f"❌ Connection Error: Cannot reach backend")
+            self._use_default_outdoor_values()
+        except requests.exceptions.Timeout:
+            print(f"❌ Timeout: Backend took too long to respond")
+            self._use_default_outdoor_values()
         except Exception as error:
             print(f"⚠️  Could not fetch outdoor AQI: {error}")
-            # Use defaults
-            self.outdoor_pm25 = 35.0
-            self.outdoor_pm10 = 50.0
+            self._use_default_outdoor_values()
+
+    def _use_default_outdoor_values(self):
+        """Use default outdoor pollution values"""
+        self.outdoor_pm25 = 35.0
+        self.outdoor_pm10 = 50.0
+        self.outdoor_no2 = 40.0
+        self.outdoor_aqi = 100
+        self.station_city = "Default"
 
     def update_environmental_state(self):
         """Randomly trigger environmental events"""

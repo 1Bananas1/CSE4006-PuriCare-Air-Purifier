@@ -58,8 +58,7 @@ router.get('/', authenticateFirebaseToken, async (req, res) => {
 });
 
 router.get(
-  '/stations/:stationIdx',
-  authenticateFirebaseToken,
+  '/public/stations/:stationIdx',
   async (req, res) => {
     try {
       const stationIdx = req.params.stationIdx; // ← Extract from URL
