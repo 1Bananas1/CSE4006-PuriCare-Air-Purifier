@@ -45,6 +45,8 @@ https://www.overleaf.com/project/68d534e91db8eb0749899db6
 ## Dataset(You can delete when you check it)
 KAG_energydata_complete.csv -> https://www.kaggle.com/datasets/loveall/appliances-energy-prediction?utm_source
 - Used to derive hourly usage patterns, daily summaries, cost estimation, and short-term forecasts.
+
+  
 household_power_consumption.csv ->https://www.kaggle.com/datasets/imtkaggleteam/household-power-consumption
 - Used as a reference baseline to compare average household energy consumption.
 
