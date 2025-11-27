@@ -6,12 +6,13 @@
 const express = require('express');
 const router = express.Router();
 const { getDatabase, isDatabaseAvailable } = require('../database/init');
+const { generalLimiter } = require('../middleware/rateLimiter');
 
 /**
  * GET /api/export/:deviceId/csv
  * Export sensor data as CSV
  */
-router.get('/:deviceId/csv', async (req, res) => {
+router.get('/:deviceId/csv', generalLimiter, async (req, res) => {
   try {
     if (!isDatabaseAvailable()) {
       return res.status(503).json({
@@ -104,7 +105,7 @@ router.get('/:deviceId/csv', async (req, res) => {
  * GET /api/export/:deviceId/json
  * Export sensor data as JSON
  */
-router.get('/:deviceId/json', async (req, res) => {
+router.get('/:deviceId/json', generalLimiter, async (req, res) => {
   try {
     if (!isDatabaseAvailable()) {
       return res.status(503).json({

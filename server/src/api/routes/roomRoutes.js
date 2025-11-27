@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateFirebaseToken } = require('../middleware/auth');
+const { generalLimiter, writeLimiter } = require('../middleware/rateLimiter');
 const roomService = require('../services/roomService');
 
 // ========== ROOM ENDPOINTS ==========
@@ -14,7 +15,7 @@ const roomService = require('../services/roomService');
  * GET /api/rooms
  * Get all rooms for authenticated user
  */
-router.get('/', authenticateFirebaseToken, async (req, res) => {
+router.get('/', generalLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     console.log('🔍 GET /api/rooms called');
@@ -35,7 +36,7 @@ router.get('/', authenticateFirebaseToken, async (req, res) => {
  * Create a new room
  * Body: { name, position: { x, y }, deviceIds: [] }
  */
-router.post('/', authenticateFirebaseToken, async (req, res) => {
+router.post('/', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const roomData = req.body;
@@ -64,7 +65,7 @@ router.post('/', authenticateFirebaseToken, async (req, res) => {
  * Update a room
  * Body: { name?, position?, deviceIds? }
  */
-router.patch('/:roomId', authenticateFirebaseToken, async (req, res) => {
+router.patch('/:roomId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const roomId = req.params.roomId;
@@ -97,7 +98,7 @@ router.patch('/:roomId', authenticateFirebaseToken, async (req, res) => {
  * DELETE /api/rooms/:roomId
  * Delete a room and its connected edges
  */
-router.delete('/:roomId', authenticateFirebaseToken, async (req, res) => {
+router.delete('/:roomId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const roomId = req.params.roomId;
@@ -128,7 +129,7 @@ router.delete('/:roomId', authenticateFirebaseToken, async (req, res) => {
  * GET /api/rooms/edges
  * Get all edges (connections) for authenticated user
  */
-router.get('/edges', authenticateFirebaseToken, async (req, res) => {
+router.get('/edges', generalLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     console.log('🔍 GET /api/rooms/edges called');
@@ -148,7 +149,7 @@ router.get('/edges', authenticateFirebaseToken, async (req, res) => {
  * Create a new edge between two rooms
  * Body: { sourceRoomId, targetRoomId, type: "door" | "airflow" }
  */
-router.post('/edges', authenticateFirebaseToken, async (req, res) => {
+router.post('/edges', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const edgeData = req.body;
@@ -190,7 +191,7 @@ router.post('/edges', authenticateFirebaseToken, async (req, res) => {
  * Update edge type (door <-> airflow)
  * Body: { type: "door" | "airflow" }
  */
-router.patch('/edges/:edgeId', authenticateFirebaseToken, async (req, res) => {
+router.patch('/edges/:edgeId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const edgeId = req.params.edgeId;
@@ -223,7 +224,7 @@ router.patch('/edges/:edgeId', authenticateFirebaseToken, async (req, res) => {
  * DELETE /api/rooms/edges/:edgeId
  * Delete an edge
  */
-router.delete('/edges/:edgeId', authenticateFirebaseToken, async (req, res) => {
+router.delete('/edges/:edgeId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const edgeId = req.params.edgeId;

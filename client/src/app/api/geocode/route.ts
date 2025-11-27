@@ -2,11 +2,22 @@ import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const lat = searchParams.get('lat');
-  const lon = searchParams.get('lon');
+  const latStr = searchParams.get('lat');
+  const lonStr = searchParams.get('lon');
 
-  if (!lat || !lon) {
+  if (!latStr || !lonStr) {
     return NextResponse.json({ error: 'lat/lon required' }, { status: 400 });
+  }
+
+  // Validate lat/lon to prevent SSRF attacks
+  const lat = parseFloat(latStr);
+  const lon = parseFloat(lonStr);
+
+  if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return NextResponse.json(
+      { error: 'Invalid coordinates. Lat must be -90 to 90, lon must be -180 to 180' },
+      { status: 400 }
+    );
   }
 
   const key = process.env.KAKAO_REST_API_KEY;
