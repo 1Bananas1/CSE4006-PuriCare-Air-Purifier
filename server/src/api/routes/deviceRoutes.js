@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateFirebaseToken } = require('../middleware/auth');
+const { publicLimiter, generalLimiter, writeLimiter } = require('../middleware/rateLimiter');
 
 const deviceService = require('../services/deviceService');
 
-router.post('/register', authenticateFirebaseToken, async (req, res) => {
+router.post('/register', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const deviceData = req.body;
@@ -23,7 +24,7 @@ router.post('/register', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
-router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
+router.delete('/:deviceId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const deviceId = req.params.deviceId;
     const userId = req.user.uid;
@@ -43,7 +44,7 @@ router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
-router.get('/', authenticateFirebaseToken, async (req, res) => {
+router.get('/', generalLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     console.log('🔍 GET /api/devices called');
@@ -58,8 +59,8 @@ router.get('/', authenticateFirebaseToken, async (req, res) => {
 });
 
 router.get(
-  '/stations/:stationIdx',
-  authenticateFirebaseToken,
+  '/public/stations/:stationIdx',
+  publicLimiter,
   async (req, res) => {
     try {
       const stationIdx = req.params.stationIdx; // ← Extract from URL

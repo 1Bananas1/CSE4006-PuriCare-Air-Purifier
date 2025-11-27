@@ -8,6 +8,7 @@ const router = express.Router();
 const { isDatabaseAvailable } = require('../database/init');
 const sensorDataService = require('../services/sensorDataService');
 const { db } = require('../config/firebase');
+const { generalLimiter, sensorDataLimiter } = require('../middleware/rateLimiter');
 
 /**
  * Middleware: Check if database is available
@@ -88,7 +89,7 @@ async function verifyDeviceOwnership(req, res, next) {
  *   }
  * }
  */
-router.post('/', checkDatabaseAvailable, async (req, res) => {
+router.post('/', sensorDataLimiter, checkDatabaseAvailable, async (req, res) => {
   try {
     const { deviceId, timestamp, sensors } = req.body;
 
@@ -160,7 +161,7 @@ router.post('/', checkDatabaseAvailable, async (req, res) => {
  * Get latest sensor reading for a device
  * Requires authentication
  */
-router.get('/:deviceId/latest', checkDatabaseAvailable, async (req, res) => {
+router.get('/:deviceId/latest', generalLimiter, checkDatabaseAvailable, async (req, res) => {
   try {
     const { deviceId } = req.params;
 
@@ -206,7 +207,7 @@ router.get('/:deviceId/latest', checkDatabaseAvailable, async (req, res) => {
  *   - endTime: ISO 8601 timestamp (default: now)
  *   - limit: number (default: 100, max: 1000)
  */
-router.get('/:deviceId/history', checkDatabaseAvailable, async (req, res) => {
+router.get('/:deviceId/history', generalLimiter, checkDatabaseAvailable, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { startTime, endTime, limit } = req.query;
@@ -283,7 +284,7 @@ router.get('/:deviceId/history', checkDatabaseAvailable, async (req, res) => {
  *   - limit: number (default: 20)
  *   - unacknowledged: boolean (default: false)
  */
-router.get('/:deviceId/alerts', checkDatabaseAvailable, async (req, res) => {
+router.get('/:deviceId/alerts', generalLimiter, checkDatabaseAvailable, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { limit, unacknowledged } = req.query;

@@ -30,19 +30,19 @@
 Seoul, South Korea \\
 james.macdonald.1@slu.edu}
 \and
-\IEEEauthorblockN{Soobeen Yim}
+\IEEEauthorblockN{Yim Soobeen}
 \IEEEauthorblockA{\textit{dept. of Information System}\\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
 s00been@hanyang.ac.kr}
 \and
-\IEEEauthorblockN{Minjin Kim}
+\IEEEauthorblockN{Kim Minjin}
 \IEEEauthorblockA{\textit{dept. of Information System} \\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
 idid02@hanyang.ac.kr}
 \and
-\IEEEauthorblockN{Yeonwoo Kim}
+\IEEEauthorblockN{Kim Yeonwoo}
 \IEEEauthorblockA{\textit{dept. of Computer Science} \\
 \textit{Hanyang University}\\
 Seoul, South Korea \\
@@ -523,7 +523,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-LOC-3.1}: Tapping "Save" must save the location and return to Settings menu
                             \item \textit{FR-LOC-3.2}: Show success message "Location saved"
                             \item \textit{FR-LOC-3.3}: If user taps back button without saving, show warning: "Discard changes?"
-                            \item \textit{FR-LOC-3.4}: Location data should include: city name, country, latitude, longitude (optional)
+                            \item \textit{FR-LOC-3.4}: Location data should include: city name, country, latitude, longitude
                         \end{enumerate}
                     \item Location Usage
                         \begin{enumerate}
@@ -623,6 +623,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-NOTIF-8.4}: Include emergency contact information or support links when appropriate
                         \end{enumerate}
                 \end{enumerate}
+
 \section{Development environment}
     \subsection{\textbf{Choice of Software Development Platform}}
         \begin{itemize}
@@ -633,98 +634,186 @@ bbongvong@hanyang.ac.kr}
     \subsection{\textbf{Software in Use}}
         \begin{itemize}
             \item \textbf{ML}: PyTorch, Scipy, librosa, MLlib(optional).
-            \item \textbf{Streaming/Backend}: Django(essential), Firebase, Heroku. Apache Kafka (events), Apache Spark (Structured Streaming + batch ETL); optional.
-            \item \textbf{DevOps}: VS Code, Git/GitHub, Git Projects
+            \item \textbf{Streaming/Backend}: Firebase, Heroku
+            \item \textbf{Database}: Firestore Database, PostgreSQL
+            \item \textbf{DevOps}: VS Code, Git/GitHub, Git Projects, Docker,
         \end{itemize}
         
-    \begin{table}[htbp]
+    \begin{table}[!h] 
         \caption{Task Distribution}
             \begin{center}
                 \small
-                \setlength{\tabcolsep}{6pt} 
-                \renewcommand{\arraystretch}{1.3} 
+                \setlength{\tabcolsep}{6pt}
+                \renewcommand{\arraystretch}{1.3}
                     \begin{tabular}{|p{2cm}|p{1.5cm}|p{4cm}|}
-                        \hline
-                        \multicolumn{1}{|c|}{\textbf{Jobs}} & \multicolumn{1}{c|}{\textbf{Name}} & \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
-                            \centering Frontend & \centering Kim Soobin, Kim Yeonwoo & In charge of the planning, development and rollout of the PWA onto mobile devices. \\ \hline
-                            \centering Backend & \centering Kim Yeonwoo & In charge of database and API creation, management, and maintainment \\ \hline
-                            \centering ML/AI & \centering Jimmy MacDonald, Kim Minjin, et Al & In charge of collecting data, planning and creating an AI model to achieve the task at hand \\ \hline
-                            \centering Project Manager & \centering Kim Minjin & Keeps track of documentation, assigns tasks, and make sure deadlines are met on time \\ \hline
+                    \hline
+                    \multicolumn{1}{|c|}{\textbf{Jobs}} & \multicolumn{1}{c|}{\textbf{Name}} & \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                    \centering Frontend & \centering Kim Soobin, Kim Yeonwoo & In charge of the planning, development and rollout of the PWA onto mobile devices. \\ \hline
+                    \centering Backend & \centering Kim Yeonwoo & In charge of database and API creation, management, and maintainment \\ \hline
+                    \centering ML/AI & \centering Jimmy MacDonald, Kim Minjin, et Al & In charge of collecting data, planning and creating an AI model to achieve the task at hand \\ \hline
+                    \centering Project Manager & \centering Kim Minjin & Keeps track of documentation, assigns tasks, and make sure deadlines are met on time \\ \hline
                     \end{tabular}%
-                \label{tab1}
+                \label{tab:task_distribution} % Added a specific label for reference
             \end{center}
-    \end{table}
+        \end{table}
 
 \section{Specification}
-    \subsection{\textbf{Requirement 2}}
-        \subsubsection{Features}
+    \subsection{\textbf{User Authentication}}
+        \subsubsection{Technology Stack}
+            \begin{itemize}
+                \item Frontend: React with Google OAuth 2.0 integration
+                \item Backend: Firebase Authentication via Admin SDK
+                \item Token Management: Google ID Tokens with localStorage persistence
+                \item Session Handling: Token-based authentication with automatic refresh
+            \end{itemize}
+        \subsubsection{Authentication Flow}
             \begin{enumerate}
-                \item Device Enrollment
-                    \begin{enumerate}
-                        \item Permission Requests: Camera (for QR scanning), Notifications (for device alerts), and optional Location (for weather recommendations)
-                        \item  Method: QR-based local AP or BLE provisioning (LG ThinQ-like flow)
-                        \item Maximum Number of Device per User: 6
-                    \end{enumerate}
-                \item Logs
-                    \begin{enumerate}
-                        \item On-device: last 7 days of inference summaries (timestamp, event type).
-                        \item Server: event features and environment snapshots; \textbf{no raw audio}.
-                        \item Retention: event/features 30 days (default)
-                    \end{enumerate}
-                \item Login and Sign-up
-                    \begin{enumerate}
-                        \item Login Screen\\
-                            Contains email and password fields, "Remember me" checkbox, "Forgot Password?" link, and "Don't have an Account? Sign Up" link
-                        \item Sign-up Flow
-                            \begin{enumerate}
-                                \item Page 1: Basic account information (Full Name, Email, Password, Confirm Password, Terms Agreement)
-                                \item Page 2: Optional profile information (Phone, Profile Picture, DOB, Country)
-                            \end{enumerate}
-                    \end{enumerate}
-                \item Selecting and Entering Information
-                    \begin{enumerate}
-                        \item Splash: app logo + version for 1--2 s.
-                        \item Profile (optional): respiratory sensitivities, quiet hours, preferred temperature/humidity bands.
-                        \item Units: Celsius only; humidity in \%RH.
-                    \end{enumerate}
-                \item Information Screen
-                    \begin{enumerate}
-                        \item Display: current air quality, temperature (\textdegree C), humidity (\%RH), device state, event timeline.
-                        \item Refresh: 1 s UI update; 5 s sensor polling; status colors by thresholds.
-                    \end{enumerate}
-
-                \item Hardware API/DB
-                    \begin{enumerate}
-                        \item Serves as the stand in for the actual hardware device for each production model.
-                        \item Characteristics
-                            \begin{itemize}
-                                \item userId (ref: User, required: True)
-                                \item name (type: String, required: true, trim: true)
-                                \item deviceId (type: String, required: true, unique: true)
-                                \item location (name: String, city: String, latitude: Number, longitude: Number, lastUpdated: Date)
-                                \item settings (autoMode type: Boolean, default: true, fanSpeed  type: Number, default: 1 , sensitivity sensitivity:  type: Number, default: 2 )
-                                \item status (online: { type: Boolean, default: false }, lastSeen: Date)
-                            \end{itemize}
-                        \item Posts
-                            \begin{enumerate}
-                                \item Update database with the characteristics of the device
-                            \end{enumerate}
-                        \item Gets
-                            \begin{enumerate}
-                                \item Every 24 hours, the API will send a request to the database to get an updated AQI prediction for the day as well as surrounding conditions from the DB
-                            \end{enumerate}
-                    \end{enumerate}
-                \item Firebase API/DB: Acts as the main database for user data, air quality metrics, and device information. Cannot make external API requests.
-                    \textbf{Collections:}
-                        \begin{itemize}
-                            \item \textbf{Cities} - Stores unique city info to consolidate and cache data from regular updates
-                            \item \textbf{Devices} - Links registered air purifiers to users, storing device ID, name, timezone, and geolocation coordinates
-                            \item \textbf{AirQuality} - Caches air quality data including AQI, pollutant levels (CO, NO2, O3, PM2.5, PM10, SO2), location coordinates, and timestamps
-                            \item \textbf{masterDeviceList} - Keeps track of all products manufactured
-                            \item \textbf{timezones} - Keeps track of all active timezones so that we only query for timezones that we have products active in
-                            \item \textbf{Users} - Stores user authentication (username, email, password) and profile data (phone number, respiratory services, quiet hours, device count)
-                        \end{itemize}
+                \item User clicks "Login with Google"
+                \item User grants permissions
+                \item Frontend receives Google ID token
+                \item Token stored in localStorage as JSON: \{ "idToken": "...", "refreshToken": "...", "expiresIn": 3600 \}
+                \item Token included in Authorization header for all API requests
+                \item Backend validates token via Firebase Admin SDK
+                \item User authenticated and redirected to Home Page
             \end{enumerate}
+        \subsubsection{Token Verification Process}
+            \begin{enumerate}
+                \item Frontend retrieves token from localStorage: purecare\_auth
+                \item All API requests include header: Authorization: Bearer \{idToken\}
+                \item Backend validates using Firebase Admin SDK
+            \end{enumerate}
+        \subsubsection{Security Measures}
+            \begin{itemize}
+                \item HTTPS-only communication in production
+                \item Token expiration: 1 hour (auto-refresh via Firebase SDK)
+                \item Secure localStorage (inaccessible to external scripts)
+                \item CORS configuration limits allowed origins to frontend URL only
+            \end{itemize}
+    \subsection{\textbf{Real-Time Device Control System}}
+        \subsubsection{Communication Architecture}
+            \begin{itemize}
+                \item Protocol: WebSocket (Socket.io v4)
+                \item Transport: Bidirectional event-based communication
+                \item Fallback: HTTP long-polling if WebSocket unavailable
+                \item Connection: Persistent connection maintained per client
+            \end{itemize}
+        \subsubsection{WebSocket Communication Flow}
+            INSERT DIAGRAM HERE
+        \subsubsection{Control Command Structure}
+            Commands sent from Frontend -> Backend -> Device
+            \begin{itemize}
+                \item Power Control
+                    \begin{itemize}
+                        \item type: "power"
+                        \item value: true|false
+                        \item deviceId
+                        \item timestamp
+                    \end{itemize}
+                \item Fan Speed Control
+                    \begin{itemize}
+                        \item type: "fan\_speed"
+                        \item value: 0-10
+                        \item deviceId
+                    \end{itemize}
+                \item Mode Selection
+                    \begin{itemize}
+                        \item type: "auto\_mode"
+                        \item value: true|false
+                        \item deviceId
+                    \end{itemize}
+                \item Sensitivity
+                    \begin{itemize}
+                        \item type: "sensitivity"
+                        \item value: "low" | "medium" | "high"
+                    \end{itemize}
+            \end{itemize}
+        \subsubsection{State Synchronization}
+            \begin{itemize}
+                \item Optimistic UI Updates: Frontend immediately reflects user changes 
+                \item Confirmation: Backend acknowledges command receipt within 200ms
+                \item Device Execution: Hardware simulator applies changes and confirms
+                \item Broadcast: Backend emits state update to all clients monitoring device
+                \item Timeout Handling: 3-second timeout with 2 automatic retries
+                \item Error Recovery: Rollback UI state if command fails
+            \end{itemize}
+    \subsection{\textbf{Sensor Data Collection \& Time-Series Database}}
+        \subsubsection{Database Architecture}
+            \begin{itemize}
+                \item Primary: PostgreSQL with TimescaleDB extension (Heroku Postgres Mini)
+                \item Schema: Hypert able optimized for time-series data
+                \item Aggregation: Continuous aggregates for hourly/daily summaries
+                \item Retention: 7 days raw data, 30 days hourly, 1 year daily
+            \end{itemize}
+    \subsection{\textbf{Hardware Simulator (Python-based IoT Mock)}}
+        \subsubsection{Purpose}
+        \subsubsection{Simulation Logic}
+        \subsubsection{Realistic Scenarios}
+        \subsubsection{WebSocket Integration}
+        \subsubsection{Prediction Algorithm}
+        \subsubsection{Integration with Device Control}
+    \subsection{\textbf{Automation Routine System}}
+        \subsubsection{Routine Data Structure (Firebase Firestore)}
+        \subsubsection{Execution Logic}
+        \subsubsection{Event Types}
+    \subsection{\textbf{Notification System with Empathetic Intelligence}}
+        \subsubsection{Notification Types}
+        \subsubsection{Personalization Engine}
+        \subsubsection{Delivery System}
+        \subsubsection{Rate Limiting}
+    \subsection{\textbf{Cost Analysis \& Infrastructure}}
+            \begin{table}[htbp]
+            \caption{Heroku Deployment Costs}
+            \begin{center}
+            \small
+            \setlength{\tabcolsep}{4pt} 
+            \renewcommand{\arraystretch}{1.3} 
+            \begin{tabular}{|p{1.8cm}|p{1.5cm}|p{1.8cm}|p{2.5cm}|}
+            \hline
+            \multicolumn{1}{|c|}{\textbf{Service}} & \multicolumn{1}{c|}{\textbf{Plan}} & \multicolumn{1}{c|}{\textbf{Monthly Cost}} & \multicolumn{1}{c|}{\textbf{Features}} \\ \hline
+            Web Dyno & Hobby & \$7 & Always-on, 512MB RAM \\ \hline
+            Postgres & Essential & \$5 & 10GB storage, TimescaleDB \\ \hline
+            \textbf{Total} & & \textbf{\$12/month} & 26 months with \$312 credit \\ \hline
+            \end{tabular}%
+            \label{tab:heroku_costs}
+            \end{center}
+            \end{table}
+        \subsubsection{Data Volume Estimates}
+        \begin{itemize}
+            \item Per Device
+            \begin{itemize}
+                \item 8 sensors × 288 readings/day (every 5 min) = 2,304 records/day
+                \item 7 days raw data = ~16,000 records = \~1MB
+            \end{itemize}
+        \end{itemize}
+        \subsubsection{Performance Metrics}
+        \begin{itemize}
+            \item WebSocket latency <100ms
+            \item Sensor data processing: <50ms
+            \item Database query time: <200ms (with TimescaleDB indexes)
+            \item Frontend load time: <2s
+        \end{itemize}
+            
+\section{Architecture Design \& Implementation}
+    \subsection{Overall Architecture}
+    \subsection{Directory Organization}
+    \subsection{Next.js Frontend}
+        For the PureCare Air Purifier to have apathetic intelligence, we needed a way to deliver this sentiment to the user. To do this, we made a Next.js based Progressive Web App. The app allows us to communicate and receive inputs from users, making for a truly responsive design. Within the app, users are able to register, control, and receive real time data from the air purifier.
+        The source code for the front end can be found in the \texttt{client} folder.
+    \subsection{Express Backend}
+        In order to fulfill key essential functions for the device, we needed to design some sort of server to support our devices and front end. To resolve this issue, we designed a fully custom express.js backend to power our services. The backend, which is hosted on Heroku, allows us to be a middleman between the physical hardware and the user software, while also giving crucial information for the hardware so that it can act proactively rather than reactively.
+    \subsection{Hardware}
+        As the main product for our service, the hardware serves as the very heart of our project. Our hardware serves to build off pre existing \textit{LG PuriCare Air Purifiers} and enhance them to provide a better experience for users. 
+
+\section{Use Cases}
+    \subsection{Use Case 1}
+        \begin{enumerate}
+            \item 1st instruction
+            \item 2nd Instruction
+        \end{enumerate}
+    \subsection{Use case 2}
+\section{Software Installation Guide}
+
+\section{Discussion}
 
 \begin{thebibliography}{00}
 \bibitem{b1}  World Health Organization, "Billions of people still breathe unhealthy air: new WHO data," WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
