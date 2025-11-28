@@ -13,6 +13,9 @@ https://1bananas1.github.io/CSE4006-PuriCare-Air-Purifier/
 https://www.overleaf.com/project/68d534e91db8eb0749899db6
 
 ---
+<img width="1377" height="949" alt="image" src="https://github.com/user-attachments/assets/8099f82a-e587-46f7-af5a-1303dd92e739" />
+
+---
 
 ## 📁 What’s Inside
 
