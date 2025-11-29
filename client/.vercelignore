@@ -1,0 +1,4 @@
+# Don't ignore public folder or service workers
+!public/
+!public/**
+!firebase-messaging-sw.js

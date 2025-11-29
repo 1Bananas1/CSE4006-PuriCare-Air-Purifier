@@ -1,4 +1,7 @@
 {
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
   "headers": [
     {
       "source": "/firebase-messaging-sw.js",

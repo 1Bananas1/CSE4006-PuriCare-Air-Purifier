@@ -29,9 +29,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-
-  // Skip trailing slash redirects for service worker
-  skipTrailingSlashRedirect: true,
 };
 
 export default withNextIntl(nextConfig);
