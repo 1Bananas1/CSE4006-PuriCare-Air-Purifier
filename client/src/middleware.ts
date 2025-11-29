@@ -9,5 +9,5 @@ export const config = {
   // - static files (_next/static)
   // - image optimization files (_next/image)
   // - favicon.ico
-  matcher: ['/', '/(en|kr)/:path*', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/', '/(en|kr)/:path*', '/((?!api|_next/static|_next/image|favicon.ico|firebase-messaging-sw.js).*)'],
 };
