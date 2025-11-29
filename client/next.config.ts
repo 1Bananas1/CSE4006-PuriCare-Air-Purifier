@@ -21,10 +21,17 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=0, must-revalidate',
           },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
         ],
       },
     ];
   },
+
+  // Skip trailing slash redirects for service worker
+  skipTrailingSlashRedirect: true,
 };
 
 export default withNextIntl(nextConfig);
