@@ -6,12 +6,13 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
+const { generalLimiter, writeLimiter } = require('../middleware/rateLimiter');
 
 /**
  * POST /api/control/:deviceId/fan-speed
  * Set device fan speed
  */
-router.post('/:deviceId/fan-speed', async (req, res) => {
+router.post('/:deviceId/fan-speed', writeLimiter, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { speed } = req.body;
@@ -68,7 +69,7 @@ router.post('/:deviceId/fan-speed', async (req, res) => {
  * POST /api/control/:deviceId/auto-mode
  * Toggle auto mode on/off
  */
-router.post('/:deviceId/auto-mode', async (req, res) => {
+router.post('/:deviceId/auto-mode', writeLimiter, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { enabled } = req.body;
@@ -121,7 +122,7 @@ router.post('/:deviceId/auto-mode', async (req, res) => {
  * POST /api/control/:deviceId/sensitivity
  * Set device sensitivity level
  */
-router.post('/:deviceId/sensitivity', async (req, res) => {
+router.post('/:deviceId/sensitivity', writeLimiter, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { level } = req.body;
@@ -179,7 +180,7 @@ router.post('/:deviceId/sensitivity', async (req, res) => {
  * POST /api/control/:deviceId/power
  * Turn device on/off
  */
-router.post('/:deviceId/power', async (req, res) => {
+router.post('/:deviceId/power', writeLimiter, async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { on } = req.body;
@@ -237,7 +238,7 @@ router.post('/:deviceId/power', async (req, res) => {
  * GET /api/control/:deviceId/status
  * Get current device control status
  */
-router.get('/:deviceId/status', async (req, res) => {
+router.get('/:deviceId/status', generalLimiter, async (req, res) => {
   try {
     const { deviceId } = req.params;
 

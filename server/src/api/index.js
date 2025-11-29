@@ -18,21 +18,37 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3020;
 
+// Configure allowed origins for CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  process.env.CLIENT_URL,
+  process.env.VERCEL_URL,
+].filter(Boolean); // Remove undefined/null values
+
+// CORS origin validation function
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`Blocked CORS request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 // Initialize Socket.io
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
-// Enable CORS for frontend running on port 3000
-app.use(
-  cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  })
-);
+// Enable CORS for frontend
+app.use(cors(corsOptions));
 
 app.use(express.json());
 

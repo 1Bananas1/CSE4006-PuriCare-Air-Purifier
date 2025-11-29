@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateFirebaseToken } = require('../middleware/auth');
+const { publicLimiter, generalLimiter, writeLimiter } = require('../middleware/rateLimiter');
 
 const deviceService = require('../services/deviceService');
 
-router.post('/register', authenticateFirebaseToken, async (req, res) => {
+router.post('/register', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const deviceData = req.body;
@@ -23,7 +24,7 @@ router.post('/register', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
-router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
+router.delete('/:deviceId', writeLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const deviceId = req.params.deviceId;
     const userId = req.user.uid;
@@ -43,15 +44,36 @@ router.delete('/:deviceId', authenticateFirebaseToken, async (req, res) => {
   }
 });
 
-router.get('/', authenticateFirebaseToken, async (req, res) => {
+router.get('/', generalLimiter, authenticateFirebaseToken, async (req, res) => {
   try {
     const userId = req.user.uid;
+    console.log('🔍 GET /api/devices called');
+    console.log('✅ User authenticated - UID:', userId);
     const devices = await deviceService.getDevicesByUser(userId);
+    console.log('📦 Devices found:', devices.length);
     res.status(200).json(devices);
   } catch (error) {
     console.error('Error in GET /api/devices: ', error);
     res.status(500).send({ error: 'An internal server error occurred.' });
   }
 });
+
+router.get(
+  '/public/stations/:stationIdx',
+  publicLimiter,
+  async (req, res) => {
+    try {
+      const stationIdx = req.params.stationIdx; // ← Extract from URL
+      const stationData = await deviceService.getStationData(stationIdx); // ← Call your service
+      res.status(200).json(stationData); // ← Send back the data
+    } catch (error) {
+      if (error.message === 'Station does not exist') {
+        return res.status(404).send({ error: error.message }); // ← 404 for not found
+      }
+      console.error('Error in GET /api/devices/stations/:stationIdx:', error);
+      res.status(500).send({ error: 'An internal server error occurred.' });
+    }
+  }
+);
 
 module.exports = router;

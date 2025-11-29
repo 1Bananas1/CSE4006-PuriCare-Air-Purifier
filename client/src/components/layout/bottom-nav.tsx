@@ -1,8 +1,9 @@
 'use client';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 export default function BottomNav() {
+  const t = useTranslations('Components.BottomNav');
   const p = usePathname();
   const Item = ({
     href,
@@ -49,10 +50,10 @@ export default function BottomNav() {
       }}
     >
       <div className="mobile-wrap" style={{ display: 'flex' }}>
-        <Item href="/automation" icon={'⏱️'} label="자동화" />
-        <Item href="/home" icon={'🏠'} label="홈" />
-        <Item href="/report" icon={<b>R</b>} label="리포트" />
-        <Item href="/settings" icon={'⚙️'} label="설정" />
+        <Item href="/automation" icon={'⏱️'} label={t('automation')} />
+        <Item href="/home" icon={'🏠'} label={t('home')} />
+        <Item href="/report" icon={<b>R</b>} label={t('report')} />
+        <Item href="/settings" icon={'⚙️'} label={t('settings')} />
       </div>
     </nav>
   );

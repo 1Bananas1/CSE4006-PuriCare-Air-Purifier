@@ -6,7 +6,8 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 
 interface Device {
   id: string;
@@ -51,6 +52,8 @@ const MOCK_DEVICES: Device[] = [
 export default function DeviceCarousel({
   devices = MOCK_DEVICES,
 }: DeviceCarouselProps) {
+  const t = useTranslations('Components.DeviceCarousel');
+  const c = useTranslations('Common');
   const router = useRouter();
 
   const getAqiColor = (aqi: number) => {
@@ -177,7 +180,7 @@ export default function DeviceCarousel({
                         : 'rgba(255,255,255,0.5)',
                   }}
                 >
-                  {device.status === 'online' ? `On - ${device.mode}` : 'Off'}
+                  {device.status === 'online' ? `${t('on')} - ${device.mode}` : t('off')}
                 </span>
               </div>
             </div>
@@ -226,7 +229,7 @@ export default function DeviceCarousel({
               textAlign: 'center',
             }}
           >
-            Add Device
+            {t('addDevice')}
           </div>
         </div>
       </div>
