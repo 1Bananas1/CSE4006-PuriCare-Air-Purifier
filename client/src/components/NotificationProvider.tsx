@@ -2,18 +2,23 @@
 
 import { useEffect } from 'react';
 import { registerFCMToken, setupForegroundMessageListener } from '@/lib/fcm';
+import { useAuth } from '@/lib/auth';
 
 /**
  * NotificationProvider
  *
  * This component handles:
- * 1. Requesting notification permission from the user
- * 2. Registering the FCM token with the server
- * 3. Listening for foreground messages
+ * 1. Registering the service worker
+ * 2. Requesting notification permission (only when user is authenticated)
+ * 3. Registering the FCM token with the server
+ * 4. Listening for foreground messages
  *
  * Add this to your root layout to enable notifications app-wide
  */
 export default function NotificationProvider() {
+  const { auth, ready } = useAuth();
+
+  // Register service worker on mount (doesn't require auth)
   useEffect(() => {
     // Only run in browser
     if (typeof window === 'undefined') return;
@@ -24,7 +29,7 @@ export default function NotificationProvider() {
       return;
     }
 
-    // Register service worker first
+    // Register service worker
     const registerServiceWorker = async () => {
       if ('serviceWorker' in navigator) {
         try {
@@ -41,16 +46,32 @@ export default function NotificationProvider() {
       return null;
     };
 
+    registerServiceWorker();
+  }, []);
+
+  // Setup FCM only when user is authenticated
+  useEffect(() => {
+    // Wait for auth to be ready and check if user is authenticated
+    if (!ready || !auth.idToken) {
+      console.log('⏸️ Skipping FCM setup - user not authenticated');
+      return;
+    }
+
+    // Only run in browser
+    if (typeof window === 'undefined') return;
+
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+      return;
+    }
+
     // Function to setup FCM
     const setupFCM = async () => {
       try {
-        console.log('🔔 Setting up FCM notifications...');
-
-        // Register service worker first
-        await registerServiceWorker();
+        console.log('🔔 Setting up FCM notifications for authenticated user...');
 
         // Register FCM token (this will request permission if needed)
-        const token = await registerFCMToken();
+        const token = await registerFCMToken(auth.idToken);
 
         if (token) {
           console.log('✅ FCM token registered:', token);
@@ -84,9 +105,9 @@ export default function NotificationProvider() {
       }
     };
 
-    // Setup FCM when component mounts
+    // Setup FCM when user is authenticated
     setupFCM();
-  }, []);
+  }, [ready, auth.idToken]);
 
   // This component doesn't render anything
   return null;

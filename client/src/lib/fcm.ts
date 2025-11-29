@@ -20,8 +20,9 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 /**
  * Register FCM token with the server
+ * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function registerFCMToken(): Promise<string | null> {
+export async function registerFCMToken(authToken?: string): Promise<string | null> {
   try {
     const messaging = getFirebaseMessaging();
     if (!messaging) {
@@ -49,8 +50,12 @@ export async function registerFCMToken(): Promise<string | null> {
 
     console.log('FCM token generated:', token);
 
-    // Send token to server
-    await sendTokenToServer(token);
+    // Send token to server (only if authToken is provided)
+    if (authToken) {
+      await sendTokenToServer(token, authToken);
+    } else {
+      console.warn('No auth token provided - skipping server registration');
+    }
 
     return token;
   } catch (error) {
@@ -61,12 +66,11 @@ export async function registerFCMToken(): Promise<string | null> {
 
 /**
  * Send FCM token to server
+ * @param token - The FCM token to register
+ * @param authToken - The user's authentication token (idToken from auth context)
  */
-async function sendTokenToServer(token: string): Promise<void> {
+async function sendTokenToServer(token: string, authToken: string): Promise<void> {
   try {
-    // Get the user's auth token (assuming you have it in localStorage or cookies)
-    const authToken = localStorage.getItem('authToken') || '';
-
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`, {
       method: 'POST',
       headers: {
@@ -89,11 +93,10 @@ async function sendTokenToServer(token: string): Promise<void> {
 
 /**
  * Remove FCM token from server (when user revokes permission)
+ * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function removeFCMToken(): Promise<void> {
+export async function removeFCMToken(authToken: string): Promise<void> {
   try {
-    const authToken = localStorage.getItem('authToken') || '';
-
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`, {
       method: 'DELETE',
       headers: {
@@ -115,8 +118,9 @@ export async function removeFCMToken(): Promise<void> {
 /**
  * Check and update FCM permission status
  * Call this on app load to sync permission state with server
+ * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function checkAndUpdateFCMPermission(): Promise<void> {
+export async function checkAndUpdateFCMPermission(authToken: string): Promise<void> {
   if (!('Notification' in window)) {
     return;
   }
@@ -125,10 +129,10 @@ export async function checkAndUpdateFCMPermission(): Promise<void> {
 
   if (permission === 'granted') {
     // User has granted permission - register token
-    await registerFCMToken();
+    await registerFCMToken(authToken);
   } else if (permission === 'denied') {
     // User has denied permission - remove token from server
-    await removeFCMToken();
+    await removeFCMToken(authToken);
   }
   // 'default' = not asked yet, do nothing
 }
