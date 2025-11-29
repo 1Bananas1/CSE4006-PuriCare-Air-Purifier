@@ -38,6 +38,7 @@ export async function registerFCMToken(): Promise<string | null> {
     }
 
     // Get FCM token
+    console.log('Attempting to get token with VAPID key:', VAPID_KEY);
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
     });
