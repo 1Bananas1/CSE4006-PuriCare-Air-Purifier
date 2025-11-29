@@ -1,6 +1,17 @@
 // Firebase Cloud Messaging Service Worker
 // This file handles background notifications when the app is not open
 
+// Take control of all pages immediately
+self.addEventListener('install', () => {
+  console.log('[Service Worker] Installing...');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activating...');
+  event.waitUntil(self.clients.claim());
+});
+
 // Give the service worker access to Firebase Messaging.
 // Note: We use importScripts because service workers don't support ES modules yet
 importScripts(
