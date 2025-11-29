@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { mutate } from 'swr';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import { useAuth } from '@/lib/auth';
+import { registerDevice } from '@/lib/api';
 
 const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
 
@@ -58,24 +60,68 @@ function addMockDeviceFromQr(roomType: RoomType) {
     // 목업이라 실패해도 무시
   }
 
-  // 나중에 진짜 백엔드 붙으면 이 키로 SWR 캐시 무효화
   mutate('/api/devices');
 }
 
 export default function QrConfirmPage() {
   const t = useTranslations('DevicesAddQrConfirmPage');
   const router = useRouter();
+  const { auth } = useAuth() as any;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roomType, setRoomType] = useState<RoomType>('living'); // 기본: 거실
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // “네, 맞아요” → 목업 기기 추가 후 홈으로
-    addMockDeviceFromQr(roomType);
-    router.replace('/home');
+    try {
+      let deviceId: string | null = null;
+
+      if (typeof window !== 'undefined') {
+        deviceId = window.sessionStorage.getItem(
+          'puricare_last_qr_device_id',
+        );
+      }
+
+      // QR에서 기기 ID를 제대로 못 읽은 경우
+      if (!deviceId) {
+        alert('QR 코드에서 기기 ID를 인식하지 못했습니다. 다시 촬영해 주세요.');
+        setIsSubmitting(false);
+        router.replace('/devices/add/qr');
+        return;
+      }
+
+      const hasBackendAuth = !!auth?.idToken;
+
+      // 1) 백엔드 연동 가능한 경우 → 명세서대로 registerDevice 호출
+      if (hasBackendAuth) {
+        // location: roomType 그대로 보내도 되고, 번역 문자열로 보내도 됨
+        const locationLabel = roomType; // 예: "living", "master" 등
+
+        await registerDevice({
+          deviceId,               // QR에서 읽은 진짜 deviceId
+          name: '새 기기(QR)',   // 명세서 상 "name"
+          location: locationLabel // 명세서 상 "location"
+        });
+
+        // 기기 등록 후 홈에서 기기 리스트 최신화
+        await mutate('/api/devices');
+
+        router.replace('/home');
+        return;
+      }
+
+      // 2) 혹시 토큰이 없거나 백엔드 연결 안 된 경우 → fallback 목업
+      console.warn('No auth token detected, falling back to mock device.');
+      addMockDeviceFromQr(roomType);
+      router.replace('/home');
+    } catch (err) {
+      console.error('QR 등록 중 오류:', err);
+      alert('기기 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRetryQr = () => {
@@ -210,8 +256,7 @@ export default function QrConfirmPage() {
             height: 52,
             borderRadius: 999,
             border: 'none',
-            background:
-              'linear-gradient(135deg, #22c55e, #16a34a, #0f766e)',
+            background: 'linear-gradient(135deg, #22c55e, #16a34a, #0f766e)',
             color: '#0b1120',
             fontWeight: 800,
             fontSize: 15,
@@ -285,3 +330,4 @@ export default function QrConfirmPage() {
     </main>
   );
 }
+

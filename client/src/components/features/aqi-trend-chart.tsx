@@ -14,8 +14,8 @@ import SegmentedControl from '@/components/ui/segmented-control';
 import {
   getHistoricalSensorData,
   getDeviceAlerts,
-  SensorReading,
-  Alert,
+  type SensorReading,
+  type Alert,
 } from '@/lib/api';
 
 type Timeframe = '24H' | '7D' | '30D';
@@ -75,42 +75,42 @@ function generateFillPath(
   return path;
 }
 
-/** ▸ 디바이스 없을 때 사용하는 목업 센서 데이터 생성 */
+/** ▸ 디바이스 없을 때 사용하는 목업 센서 데이터 (완전 결정적, random 없음) */
 function generateMockSensorData(timeframe: Timeframe): SensorReading[] {
-  const now = new Date();
   const result: SensorReading[] = [];
 
   const count = timeframe === '24H' ? 24 : timeframe === '7D' ? 7 : 30;
-  const stepMs =
-    timeframe === '24H' ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
 
-  for (let i = count - 1; i >= 0; i--) {
-    const t = new Date(now.getTime() - i * stepMs);
+  const base = timeframe === '24H' ? 20 : timeframe === '7D' ? 22 : 25;
+  const amplitude = timeframe === '24H' ? 10 : timeframe === '7D' ? 12 : 15;
 
-    // 대략적인 패턴 + 약간의 랜덤
-    const base = timeframe === '24H' ? 18 : timeframe === '7D' ? 22 : 25;
-    const wave = (Math.sin(i / 2) + 1) * 5;
-    const pm25 = base + wave + (Math.random() - 0.5) * 3;
+  for (let i = 0; i < count; i++) {
+    // 인덱스 기반으로만 만드는 부드러운 패턴
+    const wave = Math.sin((i / count) * Math.PI * 2) * amplitude;
+    const pm25 = base + wave;
+
+    // 시간은 그냥 고정 기준에서 + i (데이트 차이는 UI에 안 보임)
+    const t = new Date('2025-01-01T00:00:00.000Z');
+    t.setHours(t.getHours() + i);
 
     result.push({
       time: t.toISOString(),
-      rh: 40 + (Math.random() - 0.5) * 10,
+      rh: 45, // 고정값 (렌더에 직접 안 쓰임)
       co: 0,
-      co2: 500 + Math.random() * 100,
+      co2: 600,
       no2: 0,
       pm10: pm25 + 5,
       pm25,
-      temp: 22 + (Math.random() - 0.5) * 2,
-      tvoc: 0.3 + (Math.random() - 0.5) * 0.1,
+      temp: 23,
+      tvoc: 0.35,
     });
   }
 
   return result;
 }
 
-/** ▸ 디바이스 없을 때 사용하는 목업 Alert 데이터 생성 */
+/** ▸ 디바이스 없을 때 사용하는 목업 Alert 데이터 (random/now 없음) */
 function generateMockAlerts(timeframe: Timeframe): Alert[] {
-  const now = new Date();
   const count = timeframe === '24H' ? 3 : timeframe === '7D' ? 5 : 7;
   const severities: Alert['severity'][] = [
     'low',
@@ -119,13 +119,17 @@ function generateMockAlerts(timeframe: Timeframe): Alert[] {
     'critical',
   ];
 
+  const baseTime = new Date('2025-01-07T12:00:00.000Z');
+
   const result: Alert[] = [];
   for (let i = 0; i < count; i++) {
-    const t = new Date(now.getTime() - (i + 1) * 3 * 60 * 60 * 1000);
+    const t = new Date(baseTime);
+    t.setHours(baseTime.getHours() - (i + 1) * 3);
+
     const severity = severities[i % severities.length];
 
     result.push({
-      id: `mock-${i}`,
+      id: `mock-${timeframe}-${i}`,
       type: 'pm25-spike',
       severity,
       message:
@@ -240,14 +244,8 @@ export default function AqiTrendChart({
       (a, b) => a.time.getTime() - b.time.getTime(),
     );
 
-    const maxAqi = Math.max(
-      ...aqiReadings.map((r) => r.aqi),
-      100,
-    );
-    const minAqi = Math.min(
-      ...aqiReadings.map((r) => r.aqi),
-      0,
-    );
+    const maxAqi = Math.max(...aqiReadings.map((r) => r.aqi), 100);
+    const minAqi = Math.min(...aqiReadings.map((r) => r.aqi), 0);
     const range = maxAqi - minAqi || 1;
 
     const dataPoints = aqiReadings.map(
@@ -300,14 +298,18 @@ export default function AqiTrendChart({
   const isImproving = changePercent < 0;
 
   const recentAlertCount = useMemo(() => {
-    if (!effectiveAlerts || effectiveAlerts.length === 0) return 0;
+    if (!effectiveAlerts || effectiveAlerts.length === 0)
+      return 0;
+
+    // ▸ mock 모드에서는 시간 필터 없이 개수만 사용 (항상 동일)
+    if (isMockMode) return effectiveAlerts.length;
 
     const rangeStart = timeRange.startTime.getTime();
     return effectiveAlerts.filter((alert) => {
       const alertTime = new Date(alert.timestamp).getTime();
       return alertTime >= rangeStart;
     }).length;
-  }, [effectiveAlerts, timeRange]);
+  }, [effectiveAlerts, timeRange, isMockMode]);
 
   // ──────────────── 로딩 UI (실제 모드일 때만) ────────────────
   if (!isMockMode && isLoading) {
@@ -630,7 +632,7 @@ export default function AqiTrendChart({
               }}
             />
 
-            {/* Alert 점 10개까지만 표시 */}
+            {/* Alert 점 10개까지만 표시 (index 기반 고정 위치) */}
             {effectiveAlerts.slice(0, 10).map(
               (alert: Alert, index: number) => {
                 const severityColor =
@@ -642,15 +644,18 @@ export default function AqiTrendChart({
                     ? '#F2CC8F'
                     : '#A7C957';
 
+                const bottomPercent =
+                  25 + (index % 4) * 15; // 25, 40, 55, 70 순환
+                const leftPercent =
+                  5 + (index / 10) * 90; // 5% ~ 95%
+
                 return (
                   <div
                     key={alert.id}
                     style={{
                       position: 'absolute',
-                      left: `${(index / 10) * 90 + 5}%`,
-                      bottom: `${
-                        Math.random() * 60 + 20
-                      }%`,
+                      left: `${leftPercent}%`,
+                      bottom: `${bottomPercent}%`,
                       width: 12,
                       height: 12,
                       borderRadius: '50%',

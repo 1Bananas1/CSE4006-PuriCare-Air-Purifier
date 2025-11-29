@@ -1,14 +1,11 @@
-/**
- * API Client
- * Centralized API calls for PuriCare app
- */
+// Authenticated API + Device 관련 유틸
+//client/src/app/lib/api.ts
 
+// 🔹 1. API 기본 설정
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3020';
 
-/**
- * Get auth token from localStorage
- */
+// Auth token from localStorage
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
 
@@ -24,19 +21,45 @@ function getAuthToken(): string | null {
   }
 }
 
-/**
- * Make authenticated API request
- */
+// Handle token expiration and logout
+function handleAuthError(): void {
+  if (typeof window === 'undefined') return;
+
+  // Clear auth data from localStorage
+  try {
+    localStorage.removeItem('purecare_auth');
+  } catch (e) {
+    console.error('Failed to clear auth data:', e);
+  }
+
+  // Dispatch a custom event to notify the app
+  window.dispatchEvent(new CustomEvent('auth:expired'));
+
+  // Show user-friendly message
+  alert('Your session has expired. Please log in again.');
+
+  // Redirect to login page
+  window.location.href = '/login';
+}
+
+// 2. 공통 API 요청 함수
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<T> {
   const token = getAuthToken();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> | undefined),
   };
+
+  if (options.headers instanceof Headers) {
+    options.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+  } else if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -48,17 +71,23 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    // Handle authentication errors (401 Unauthorized or 403 Forbidden)
+    if (response.status === 401 || response.status === 403) {
+      console.warn('Authentication failed - token expired or invalid');
+      handleAuthError();
+      throw new Error('Authentication expired. Please log in again.');
+    }
+
     const error = await response
       .json()
       .catch(() => ({ error: 'Unknown error' }));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-// ============= Device APIs =============
-
+// 3. Device 타입들
 export interface Device {
   id: string;
   name: string;
@@ -82,9 +111,7 @@ export interface Device {
   };
 }
 
-/**
- * Get all devices for authenticated user
- */
+// Get all devices for authenticated user
 export async function getDevices(): Promise<Device[]> {
   try {
     const devices = await apiRequest<any[]>('/api/devices');
@@ -120,32 +147,47 @@ export async function getDevices(): Promise<Device[]> {
   }
 }
 
-/**
- * Register a new device
- */
-export async function registerDevice(deviceData: {
-  deviceID: string;
+// 4. 교수님 스펙에 맞춘 기기 등록 API
+
+// Request/Response 타입 (문서 기반)
+export interface RegisterDeviceRequest {
+  deviceId: string;
   name: string;
-  customLocation: string;
-  geo: [number, number] | [null, null];
-}): Promise<{ success: boolean; deviceId: string }> {
-  return apiRequest('/api/devices/register', {
-    method: 'POST',
-    body: JSON.stringify(deviceData),
-  });
+  location: string;
+}
+
+export interface RegisterDeviceResponse {
+  success: boolean;
+  deviceId: string;
 }
 
 /**
- * Delete a device
+ * Register a new device
+ * Endpoint: POST /api/devices/register
+ * Body: { deviceId, name, location }
+ * Response: { success: true, deviceId: "AP-001" }
  */
+export async function registerDevice(
+  data: RegisterDeviceRequest
+): Promise<RegisterDeviceResponse> {
+  return apiRequest<RegisterDeviceResponse>('/api/devices/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      deviceId: data.deviceId,
+      name: data.name,
+      location: data.location,
+    }),
+  });
+}
+
+// 5. delete a device
 export async function deleteDevice(deviceId: string): Promise<void> {
   await apiRequest(`/api/devices/${deviceId}`, {
     method: 'DELETE',
   });
 }
 
-// ============= Sensor Data APIs =============
-
+// 6. Sensor data API
 export interface SensorReading {
   time: string;
   rh: number;
@@ -158,11 +200,9 @@ export interface SensorReading {
   tvoc: number;
 }
 
-/**
- * Get latest sensor reading for a device
- */
+// get latest sensor Reading
 export async function getLatestSensorData(
-  deviceId: string,
+  deviceId: string
 ): Promise<SensorReading | null> {
   try {
     const response = await apiRequest<{
@@ -176,16 +216,14 @@ export async function getLatestSensorData(
   }
 }
 
-/**
- * Get historical sensor readings
- */
+// historical data
 export async function getHistoricalSensorData(
   deviceId: string,
   options: {
     startTime?: Date;
     endTime?: Date;
     limit?: number;
-  } = {},
+  } = {}
 ): Promise<SensorReading[]> {
   try {
     const params = new URLSearchParams();
@@ -212,9 +250,7 @@ export async function getHistoricalSensorData(
   }
 }
 
-/**
- * Get alerts for a device
- */
+// 7. device alerts
 export interface Alert {
   id: string;
   type: string;
@@ -228,7 +264,7 @@ export interface Alert {
 export async function getDeviceAlerts(
   deviceId: string,
   limit: number = 20,
-  unacknowledgedOnly: boolean = false,
+  unacknowledgedOnly: boolean = false
 ): Promise<Alert[]> {
   try {
     const params = new URLSearchParams({
@@ -248,7 +284,7 @@ export async function getDeviceAlerts(
   }
 }
 
-// ============= Device Controls =============
+// 8. device controls
 
 export interface DeviceStatus {
   online: boolean;
@@ -259,11 +295,9 @@ export interface DeviceStatus {
   childLock?: boolean;
 }
 
-/**
- * Get device control status
- */
+// device control status
 export async function getDeviceStatus(
-  deviceId: string,
+  deviceId: string
 ): Promise<DeviceStatus | null> {
   try {
     const response = await apiRequest<{
@@ -281,12 +315,10 @@ export async function getDeviceStatus(
   }
 }
 
-/**
- * Set fan speed
- */
+// set fan speed
 export async function setFanSpeed(
   deviceId: string,
-  speed: number,
+  speed: number
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/fan-speed`, {
     method: 'POST',
@@ -294,12 +326,10 @@ export async function setFanSpeed(
   });
 }
 
-/**
- * Toggle auto mode
- */
+// auto mode
 export async function toggleAutoMode(
   deviceId: string,
-  enabled: boolean,
+  enabled: boolean
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/auto-mode`, {
     method: 'POST',
@@ -307,12 +337,10 @@ export async function toggleAutoMode(
   });
 }
 
-/**
- * Set sensitivity
- */
+// set sensitivity
 export async function setSensitivity(
   deviceId: string,
-  level: 'low' | 'medium' | 'high',
+  level: 'low' | 'medium' | 'high'
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/sensitivity`, {
     method: 'POST',
@@ -320,12 +348,10 @@ export async function setSensitivity(
   });
 }
 
-/**
- * Toggle power
- */
+// toggle power
 export async function togglePower(
   deviceId: string,
-  on: boolean,
+  on: boolean
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/power`, {
     method: 'POST',
@@ -333,11 +359,9 @@ export async function togglePower(
   });
 }
 
-// ============= Helper Functions =============
+// 9. Helper functions
 
-/**
- * Calculate AQI from measurements (PM2.5 based)
- */
+// calculate AQI
 function calculateAQI(measurements: any): number {
   if (!measurements || !measurements.PM25) return 0;
 
@@ -346,29 +370,17 @@ function calculateAQI(measurements: any): number {
   // Simple PM2.5 to AQI conversion (simplified EPA formula)
   if (pm25 <= 12) return Math.round((50 / 12) * pm25);
   if (pm25 <= 35.4)
-    return Math.round(
-      ((100 - 51) / (35.4 - 12.1)) * (pm25 - 12.1) + 51,
-    );
+    return Math.round(((100 - 51) / (35.4 - 12.1)) * (pm25 - 12.1) + 51);
   if (pm25 <= 55.4)
-    return Math.round(
-      ((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101,
-    );
+    return Math.round(((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101);
   if (pm25 <= 150.4)
-    return Math.round(
-      ((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151,
-    );
+    return Math.round(((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151);
   if (pm25 <= 250.4)
-    return Math.round(
-      ((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201,
-    );
-  return Math.round(
-    ((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301,
-  );
+    return Math.round(((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201);
+  return Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
 }
 
-/**
- * Get AQI label from AQI value
- */
+// get AQI label
 function getAQILabel(aqi: number): string {
   if (aqi <= 50) return 'Good';
   if (aqi <= 100) return 'Moderate';
@@ -378,9 +390,7 @@ function getAQILabel(aqi: number): string {
   return 'Hazardous';
 }
 
-/**
- * Get device subtitle (status description)
- */
+// get device subtitle
 function getDeviceSubtitle(device: any): string {
   const online = device.status?.online ? '온라인' : '오프라인';
   const mode = device.settings?.autoMode ? '자동 모드' : '수동 모드';
@@ -389,9 +399,7 @@ function getDeviceSubtitle(device: any): string {
   return `${online} · ${mode} · ${fanSpeed}`;
 }
 
-/**
- * Get fan speed label
- */
+// get fan speed label
 function getFanSpeedLabel(speed: number): string {
   if (speed === 0) return '꺼짐';
   if (speed <= 3) return '약풍';
@@ -399,8 +407,7 @@ function getFanSpeedLabel(speed: number): string {
   return '강풍';
 }
 
-// ============= Weather/AQI APIs =============
-
+// 10. Weather AQI
 export interface OutdoorAQI {
   aqi: number;
   city: string;
@@ -409,11 +416,9 @@ export interface OutdoorAQI {
   time: string;
 }
 
-/**
- * Get outdoor AQI from device's station
- */
+// outdoor AQI from device's station
 export async function getOutdoorAQI(
-  stationIdx: number,
+  stationIdx: number
 ): Promise<OutdoorAQI | null> {
   try {
     // This would call your backend which then calls the AQI API

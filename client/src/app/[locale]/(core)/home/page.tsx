@@ -13,6 +13,9 @@ import DeviceCarousel from '@/components/features/device-carousel';
 import RoomCard from '@/components/rooms/RoomCard';
 import AqiTrendChart from '@/components/features/aqi-trend-chart';
 
+// 🔹 API 클라이언트에서 Device 타입/함수 재사용
+import { getDevices, type Device } from '@/lib/api';
+
 // ─────────────────────────────
 // 공통 상수/타입
 // ─────────────────────────────
@@ -30,20 +33,8 @@ type SavedLocation = {
 
 const SEOUL: Coords = { lat: 37.5665, lon: 126.978 }; // 기본 서울 좌표
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
-
-type RoomSummary = {
-  id: string;
-  name: string;
-  aqi: number;
-  aqiLabel: string;
-  status: { online: boolean };
-  settings: { autoMode: boolean };
-  data?: {
-    geo?: [number | null, number | null];
-  };
-};
+// 홈에서 쓰는 RoomSummary = 실제 Device와 동일하게 사용
+type RoomSummary = Device;
 
 function weatherEmoji(main?: string, icon?: string) {
   if (!main) return '🌤️';
@@ -197,40 +188,20 @@ export default function HomePage() {
   const emoji = coords ? weatherEmoji(main, icon) : '📍';
 
   // ─────────────────────────────
-  // 디바이스 리스트
+  // 디바이스 리스트 (백엔드 연동)
   // ─────────────────────────────
-
-  const authedFetcher = async (path: string) => {
-    if (!auth.idToken || !API_BASE_URL)
-      throw new Error('no-auth-or-api-url');
-
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      headers: { Authorization: `Bearer ${auth.idToken}` },
-    });
-
-    if (!res.ok)
-      throw new Error(
-        `failed-to-fetch-devices: ${res.status}`,
-      );
-    return res.json();
-  };
 
   const {
     data: roomsFromApi,
     error: roomsError,
     isLoading: isLoadingRooms,
   } = useSWR<RoomSummary[]>(
-    auth.idToken && API_BASE_URL ? '/api/devices' : null,
-    authedFetcher,
+    // 로그인된 상태에서만 호출
+    auth.idToken ? '/api/devices' : null,
+    () => getDevices(),
   );
 
-  const mockRooms: RoomSummary[] = []; // 필요하면 채우기
-  const usingMock = !!roomsError || !roomsFromApi;
-  const rooms: RoomSummary[] = usingMock
-    ? mockRooms
-    : roomsFromApi ?? [];
-
-  const displayRooms = rooms;
+  const rooms: RoomSummary[] = roomsFromApi ?? [];
 
   const averageIndoorAQI = useMemo(() => {
     if (!rooms || rooms.length === 0) {
@@ -498,6 +469,8 @@ export default function HomePage() {
             >
               {isLoadingRooms
                 ? 'Loading devices...'
+                : roomsError
+                ? 'Failed to load devices. Please try again.'
                 : rooms && rooms.length > 0
                 ? 'Tap any device to view details and controls'
                 : c('noDevicesRegistered')}
@@ -529,6 +502,17 @@ export default function HomePage() {
                   : 'Manual',
               }))}
             />
+          ) : roomsError ? (
+            <div
+              className="mobile-wrap"
+              style={{
+                padding: '40px 16px',
+                textAlign: 'center',
+                opacity: 0.7,
+              }}
+            >
+              기기를 불러오는 중 오류가 발생했습니다.
+            </div>
           ) : (
             <div
               className="mobile-wrap"
@@ -558,23 +542,8 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* 3. mock 사용시 안내 */}
-        {usingMock && (
-          <div
-            style={{
-              fontSize: 11,
-              opacity: 0.7,
-              marginTop: 4,
-              marginBottom: -4,
-            }}
-          >
-            ※ 현재 서버와 연동되지 않아 예시(목업) 데이터가
-            표시되는 상태입니다.
-          </div>
-        )}
-
-        {/* 4. 각 방 카드 */}
-        {displayRooms.map((room) => (
+        {/* 각 방 카드 */}
+        {rooms.map((room) => (
           <RoomCard
             key={room.id}
             room={room}
@@ -584,7 +553,7 @@ export default function HomePage() {
           />
         ))}
 
-        {/* 5. Add Device */}
+        {/* Add Device CTA */}
         <ShellCard
           onClick={() => router.push('/devices/add')}
         >
@@ -608,7 +577,7 @@ export default function HomePage() {
         </ShellCard>
       </section>
 
-      {/* 6. AQI Trend & Alerts (항상 보이게) */}
+      {/* AQI Trend & Alerts */}
       <section
         className="mobile-wrap"
         style={{
@@ -652,4 +621,5 @@ export default function HomePage() {
     </main>
   );
 }
+
 

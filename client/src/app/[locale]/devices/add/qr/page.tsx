@@ -4,10 +4,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import jsQR from 'jsqr';
 
 export default function AddDeviceQrPage() {
   const t = useTranslations('DevicesAddQrPage');
-  const c = useTranslations('Common'); // 필요하면 공통 문구용
   const router = useRouter();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -16,6 +16,9 @@ export default function AddDeviceQrPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [snapshotDataUrl, setSnapshotDataUrl] = useState<string | null>(null);
+
+  const [qrDecodeError, setQrDecodeError] = useState<string | null>(null);
+  const [decodedDeviceId, setDecodedDeviceId] = useState<string | null>(null);
 
   const hasSnapshot = !!snapshotDataUrl;
 
@@ -50,7 +53,6 @@ export default function AddDeviceQrPage() {
         try {
           await videoRef.current.play();
         } catch (err: any) {
-          // play() 도중 스트림이 바뀌면 나는 AbortError는 무시
           if (err?.name !== 'AbortError') {
             throw err;
           }
@@ -58,9 +60,7 @@ export default function AddDeviceQrPage() {
       }
     } catch (err: any) {
       console.error(err);
-      setCameraError(
-        t('cameraErrorFallback'),
-      );
+      setCameraError(t('cameraErrorFallback'));
     } finally {
       setIsStarting(false);
     }
@@ -80,7 +80,7 @@ export default function AddDeviceQrPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 현재 프레임 캡처해서 사진 찍기
+  // 현재 프레임 캡처해서 사진 찍고, QR 디코딩까지 수행
   const handleTakeSnapshot = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -100,21 +100,56 @@ export default function AddDeviceQrPage() {
     const dataUrl = canvas.toDataURL('image/png');
     setSnapshotDataUrl(dataUrl);
 
-    // 사진 찍었으면 스트림 정리해서 화면 고정
+    // 비디오 스트림 정지
     if (video.srcObject) {
       (video.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
       video.srcObject = null;
+    }
+
+    // QR 디코딩
+    try {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const qr = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (qr && qr.data) {
+        setDecodedDeviceId(qr.data.trim());
+        setQrDecodeError(null);
+
+        // 나중에 confirm 페이지에서 사용할 수 있게 세션 스토리지에 저장
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(
+            'puricare_last_qr_device_id',
+            qr.data.trim(),
+          );
+        }
+      } else {
+        setDecodedDeviceId(null);
+        setQrDecodeError(t('qrDecodeFailed')); // 번역 키 하나 추가해도 좋음
+      }
+    } catch (err) {
+      console.error('QR decode error:', err);
+      setDecodedDeviceId(null);
+      setQrDecodeError(t('qrDecodeFailed'));
     }
   };
 
   // 다시 찍기
   const handleRetake = () => {
     setSnapshotDataUrl(null);
+    setDecodedDeviceId(null);
+    setQrDecodeError(null);
     startCamera();
   };
 
   // 이 사진으로 계속 진행 → QR 확인 페이지로 이동
   const handleProceed = () => {
+    if (!decodedDeviceId) {
+      // QR 인식이 안 된 상태면 진행 차단
+      setQrDecodeError(t('qrDecodeRequired'));
+      return;
+    }
+
+    // deviceId는 이미 sessionStorage에 저장되어 있으므로 바로 confirm 페이지로 이동
     router.push('/devices/add/qr/confirm');
   };
 
@@ -243,6 +278,28 @@ export default function AddDeviceQrPage() {
             }}
           >
             {t('cameraHint')}
+          </div>
+        )}
+
+        {qrDecodeError && (
+          <div
+            style={{
+              fontSize: 12,
+              color: '#f97373',
+            }}
+          >
+            {qrDecodeError}
+          </div>
+        )}
+
+        {decodedDeviceId && (
+          <div
+            style={{
+              fontSize: 11,
+              opacity: 0.75,
+            }}
+          >
+            QR 인식된 기기 ID: <code>{decodedDeviceId}</code>
           </div>
         )}
 

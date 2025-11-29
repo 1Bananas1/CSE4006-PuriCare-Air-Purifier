@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "jsqr": "^1.4.0",
     "next-intl": "^4.5.6"
   }
 }
