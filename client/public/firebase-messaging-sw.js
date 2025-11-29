@@ -11,19 +11,16 @@ importScripts(
 );
 
 // Initialize the Firebase app in the service worker
-// IMPORTANT: This config should match your Vercel environment variables
-// Get these values from Firebase Console > Project Settings
-// These values are safe to be public (they're client-side config)
-
-// For now, we need to hardcode these since service workers can't access process.env
-// TODO: Replace these with your actual Firebase config values
+// IMPORTANT: You must replace these placeholder values with the correct values from your Firebase project.
+// Go to Firebase Console > Project Settings > General tab > Your apps > Web app
+// These values are safe to be public (they're client-side config).
 const firebaseConfig = {
-  apiKey: 'AIzaSyDVIlFOgFPTnkkxuUT-P6y1ayM2VALa2r8',
-  authDomain: 'cse4006.firebaseapp.com',
-  projectId: 'cse4006',
-  storageBucket: 'cse4006.appspot.com',
-  messagingSenderId: '69702374995',
-  appId: '1:69702374995:web:d91730d0bc33b5629518a6',
+  apiKey: "AIzaSyAeSnru6_8Hld7ZHeiTo8qJrAk-gCqeJqs", // Replace with "Web API Key" from Firebase Console
+  authDomain: "cse4006.firebaseapp.com",
+  projectId: "cse4006",
+  storageBucket: "cse4006.appspot.com",
+  messagingSenderId: "69702374995", // Replace with "Messaging Sender ID" from Firebase Console
+  appId: "YOUR_APP_ID", // Replace with "App ID" from Firebase Console
 };
 
 firebase.initializeApp(firebaseConfig);
