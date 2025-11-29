@@ -49,10 +49,19 @@ async function processNotifications() {
         }
 
         const device = deviceDoc.data();
-        const timezone = device.data?.timezone || 'UTC';
+        const timezoneValue = device.data?.timezone || 'UTC';
 
-        // Reasonable Hour check
-        const deviceTime = moment.tz(new Date(), timezone);
+        // Handle both named timezones (e.g., 'Asia/Seoul') and UTC offsets (e.g., '+09:00')
+        let deviceTime;
+        if (timezoneValue.startsWith('+') || timezoneValue.startsWith('-')) {
+          // It's a UTC offset like '+09:00' - use utcOffset instead of tz
+          deviceTime = moment().utcOffset(timezoneValue);
+        } else {
+          // It's a named timezone like 'Asia/Seoul' or 'UTC'
+          deviceTime = moment.tz(new Date(), timezoneValue);
+        }
+
+        const timezone = timezoneValue; // For logging
         const hour = deviceTime.hour();
         const isReasonableHour = hour >= 8 && hour < 21;
 
