@@ -15,12 +15,12 @@ importScripts(
 // Go to Firebase Console > Project Settings > General tab > Your apps > Web app
 // These values are safe to be public (they're client-side config).
 const firebaseConfig = {
-  apiKey: "AIzaSyAeSnru6_8Hld7ZHeiTo8qJrAk-gCqeJqs", // Replace with "Web API Key" from Firebase Console
-  authDomain: "cse4006.firebaseapp.com",
-  projectId: "cse4006",
-  storageBucket: "cse4006.appspot.com",
-  messagingSenderId: "69702374995", // Replace with "Messaging Sender ID" from Firebase Console
-  appId: "YOUR_APP_ID", // Replace with "App ID" from Firebase Console
+  apiKey: 'AIzaSyAeSnru6_8Hld7ZHeiTo8qJrAk-gCqeJqs', // Replace with "Web API Key" from Firebase Console
+  authDomain: 'cse4006.firebaseapp.com',
+  projectId: 'cse4006',
+  storageBucket: 'cse4006.appspot.com',
+  messagingSenderId: '69702374995', // Replace with "Messaging Sender ID" from Firebase Console
+  appId: '1:69702374995:ios:bb18d3a16210a19e9518a6', // Replace with "App ID" from Firebase Console
 };
 
 firebase.initializeApp(firebaseConfig);
