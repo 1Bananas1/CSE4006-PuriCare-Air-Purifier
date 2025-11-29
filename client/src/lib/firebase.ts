@@ -44,7 +44,15 @@ export const getFirebaseMessaging = () => {
   if (typeof window !== 'undefined' && 'Notification' in window) {
     if (!messaging) {
       try {
-        messaging = getMessaging(app);
+        // Check if service worker is registered before initializing messaging
+        // This prevents Firebase from auto-registering its own service worker
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          messaging = getMessaging(app);
+          console.log('✅ Firebase Messaging initialized with existing service worker');
+        } else {
+          console.warn('⚠️ Service worker not ready yet. Skipping Firebase Messaging initialization.');
+          return null;
+        }
       } catch (error) {
         console.error('Error initializing Firebase Messaging:', error);
       }

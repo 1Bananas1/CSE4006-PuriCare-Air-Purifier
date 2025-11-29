@@ -26,7 +26,17 @@ export async function registerFCMToken(
   authToken?: string | null
 ): Promise<string | null> {
   try {
-    const messaging = getFirebaseMessaging();
+    // Wait for service worker to be ready before getting messaging instance
+    let messaging = getFirebaseMessaging();
+
+    // If messaging is not available, wait and retry (service worker might still be registering)
+    if (!messaging && 'serviceWorker' in navigator) {
+      console.log('⏳ Waiting for service worker to be ready...');
+      await navigator.serviceWorker.ready;
+      // Try again after service worker is ready
+      messaging = getFirebaseMessaging();
+    }
+
     if (!messaging) {
       console.warn('Firebase Messaging not available');
       return null;

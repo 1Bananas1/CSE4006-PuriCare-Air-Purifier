@@ -29,10 +29,21 @@ export default function NotificationProvider() {
       return;
     }
 
-    // Register service worker
-    const registerServiceWorker = async () => {
+    // Register service worker and cleanup old ones
+    const setupServiceWorker = async () => {
       if ('serviceWorker' in navigator) {
         try {
+          // First, unregister any old Firebase Cloud Messaging service workers
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            // Remove old Firebase Messaging service worker with different scope
+            if (registration.scope.includes('firebase-cloud-messaging-push-scope')) {
+              console.log('🗑️ Unregistering old Firebase Messaging service worker:', registration.scope);
+              await registration.unregister();
+            }
+          }
+
+          // Now register our custom service worker
           const registration = await navigator.serviceWorker.register(
             '/firebase-messaging-sw.js'
           );
@@ -46,7 +57,7 @@ export default function NotificationProvider() {
       return null;
     };
 
-    registerServiceWorker();
+    setupServiceWorker();
   }, []);
 
   // Setup FCM only when user is authenticated
