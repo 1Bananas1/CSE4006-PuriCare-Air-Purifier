@@ -4,7 +4,7 @@ import { getFirebaseMessaging, getToken, onMessage } from './firebase';
 // VAPID key for web push (you'll need to generate this in Firebase Console)
 // Go to: Project Settings > Cloud Messaging > Web Push certificates
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-
+console.log('VAPID_KEY:', VAPID_KEY);
 /**
  * Request notification permission from the user
  */
@@ -22,7 +22,9 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
  * Register FCM token with the server
  * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function registerFCMToken(authToken?: string | null): Promise<string | null> {
+export async function registerFCMToken(
+  authToken?: string | null
+): Promise<string | null> {
   try {
     const messaging = getFirebaseMessaging();
     if (!messaging) {
@@ -69,16 +71,22 @@ export async function registerFCMToken(authToken?: string | null): Promise<strin
  * @param token - The FCM token to register
  * @param authToken - The user's authentication token (idToken from auth context)
  */
-async function sendTokenToServer(token: string, authToken: string): Promise<void> {
+async function sendTokenToServer(
+  token: string,
+  authToken: string
+): Promise<void> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ token }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ token }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Failed to send FCM token to server');
@@ -97,12 +105,15 @@ async function sendTokenToServer(token: string, authToken: string): Promise<void
  */
 export async function removeFCMToken(authToken: string): Promise<void> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-      },
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/users/fcm-token`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Failed to remove FCM token from server');
@@ -120,7 +131,9 @@ export async function removeFCMToken(authToken: string): Promise<void> {
  * Call this on app load to sync permission state with server
  * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function checkAndUpdateFCMPermission(authToken: string): Promise<void> {
+export async function checkAndUpdateFCMPermission(
+  authToken: string
+): Promise<void> {
   if (!('Notification' in window)) {
     return;
   }
