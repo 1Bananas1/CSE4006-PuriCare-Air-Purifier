@@ -22,7 +22,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
  * Register FCM token with the server
  * @param authToken - The user's authentication token (idToken from auth context)
  */
-export async function registerFCMToken(authToken?: string): Promise<string | null> {
+export async function registerFCMToken(authToken?: string | null): Promise<string | null> {
   try {
     const messaging = getFirebaseMessaging();
     if (!messaging) {
