@@ -24,10 +24,30 @@ export default function NotificationProvider() {
       return;
     }
 
+    // Register service worker first
+    const registerServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register(
+            '/firebase-messaging-sw.js'
+          );
+          console.log('✅ Service Worker registered:', registration);
+          return registration;
+        } catch (error) {
+          console.error('❌ Service Worker registration failed:', error);
+          return null;
+        }
+      }
+      return null;
+    };
+
     // Function to setup FCM
     const setupFCM = async () => {
       try {
         console.log('🔔 Setting up FCM notifications...');
+
+        // Register service worker first
+        await registerServiceWorker();
 
         // Register FCM token (this will request permission if needed)
         const token = await registerFCMToken();

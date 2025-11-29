@@ -21,7 +21,7 @@ const firebaseConfig = {
   apiKey: 'AIzaSyDVIlFOgFPTnkkxuUT-P6y1ayM2VALa2r8',
   authDomain: 'cse4006.firebaseapp.com',
   projectId: 'cse4006',
-  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+  storageBucket: 'cse4006.appspot.com',
   messagingSenderId: '69702374995',
   appId: '1:69702374995:web:d91730d0bc33b5629518a6',
 };
