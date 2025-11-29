@@ -11,12 +11,11 @@ importScripts(
 );
 
 // Initialize the Firebase app in the service worker
-// IMPORTANT: This placeholder will be replaced by the dynamic route handler
+// This placeholder will be replaced by the API route with actual config from environment variables
 const firebaseConfig = self.__FIREBASE_CONFIG__;
 
 firebase.initializeApp(firebaseConfig);
 
-// Retrieve an instance of Firebase Messaging
 const messaging = firebase.messaging();
 
 // Handle background messages
