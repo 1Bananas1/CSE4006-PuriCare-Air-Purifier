@@ -14,12 +14,12 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3020';
 
-// Auth token from localStorage
+// Auth token from sessionStorage (보안 강화 - 탭 닫으면 자동 삭제)
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
 
   try {
-    const authData = localStorage.getItem('purecare_auth');
+    const authData = sessionStorage.getItem('purecare_auth');
     if (!authData) return null;
 
     const parsed = JSON.parse(authData);
@@ -34,9 +34,9 @@ function getAuthToken(): string | null {
 function handleAuthError(): void {
   if (typeof window === 'undefined') return;
 
-  // Clear auth data from localStorage
+  // Clear auth data from sessionStorage
   try {
-    localStorage.removeItem('purecare_auth');
+    sessionStorage.removeItem('purecare_auth');
   } catch (e) {
     console.error('Failed to clear auth data:', e);
   }

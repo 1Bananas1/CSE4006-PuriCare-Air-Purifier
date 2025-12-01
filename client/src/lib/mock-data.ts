@@ -235,7 +235,7 @@ export function isDemoMode(): boolean {
   if (typeof window === 'undefined') return false;
 
   try {
-    const authData = localStorage.getItem('purecare_auth');
+    const authData = sessionStorage.getItem('purecare_auth');
     if (!authData) return false;
 
     const parsed = JSON.parse(authData);

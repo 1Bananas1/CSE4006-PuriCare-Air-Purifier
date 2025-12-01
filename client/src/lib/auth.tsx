@@ -21,7 +21,7 @@ type AuthContext = {
   setAuth: React.Dispatch<React.SetStateAction<AuthState>>;
   signOut: () => void;
   enterDemoMode: () => void;  // 데모 모드 진입
-  ready: boolean;             // ← 로컬스토리지 복구 완료 여부
+  ready: boolean;             // ← sessionStorage 복구 완료 여부
 };
 
 const STORAGE_KEY = 'purecare_auth';
@@ -38,25 +38,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [auth, setAuth] = useState<AuthState>({ idToken: null, profile: null });
   const [ready, setReady] = useState(false);
 
-  // 첫 로드 시 저장된 상태 복구
+  // 첫 로드 시 저장된 상태 복구 (sessionStorage - 탭 닫으면 자동 삭제)
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = sessionStorage.getItem(STORAGE_KEY);
       if (raw) setAuth(JSON.parse(raw));
     } catch {}
     setReady(true); // 복구 완료
   }, []);
 
-  // 상태가 바뀔 때마다 저장
+  // 상태가 바뀔 때마다 sessionStorage에 저장 (보안 강화)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
     } catch {}
   }, [auth]);
 
   // 로그아웃: 상태/스토리지 초기화
   const signOut = useCallback(() => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
     setAuth({ idToken: null, profile: null, demoMode: false });
   }, []);
 
@@ -72,19 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       demoMode: true,
     };
     setAuth(demoAuth);
-  }, []);
-
-  // 여러 탭 간 상태 동기화
-  useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key !== STORAGE_KEY) return;
-      try {
-        const next = e.newValue ? JSON.parse(e.newValue) : { idToken: null, profile: null };
-        setAuth(next);
-      } catch {}
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   // 토큰 만료 시 자동 로그아웃 처리
