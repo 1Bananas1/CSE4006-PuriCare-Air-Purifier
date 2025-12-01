@@ -3,16 +3,56 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import BottomNav from '@/components/layout/bottom-nav';
+import useSWR from 'swr';
+import { useAuth } from '@/lib/auth';
 
+
+// ────────────────────────
+// 공통 상수/타입 (Home 과 맞춤)
+// ────────────────────────
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
+
+// 방 타입
+type RoomType =
+  | 'living'   // 거실
+  | 'master'   // 안방
+  | 'small'    // 작은방
+  | 'small2'   // 작은방2
+  | 'toilet'   // 화장실
+  | 'bath';    // 욕실
+
+const ROOM_TYPE_LABEL: Record<RoomType, string> = {
+  living: '거실',
+  master: '안방',
+  small: '작은방',
+  small2: '작은방2',
+  toilet: '화장실',
+  bath: '욕실',
+};
+
+// Home 에서 사용하는 RoomSummary 타입의 축약본
+type MockRoomSummary = {
+  id: string;
+  name: string;
+  subtitle: string;
+  lastUpdated: string;
+  aqi: number;
+  aqiLabel: string;
+  roomType?: RoomType;
+};
+
+// 이 페이지에서 쓸 Device 타입
 type Device = {
   id: string;
   name: string;
-  room: string;
-  model: string;
-  status: 'online' | 'offline';
+  room?: string;
+  model?: string;
+  status?: 'online' | 'offline';
 };
 
-const MOCK_DEVICES: Device[] = [
+// 디자인용 기본 목업 (백엔드/목업 둘 다 없을 때)
+const FALLBACK_DEVICES: Device[] = [
   {
     id: '1',
     name: 'Living room purifier',
@@ -29,27 +69,96 @@ const MOCK_DEVICES: Device[] = [
   },
 ];
 
+const fetcher = (url: string, idToken: string) =>
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error(`failed: ${r.status}`);
+    return r.json();
+  });
+
 export default function DevicesSettingsPage() {
   const t = useTranslations('SettingsDevicesPage');
   const c = useTranslations('Common');
   const router = useRouter();
+  const { auth } = useAuth();
+
+  // ────────────────────────
+  // 1) 백엔드에서 기기 목록 가져오기
+  //    (백엔드에선 { id, name, room, model, status } 형태라고 가정)
+  // ────────────────────────
+  const canCallBackend = API_BASE_URL && auth.idToken;
+  const { data: apiDevices, error: apiError } = useSWR<Device[]>(
+    canCallBackend ? [`${API_BASE_URL}/api/devices`, auth.idToken] : null,
+    ([url, token]) => fetcher(url, token as string),
+  );
+
+  // ────────────────────────
+  // 2) QR/시리얼로 추가한 로컬 목업 기기 가져오기
+  //    (Home 의 LOCAL_DEVICES_KEY 와 동일)
+  // ────────────────────────
+  let mockDevicesFromLocal: Device[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = window.localStorage.getItem(LOCAL_DEVICES_KEY);
+      if (raw) {
+        const list = JSON.parse(raw) as MockRoomSummary[];
+        mockDevicesFromLocal = list.map((r) => {
+          const roomLabel = r.roomType ? ROOM_TYPE_LABEL[r.roomType] : '위치 미지정';
+
+          // subtitle 에서 모델명을 정확히 알 수 없으니, 그냥 목업 모델명으로 표시
+          const model = 'PuriCare (목업 기기)';
+
+          return {
+            id: r.id,
+            name: r.name || '새 기기',
+            room: roomLabel,
+            model,
+            status: 'online',
+          };
+        });
+      }
+    } catch {
+      // 파싱 실패시 무시
+    }
+  }
+
+  // ────────────────────────
+  // 3) 최종 디바이스 리스트 결정
+  // ────────────────────────
+  const hasBackendDevices = !!apiDevices && apiDevices.length > 0;
+  const hasLocalMock = mockDevicesFromLocal.length > 0;
+
+  let devicesToShow: Device[];
+
+  if (hasBackendDevices || hasLocalMock) {
+    devicesToShow = [
+      ...(apiDevices ?? []),
+      ...mockDevicesFromLocal,
+    ];
+  } else if (!canCallBackend || apiError) {
+    // 백엔드가 없거나 에러인데 로컬 목업도 없으면 디자인용 기본값
+    devicesToShow = FALLBACK_DEVICES;
+  } else {
+    devicesToShow = [];
+  }
 
   const handleAdd = () => {
-    alert(t('addDeviceAlert'));
+    alert('QR 스캔 / 시리얼 입력 플로우는 다음 단계에서 구현합니다.');
   };
 
   const handleMenu = (device: Device) => {
-    alert(t('deviceMenuAlert', { name: device.name }));
+    alert(
+      `${device.name} 컨텍스트 메뉴\n\n- 이름 변경\n- 식별\n- 설정\n- 삭제\n\n실제 동작은 기기 API 연동 후 구현합니다.`
+    );
   };
 
   return (
     <main
       className="pb-safe"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-      }}
+      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
     >
       {/* 헤더 */}
       <div
@@ -89,11 +198,8 @@ export default function DevicesSettingsPage() {
         </button>
       </div>
 
-      <section
-        className="mobile-wrap"
-        style={{ padding: 16, display: 'grid', gap: 12 }}
-      >
-        {MOCK_DEVICES.length === 0 ? (
+      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 12 }}>
+        {devicesToShow.length === 0 ? (
           <div
             style={{
               background: 'var(--surface)',
@@ -122,7 +228,7 @@ export default function DevicesSettingsPage() {
             </button>
           </div>
         ) : (
-          MOCK_DEVICES.map((d) => (
+          devicesToShow.map((d) => (
             <div
               key={d.id}
               style={{
@@ -171,11 +277,12 @@ export default function DevicesSettingsPage() {
                       color: d.status === 'online' ? '#4ade80' : '#cbd5f5',
                     }}
                   >
-                    {d.status === 'online' ? t('online') : t('offline')}
+                    {d.status === 'online' ? '온라인' : '오프라인'}
                   </span>
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.8 }}>
-                  {d.room} · {d.model}
+                  {d.room ?? '위치 미지정'}
+                  {d.model ? ` · ${d.model}` : ''}
                 </div>
               </div>
               <button

@@ -22,8 +22,7 @@ const INITIAL_AUTOMATIONS: AutomationItem[] = [
   {
     id: 1,
     name: '귀가 30분 전 미리 켜기',
-    description:
-      '평일 18시 이후, 집 근처 도착 시 자동으로 강풍으로 가동합니다.',
+    description: '평일 18시 이후, 집 근처 도착 시 자동으로 강풍으로 가동합니다.',
     type: 'routine',
     badge: '위치 + 시간',
     detail: '퇴근 시간대 + 집 반경 500m 이내 진입 시 실행',
@@ -32,8 +31,7 @@ const INITIAL_AUTOMATIONS: AutomationItem[] = [
   {
     id: 2,
     name: '수면 모드',
-    description:
-      '23시 이후 방 안 CO₂/PM2.5가 일정 수준 이상이면 조용한 수면 모드로 전환합니다.',
+    description: '23시 이후 방 안 CO₂/PM2.5가 일정 수준 이상이면 조용한 수면 모드로 전환합니다.',
     type: 'routine',
     badge: '야간 · 수면',
     detail: '심야 시간 + 센서 데이터 기반, 팬 속도·조명 자동 조절',
@@ -50,13 +48,7 @@ const INITIAL_AUTOMATIONS: AutomationItem[] = [
   },
 ];
 
-function Toggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: () => void;
-}) {
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
     <button
       type="button"
@@ -117,7 +109,8 @@ function Card({ title, body }: { title: string; body?: React.ReactNode }) {
         padding: 16,
         display: 'grid',
         gap: 8,
-        boxShadow: '0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(15,23,42,0.7)',
+        boxShadow:
+          '0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(15,23,42,0.7)',
         backdropFilter: 'blur(16px)',
       }}
     >
@@ -223,6 +216,7 @@ export default function AutomationPage() {
                   {t('count', { count: activeCount })}
                 </div>
                 <div style={{ fontSize: 12, opacity: 0.78 }}>
+
                   {t('backendNote')}
                 </div>
               </div>
