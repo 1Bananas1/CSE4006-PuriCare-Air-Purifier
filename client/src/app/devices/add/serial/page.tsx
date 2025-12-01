@@ -6,17 +6,25 @@ import { FormEvent, useState } from 'react';
 import { useSWRConfig } from 'swr';
 import { useAuth } from '@/lib/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
+
+type RegistrationPayload = {
+  deviceID: string;
+  customLocation?: string; // Optional, defaults to 'Bedroom' on backend
+  name?: string; // Optional, defaults to model name or 'New Device'
+  geo?: [number | null, number | null]; // Tuple: [latitude, longitude] or [null, null]
+  measurements?: Record<string, any>; // Optional, defaults to {}
+};
 
 // 홈과 동일한 방 타입
 type RoomType =
-  | 'living'   // 거실
-  | 'master'   // 안방
-  | 'small'    // 작은방
-  | 'small2'   // 작은방2
-  | 'toilet'   // 화장실
-  | 'bath';    // 욕실
+  | 'living' // 거실
+  | 'master' // 안방
+  | 'small' // 작은방
+  | 'small2' // 작은방2
+  | 'toilet' // 화장실
+  | 'bath'; // 욕실
 
 type RoomSummary = {
   id: string;
@@ -36,6 +44,24 @@ const ROOM_OPTIONS: { value: RoomType; label: string }[] = [
   { value: 'toilet', label: '화장실' },
   { value: 'bath', label: '욕실' },
 ];
+
+// Helper function to map roomType to Korean label
+function getRoomLabel(roomType: RoomType): string {
+  const room = ROOM_OPTIONS.find((opt) => opt.value === roomType);
+  return room?.label || '거실';
+}
+
+async function getDeviceLocation(): Promise<[number, number] | [null, null]> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve([null, null]);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve([pos.coords.latitude, pos.coords.longitude]),
+      () => resolve([null, null]),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  });
+}
 
 function addMockDeviceFromSerial(serial: string, roomType: RoomType) {
   if (typeof window === 'undefined') return;
@@ -66,7 +92,7 @@ export default function AddDeviceSerialPage() {
   const { mutate } = useSWRConfig();
   const { auth } = useAuth() as any;
 
-  const [serial, setSerial] = useState('');
+  const [deviceID, setdeviceID] = useState('');
   const [roomType, setRoomType] = useState<RoomType>('living'); // ✅ 기본: 거실
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -75,7 +101,7 @@ export default function AddDeviceSerialPage() {
     e.preventDefault();
     if (loading) return;
 
-    const trimmed = serial.trim();
+    const trimmed = deviceID.trim();
 
     // --- 기본 검증 ---
     if (!trimmed) {
@@ -103,13 +129,27 @@ export default function AddDeviceSerialPage() {
     try {
       setLoading(true);
 
+      // Get user's location for AQI station lookup
+      const geo = await getDeviceLocation();
+
+      // Map roomType to Korean label for backend
+      const customLocation = getRoomLabel(roomType);
+
+      // Build payload matching backend expectations
+      const payload: RegistrationPayload = {
+        deviceID: trimmed,
+        customLocation,
+        geo,
+        name: '새 기기', // Default name, backend will use model name if available
+      };
+
       const res = await fetch(`${API_BASE_URL}/api/devices/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${auth.idToken}`,
         },
-        body: JSON.stringify({ serial: trimmed, roomType }), // ✅ 방 정보 같이 전송
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -119,22 +159,19 @@ export default function AddDeviceSerialPage() {
           (res.status === 400
             ? '시리얼 번호가 유효하지 않습니다.'
             : res.status === 409
-            ? '이미 등록된 기기입니다.'
-            : '기기 등록 중 오류가 발생했습니다.');
+              ? '이미 등록된 기기입니다.'
+              : '기기 등록 중 오류가 발생했습니다.');
         setError(msg);
         setLoading(false);
         return;
       }
 
-      // 🔹 3) 성공 시 응답으로 온 Device 하나 받기
-      const newDevice = (await res.json()) as RoomSummary;
+      // 🔹 3) 성공 - Backend returns { success: true, deviceId: "..." }
+      const response = await res.json();
+      console.log('✅ Device registered:', response.deviceId);
 
-      // 🔹 4) 홈에서 사용하는 리스트 캐시 업데이트
-      await mutate(
-        '/api/devices',
-        (prev: any) => (Array.isArray(prev) ? [...prev, newDevice] : [newDevice]),
-        false,
-      );
+      // 🔹 4) Invalidate devices cache to trigger refetch
+      await mutate('/api/devices');
 
       // 🔹 5) 완료 화면으로 이동
       router.push('/devices/add/serial/success');
@@ -204,8 +241,8 @@ export default function AddDeviceSerialPage() {
             시리얼 번호
             <input
               type="text"
-              value={serial}
-              onChange={(e) => setSerial(e.target.value)}
+              value={deviceID}
+              onChange={(e) => setdeviceID(e.target.value)}
               placeholder="예: PC-AX34K-123456"
               style={{
                 marginTop: 6,
@@ -252,7 +289,9 @@ export default function AddDeviceSerialPage() {
                       border: active
                         ? '1px solid #22c55e'
                         : '1px solid rgba(148,163,184,0.6)',
-                      background: active ? 'rgba(34,197,94,0.15)' : 'transparent',
+                      background: active
+                        ? 'rgba(34,197,94,0.15)'
+                        : 'transparent',
                       fontSize: 13,
                       color: '#e5e7eb',
                     }}

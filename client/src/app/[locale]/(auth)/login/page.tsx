@@ -73,7 +73,7 @@ function LoginPageInner({ gisLoaded }: { gisLoaded: boolean }) {
   const router = useRouter();
   const t = useTranslations('LoginPage');
   const search = useSearchParams();
-  const { auth, setAuth, signOut, ready } = useAuth() as any;
+  const { auth, setAuth, signOut, enterDemoMode, ready } = useAuth() as any;
 
   const [showSplash, setShowSplash] = useState(true);
   const btnRef = useRef<HTMLDivElement>(null);
@@ -212,6 +212,93 @@ function LoginPageInner({ gisLoaded }: { gisLoaded: boolean }) {
           style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}
           ref={btnRef}
         />
+
+        {/* Divider with "OR" */}
+        <div
+          style={{
+            marginTop: 24,
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              height: 1,
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          />
+          <span style={{ fontSize: 12, opacity: 0.5, fontWeight: 600 }}>OR</span>
+          <div
+            style={{
+              flex: 1,
+              height: 1,
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          />
+        </div>
+
+        {/* Try Demo Button */}
+        <button
+          style={{
+            width: '100%',
+            background:
+              'linear-gradient(135deg, rgba(79, 70, 229, 0.8), rgba(99, 102, 241, 0.8))',
+            borderRadius: 12,
+            padding: '14px 20px',
+            fontSize: 15,
+            fontWeight: 700,
+            color: 'white',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+          onClick={() => {
+            enterDemoMode();
+            try {
+              localStorage.setItem('purecare_welcome_name', 'Demo User');
+              localStorage.setItem('purecare_welcome_at', String(Date.now()));
+              sessionStorage.removeItem('purecare_welcome_consumed');
+            } catch {}
+            router.replace('/home');
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background =
+              'linear-gradient(135deg, rgba(79, 70, 229, 1), rgba(99, 102, 241, 1))';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(79, 70, 229, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              'linear-gradient(135deg, rgba(79, 70, 229, 0.8), rgba(99, 102, 241, 0.8))';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🎭</span>
+          {t('tryDemo', { default: 'Try Demo Mode' })}
+        </button>
+
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            opacity: 0.6,
+            textAlign: 'center',
+            lineHeight: 1.4,
+          }}
+        >
+          {t('demoDescription', {
+            default:
+              'Explore all features with sample data • No account required • No API calls',
+          })}
+        </div>
 
         {/* 현재 로그인된 계정 표시 + 선택지 제공 */}
         {ready && auth?.idToken && (

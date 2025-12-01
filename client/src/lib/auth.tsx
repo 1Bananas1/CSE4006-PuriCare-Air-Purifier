@@ -13,21 +13,24 @@ type Profile = { name?: string; email?: string; picture?: string };
 type AuthState = {
   idToken: string | null;     // Google ID 토큰
   profile: Profile | null;    // 디코딩된 프로필
+  demoMode?: boolean;         // 데모 모드 플래그
 };
 
 type AuthContext = {
   auth: AuthState;
   setAuth: React.Dispatch<React.SetStateAction<AuthState>>;
   signOut: () => void;
+  enterDemoMode: () => void;  // 데모 모드 진입
   ready: boolean;             // ← 로컬스토리지 복구 완료 여부
 };
 
 const STORAGE_KEY = 'purecare_auth';
 
 const AuthCtx = createContext<AuthContext>({
-  auth: { idToken: null, profile: null },
+  auth: { idToken: null, profile: null, demoMode: false },
   setAuth: () => {},
   signOut: () => {},
+  enterDemoMode: () => {},
   ready: false,
 });
 
@@ -54,7 +57,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그아웃: 상태/스토리지 초기화
   const signOut = useCallback(() => {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    setAuth({ idToken: null, profile: null });
+    setAuth({ idToken: null, profile: null, demoMode: false });
+  }, []);
+
+  // 데모 모드 진입
+  const enterDemoMode = useCallback(() => {
+    const demoAuth: AuthState = {
+      idToken: 'DEMO_MODE',
+      profile: {
+        name: 'Demo User',
+        email: 'demo@purecare.app',
+        picture: undefined,
+      },
+      demoMode: true,
+    };
+    setAuth(demoAuth);
   }, []);
 
   // 여러 탭 간 상태 동기화
@@ -81,8 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [signOut]);
 
   const value = useMemo(
-    () => ({ auth, setAuth, signOut, ready }),
-    [auth, ready, signOut]
+    () => ({ auth, setAuth, signOut, enterDemoMode, ready }),
+    [auth, ready, signOut, enterDemoMode]
   );
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;

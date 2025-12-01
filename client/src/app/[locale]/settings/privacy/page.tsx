@@ -14,7 +14,7 @@ type PrivacyState = {
 };
 
 const STORAGE_KEY = 'purecare_privacy';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const DEFAULT_STATE: PrivacyState = {
   dataCollection: true,

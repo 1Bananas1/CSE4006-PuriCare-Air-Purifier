@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth';
 // ────────────────────────
 // 공통 상수/타입 (Home 과 맞춤)
 // ────────────────────────
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
 
 // 방 타입

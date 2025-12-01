@@ -78,19 +78,27 @@ export default function DeviceCarousel({
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
         paddingTop: 8,
+        paddingBottom: 8,
+        WebkitOverflowScrolling: 'touch',
+        scrollSnapType: 'x mandatory',
       }}
       className="[-webkit-scrollbar]:hidden"
     >
-      <div style={{ display: 'flex', padding: '0 16px', gap: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          padding: '0 16px',
+          gap: 16,
+          minWidth: 'min-content',
+        }}
+      >
         {devices.map((device, index) => (
           <div
             key={device.id}
             onClick={() => router.push(`/room/${device.id}`)}
             style={{
               display: 'flex',
-              height: '100%',
               flexDirection: 'column',
-              gap: 16,
               borderRadius: 12,
               background: 'rgba(255,255,255,0.05)',
               border:
@@ -101,9 +109,13 @@ export default function DeviceCarousel({
                 index === 0
                   ? '0 8px 24px rgba(0,0,0,0.3)'
                   : '0 4px 12px rgba(0,0,0,0.2)',
-              minWidth: 256,
+              minWidth: 240,
+              maxWidth: 280,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
+              overflow: 'hidden',
+              scrollSnapAlign: 'start',
+              flexShrink: 0,
             }}
             className="hover:scale-105"
           >
@@ -111,15 +123,14 @@ export default function DeviceCarousel({
             <div
               style={{
                 width: '100%',
-                aspectRatio: '4/3',
-                backgroundImage: "url('https://i.imgur.com/g055z5j.png')",
-                backgroundSize: 'contain',
+                aspectRatio: '1',
+                backgroundImage:
+                  "url('https://www.lg.com/content/dam/channel/wcms/my/images/puricare/as65gdwb0_aml_eaml_my_c/gallery/zoom-01.jpg?w=800')",
+                backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-                background: 'rgba(15,23,42,0.4)',
-                backgroundBlendMode: 'overlay',
+                backgroundColor: 'rgba(15,23,42,0.6)',
+                flexShrink: 0,
               }}
             />
 
@@ -180,7 +191,9 @@ export default function DeviceCarousel({
                         : 'rgba(255,255,255,0.5)',
                   }}
                 >
-                  {device.status === 'online' ? `${t('on')} - ${device.mode}` : t('off')}
+                  {device.status === 'online'
+                    ? `${t('on')} - ${device.mode}`
+                    : t('off')}
                 </span>
               </div>
             </div>
@@ -192,7 +205,9 @@ export default function DeviceCarousel({
           onClick={() => router.push('/devices/add')}
           style={{
             display: 'flex',
-            minWidth: 256,
+            minWidth: 240,
+            maxWidth: 280,
+            aspectRatio: '3/4',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
@@ -203,6 +218,8 @@ export default function DeviceCarousel({
             padding: 32,
             cursor: 'pointer',
             transition: 'all 0.3s ease',
+            flexShrink: 0,
+            scrollSnapAlign: 'start',
           }}
           className="hover:border-primary hover:bg-primary/20"
         >

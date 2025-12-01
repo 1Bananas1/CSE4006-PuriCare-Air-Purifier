@@ -1,9 +1,18 @@
 // Authenticated API + Device 관련 유틸
 //client/src/app/lib/api.ts
 
+import {
+  isDemoMode,
+  mockDelay,
+  MOCK_DEVICES,
+  MOCK_ALERTS,
+  MOCK_DEVICE_STATUS,
+  generateMockSensorData,
+} from './mock-data';
+
 // 🔹 1. API 기본 설정
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3020';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3020';
 
 // Auth token from localStorage
 function getAuthToken(): string | null {
@@ -113,34 +122,54 @@ export interface Device {
 
 // Get all devices for authenticated user
 export async function getDevices(): Promise<Device[]> {
+  // 🎭 Demo Mode: Return mock devices
+  if (isDemoMode()) {
+    await mockDelay();
+    return MOCK_DEVICES;
+  }
+
   try {
     const devices = await apiRequest<any[]>('/api/devices');
 
     // Transform backend format to frontend format
-    return devices.map((device) => ({
-      id: device.data?.deviceID || device.id,
-      name: device.data?.name || 'Unnamed Device',
-      customLocation: device.data?.customLocation || 'Unknown',
-      aqi: calculateAQI(device.data?.measurements),
-      aqiLabel: getAQILabel(calculateAQI(device.data?.measurements)),
-      subtitle: getDeviceSubtitle(device),
-      status: {
-        online: device.status?.online || false,
-        lastSeen: device.status?.lastSeen
-          ? new Date(device.status.lastSeen)
-          : new Date(),
-      },
-      settings: {
-        autoMode: device.settings?.autoMode || false,
-        fanSpeed: device.settings?.fanSpeed || 0,
-        sensitivity: device.settings?.sensitivity || 'medium',
-      },
-      data: {
-        timezone: device.data?.timezone,
-        stationIdx: device.data?.stationIdx,
-        geo: device.data?.geo,
-      },
-    }));
+    return devices.map((device) => {
+      const aqi = calculateAQI(device.data?.measurements);
+
+      // Convert sensitivity number (0, 1, 2) to string ('low', 'medium', 'high')
+      const sensitivityMap: Record<number, 'low' | 'medium' | 'high'> = {
+        0: 'low',
+        1: 'medium',
+        2: 'high',
+      };
+      const sensitivity = typeof device.settings?.sensitivity === 'number'
+        ? sensitivityMap[device.settings.sensitivity] || 'medium'
+        : (device.settings?.sensitivity as 'low' | 'medium' | 'high') || 'medium';
+
+      return {
+        id: device.id || device.data?.deviceID,
+        name: device.data?.name || 'Unnamed Device',
+        customLocation: device.data?.customLocation || 'Unknown',
+        aqi,
+        aqiLabel: getAQILabel(aqi),
+        subtitle: getDeviceSubtitle(device),
+        status: {
+          online: device.status?.online || false,
+          lastSeen: device.status?.lastSeen
+            ? new Date(device.status.lastSeen)
+            : new Date(),
+        },
+        settings: {
+          autoMode: device.settings?.autoMode || false,
+          fanSpeed: device.settings?.fanSpeed || 0,
+          sensitivity,
+        },
+        data: {
+          timezone: device.data?.timezone,
+          stationIdx: device.data?.stationIdx,
+          geo: device.data?.geo,
+        },
+      };
+    });
   } catch (error) {
     console.error('Failed to fetch devices:', error);
     return [];
@@ -204,6 +233,13 @@ export interface SensorReading {
 export async function getLatestSensorData(
   deviceId: string
 ): Promise<SensorReading | null> {
+  // 🎭 Demo Mode: Return latest mock sensor reading
+  if (isDemoMode()) {
+    await mockDelay();
+    const readings = generateMockSensorData(deviceId, 1);
+    return readings[0] || null;
+  }
+
   try {
     const response = await apiRequest<{
       success: boolean;
@@ -225,6 +261,13 @@ export async function getHistoricalSensorData(
     limit?: number;
   } = {}
 ): Promise<SensorReading[]> {
+  // 🎭 Demo Mode: Return mock historical data
+  if (isDemoMode()) {
+    await mockDelay();
+    const count = options.limit || 24;
+    return generateMockSensorData(deviceId, count);
+  }
+
   try {
     const params = new URLSearchParams();
 
@@ -266,6 +309,16 @@ export async function getDeviceAlerts(
   limit: number = 20,
   unacknowledgedOnly: boolean = false
 ): Promise<Alert[]> {
+  // 🎭 Demo Mode: Return mock alerts
+  if (isDemoMode()) {
+    await mockDelay();
+    let alerts = [...MOCK_ALERTS];
+    if (unacknowledgedOnly) {
+      alerts = alerts.filter((a) => !a.acknowledged);
+    }
+    return alerts.slice(0, limit);
+  }
+
   try {
     const params = new URLSearchParams({
       limit: limit.toString(),
@@ -299,6 +352,12 @@ export interface DeviceStatus {
 export async function getDeviceStatus(
   deviceId: string
 ): Promise<DeviceStatus | null> {
+  // 🎭 Demo Mode: Return mock device status
+  if (isDemoMode()) {
+    await mockDelay();
+    return MOCK_DEVICE_STATUS[deviceId] || MOCK_DEVICE_STATUS['demo-device-001'];
+  }
+
   try {
     const response = await apiRequest<{
       status: DeviceStatus;
@@ -320,6 +379,13 @@ export async function setFanSpeed(
   deviceId: string,
   speed: number
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set fan speed to ${speed} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/fan-speed`, {
     method: 'POST',
     body: JSON.stringify({ speed }),
@@ -331,6 +397,13 @@ export async function toggleAutoMode(
   deviceId: string,
   enabled: boolean
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set auto mode to ${enabled} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/auto-mode`, {
     method: 'POST',
     body: JSON.stringify({ enabled }),
@@ -342,6 +415,13 @@ export async function setSensitivity(
   deviceId: string,
   level: 'low' | 'medium' | 'high'
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set sensitivity to ${level} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/sensitivity`, {
     method: 'POST',
     body: JSON.stringify({ level }),
@@ -353,6 +433,13 @@ export async function togglePower(
   deviceId: string,
   on: boolean
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Toggle power to ${on} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/power`, {
     method: 'POST',
     body: JSON.stringify({ on }),
