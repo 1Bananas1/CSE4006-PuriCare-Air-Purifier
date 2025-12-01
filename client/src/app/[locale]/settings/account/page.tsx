@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/lib/auth';
 import BottomNav from '@/components/layout/bottom-nav';
+
 import { useState } from 'react';
 
 export default function AccountSettingsPage() {
@@ -33,11 +34,7 @@ export default function AccountSettingsPage() {
   return (
     <main
       className="pb-safe"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-      }}
+      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
     >
       {/* 헤더 */}
       <div
@@ -63,10 +60,7 @@ export default function AccountSettingsPage() {
         <div style={{ fontWeight: 800, fontSize: 18 }}>{t('title')}</div>
       </div>
 
-      <section
-        className="mobile-wrap"
-        style={{ padding: 16, display: 'grid', gap: 16 }}
-      >
+      <section className="mobile-wrap" style={{ padding: 16, display: 'grid', gap: 16 }}>
         {/* 프로필 카드 */}
         <div
           style={{
@@ -178,3 +172,4 @@ export default function AccountSettingsPage() {
     </main>
   );
 }
+

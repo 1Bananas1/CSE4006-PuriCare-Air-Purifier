@@ -1,12 +1,25 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3020';
+// Authenticated API + Device 관련 유틸
+//client/src/app/lib/api.ts
 
-// Auth token from localStorage
+import {
+  isDemoMode,
+  mockDelay,
+  MOCK_DEVICES,
+  MOCK_ALERTS,
+  MOCK_DEVICE_STATUS,
+  generateMockSensorData,
+} from './mock-data';
 
+// 🔹 1. API 기본 설정
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3020';
+
+// Auth token from sessionStorage (보안 강화 - 탭 닫으면 자동 삭제)
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
 
   try {
-    const authData = localStorage.getItem('purecare_auth');
+    const authData = sessionStorage.getItem('purecare_auth');
     if (!authData) return null;
 
     const parsed = JSON.parse(authData);
@@ -21,9 +34,9 @@ function getAuthToken(): string | null {
 function handleAuthError(): void {
   if (typeof window === 'undefined') return;
 
-  // Clear auth data from localStorage
+  // Clear auth data from sessionStorage
   try {
-    localStorage.removeItem('purecare_auth');
+    sessionStorage.removeItem('purecare_auth');
   } catch (e) {
     console.error('Failed to clear auth data:', e);
   }
@@ -38,8 +51,7 @@ function handleAuthError(): void {
   window.location.href = '/login';
 }
 
-// Authenticated API request
-
+// 2. 공통 API 요청 함수
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -81,10 +93,10 @@ async function apiRequest<T>(
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-// Device APIs
+// 3. Device 타입들
 export interface Device {
   id: string;
   name: string;
@@ -110,61 +122,101 @@ export interface Device {
 
 // Get all devices for authenticated user
 export async function getDevices(): Promise<Device[]> {
+  // 🎭 Demo Mode: Return mock devices
+  if (isDemoMode()) {
+    await mockDelay();
+    return MOCK_DEVICES;
+  }
+
   try {
     const devices = await apiRequest<any[]>('/api/devices');
 
     // Transform backend format to frontend format
-    return devices.map((device) => ({
-      id: device.data?.deviceID || device.id,
-      name: device.data?.name || 'Unnamed Device',
-      customLocation: device.data?.customLocation || 'Unknown',
-      aqi: calculateAQI(device.data?.measurements),
-      aqiLabel: getAQILabel(calculateAQI(device.data?.measurements)),
-      subtitle: getDeviceSubtitle(device),
-      status: {
-        online: device.status?.online || false,
-        lastSeen: device.status?.lastSeen
-          ? new Date(device.status.lastSeen)
-          : new Date(),
-      },
-      settings: {
-        autoMode: device.settings?.autoMode || false,
-        fanSpeed: device.settings?.fanSpeed || 0,
-        sensitivity: device.settings?.sensitivity || 'medium',
-      },
-      data: {
-        timezone: device.data?.timezone,
-        stationIdx: device.data?.stationIdx,
-        geo: device.data?.geo,
-      },
-    }));
+    return devices.map((device) => {
+      const aqi = calculateAQI(device.data?.measurements);
+
+      // Convert sensitivity number (0, 1, 2) to string ('low', 'medium', 'high')
+      const sensitivityMap: Record<number, 'low' | 'medium' | 'high'> = {
+        0: 'low',
+        1: 'medium',
+        2: 'high',
+      };
+      const sensitivity = typeof device.settings?.sensitivity === 'number'
+        ? sensitivityMap[device.settings.sensitivity] || 'medium'
+        : (device.settings?.sensitivity as 'low' | 'medium' | 'high') || 'medium';
+
+      return {
+        id: device.id || device.data?.deviceID,
+        name: device.data?.name || 'Unnamed Device',
+        customLocation: device.data?.customLocation || 'Unknown',
+        aqi,
+        aqiLabel: getAQILabel(aqi),
+        subtitle: getDeviceSubtitle(device),
+        status: {
+          online: device.status?.online || false,
+          lastSeen: device.status?.lastSeen
+            ? new Date(device.status.lastSeen)
+            : new Date(),
+        },
+        settings: {
+          autoMode: device.settings?.autoMode || false,
+          fanSpeed: device.settings?.fanSpeed || 0,
+          sensitivity,
+        },
+        data: {
+          timezone: device.data?.timezone,
+          stationIdx: device.data?.stationIdx,
+          geo: device.data?.geo,
+        },
+      };
+    });
   } catch (error) {
     console.error('Failed to fetch devices:', error);
     return [];
   }
 }
 
-// register a new device
-export async function registerDevice(deviceData: {
-  deviceID: string;
+// 4. 교수님 스펙에 맞춘 기기 등록 API
+
+// Request/Response 타입 (문서 기반)
+export interface RegisterDeviceRequest {
+  deviceId: string;
   name: string;
-  customLocation: string;
-  geo: [number, number] | [null, null];
-}): Promise<{ success: boolean; deviceId: string }> {
-  return apiRequest('/api/devices/register', {
+  location: string;
+}
+
+export interface RegisterDeviceResponse {
+  success: boolean;
+  deviceId: string;
+}
+
+/**
+ * Register a new device
+ * Endpoint: POST /api/devices/register
+ * Body: { deviceId, name, location }
+ * Response: { success: true, deviceId: "AP-001" }
+ */
+export async function registerDevice(
+  data: RegisterDeviceRequest
+): Promise<RegisterDeviceResponse> {
+  return apiRequest<RegisterDeviceResponse>('/api/devices/register', {
     method: 'POST',
-    body: JSON.stringify(deviceData),
+    body: JSON.stringify({
+      deviceId: data.deviceId,
+      name: data.name,
+      location: data.location,
+    }),
   });
 }
 
-// delete a device
+// 5. delete a device
 export async function deleteDevice(deviceId: string): Promise<void> {
   await apiRequest(`/api/devices/${deviceId}`, {
     method: 'DELETE',
   });
 }
 
-// sensor data API
+// 6. Sensor data API
 export interface SensorReading {
   time: string;
   rh: number;
@@ -181,6 +233,13 @@ export interface SensorReading {
 export async function getLatestSensorData(
   deviceId: string
 ): Promise<SensorReading | null> {
+  // 🎭 Demo Mode: Return latest mock sensor reading
+  if (isDemoMode()) {
+    await mockDelay();
+    const readings = generateMockSensorData(deviceId, 1);
+    return readings[0] || null;
+  }
+
   try {
     const response = await apiRequest<{
       success: boolean;
@@ -202,6 +261,13 @@ export async function getHistoricalSensorData(
     limit?: number;
   } = {}
 ): Promise<SensorReading[]> {
+  // 🎭 Demo Mode: Return mock historical data
+  if (isDemoMode()) {
+    await mockDelay();
+    const count = options.limit || 24;
+    return generateMockSensorData(deviceId, count);
+  }
+
   try {
     const params = new URLSearchParams();
 
@@ -227,7 +293,7 @@ export async function getHistoricalSensorData(
   }
 }
 
-//device alerts
+// 7. device alerts
 export interface Alert {
   id: string;
   type: string;
@@ -237,11 +303,22 @@ export interface Alert {
   timestamp: string;
   acknowledged: boolean;
 }
+
 export async function getDeviceAlerts(
   deviceId: string,
   limit: number = 20,
   unacknowledgedOnly: boolean = false
 ): Promise<Alert[]> {
+  // 🎭 Demo Mode: Return mock alerts
+  if (isDemoMode()) {
+    await mockDelay();
+    let alerts = [...MOCK_ALERTS];
+    if (unacknowledgedOnly) {
+      alerts = alerts.filter((a) => !a.acknowledged);
+    }
+    return alerts.slice(0, limit);
+  }
+
   try {
     const params = new URLSearchParams({
       limit: limit.toString(),
@@ -260,7 +337,7 @@ export async function getDeviceAlerts(
   }
 }
 
-// device controls
+// 8. device controls
 
 export interface DeviceStatus {
   online: boolean;
@@ -275,6 +352,12 @@ export interface DeviceStatus {
 export async function getDeviceStatus(
   deviceId: string
 ): Promise<DeviceStatus | null> {
+  // 🎭 Demo Mode: Return mock device status
+  if (isDemoMode()) {
+    await mockDelay();
+    return MOCK_DEVICE_STATUS[deviceId] || MOCK_DEVICE_STATUS['demo-device-001'];
+  }
+
   try {
     const response = await apiRequest<{
       status: DeviceStatus;
@@ -291,11 +374,18 @@ export async function getDeviceStatus(
   }
 }
 
-//set fan speed
+// set fan speed
 export async function setFanSpeed(
   deviceId: string,
   speed: number
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set fan speed to ${speed} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/fan-speed`, {
     method: 'POST',
     body: JSON.stringify({ speed }),
@@ -307,35 +397,56 @@ export async function toggleAutoMode(
   deviceId: string,
   enabled: boolean
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set auto mode to ${enabled} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/auto-mode`, {
     method: 'POST',
     body: JSON.stringify({ enabled }),
   });
 }
 
-//set sensitivity
+// set sensitivity
 export async function setSensitivity(
   deviceId: string,
   level: 'low' | 'medium' | 'high'
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Set sensitivity to ${level} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/sensitivity`, {
     method: 'POST',
     body: JSON.stringify({ level }),
   });
 }
 
-//toggle power
+// toggle power
 export async function togglePower(
   deviceId: string,
   on: boolean
 ): Promise<void> {
+  // 🎭 Demo Mode: Simulate success
+  if (isDemoMode()) {
+    await mockDelay(200);
+    console.log(`[DEMO] Toggle power to ${on} for device ${deviceId}`);
+    return;
+  }
+
   await apiRequest(`/api/control/${deviceId}/power`, {
     method: 'POST',
     body: JSON.stringify({ on }),
   });
 }
 
-// helper functions
+// 9. Helper functions
 
 // calculate AQI
 function calculateAQI(measurements: any): number {
@@ -356,7 +467,7 @@ function calculateAQI(measurements: any): number {
   return Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
 }
 
-//get AQI label
+// get AQI label
 function getAQILabel(aqi: number): string {
   if (aqi <= 50) return 'Good';
   if (aqi <= 100) return 'Moderate';
@@ -366,7 +477,7 @@ function getAQILabel(aqi: number): string {
   return 'Hazardous';
 }
 
-//get device subtitle
+// get device subtitle
 function getDeviceSubtitle(device: any): string {
   const online = device.status?.online ? '온라인' : '오프라인';
   const mode = device.settings?.autoMode ? '자동 모드' : '수동 모드';
@@ -375,7 +486,7 @@ function getDeviceSubtitle(device: any): string {
   return `${online} · ${mode} · ${fanSpeed}`;
 }
 
-//get fan speed label
+// get fan speed label
 function getFanSpeedLabel(speed: number): string {
   if (speed === 0) return '꺼짐';
   if (speed <= 3) return '약풍';
@@ -383,7 +494,7 @@ function getFanSpeedLabel(speed: number): string {
   return '강풍';
 }
 
-// weather AQI
+// 10. Weather AQI
 export interface OutdoorAQI {
   aqi: number;
   city: string;

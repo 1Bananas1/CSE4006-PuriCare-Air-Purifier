@@ -38,11 +38,7 @@ export default function SettingsPage() {
   return (
     <main
       className="pb-safe"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-      }}
+      style={{ minHeight: '100dvh', background: 'var(--bg)', color: 'var(--text)' }}
     >
       {/* 헤더 */}
       <div

@@ -46,7 +46,7 @@
     "device": "device",
     "devices": "devices",
     "noDevices": "No devices",
-    "monitoringRooms": "Monitoring {{count}} {{plural}}",
+    "monitoringRooms": "Monitoring {count} {plural}",
     "room": "room",
     "rooms": "rooms",
     "addDevicesToStartMonitoring": "Add devices to start monitoring",
@@ -84,7 +84,9 @@
     "goToHome": "Go to Home",
     "switchAccount": "Log in with different account",
     "devLogin": "Dev Login (Skip)",
-    "loginFailed": "Login failed. Please try again."
+    "loginFailed": "Login failed. Please try again.",
+    "tryDemo": "Try the Demo",
+    "demoDescription": "Click to enter demo mode"
   },
   "SignupPage": {
     "title": "Sign Up",
@@ -96,7 +98,7 @@
     "subtitle": "Let routines and schedules run your air purifier automatically",
     "automationSummary": "Automation Summary",
     "currentlyActive": "Currently active automations",
-    "count": "{{count}} active",
+    "count": "{count} active",
     "backendNote": "Routines and schedules will be calculated with actual data after backend/ML integration",
     "myAutomations": "My Automations",
     "noAutomations": "No automations registered yet. Try adding a routine with the \"Create New Automation\" button below.",
@@ -134,7 +136,7 @@
     "serialInputAlert": "Serial input"
   },
   "ProfilePage": {
-    "title": "Hello, {{name}}",
+    "title": "Hello, {name}",
     "back": "Back",
     "name": "Name",
     "email": "Email"
@@ -145,17 +147,17 @@
     "today": "Today",
     "thisWeek": "This Week",
     "thisMonth": "This Month",
-    "usageSummary": "{{period}} Usage Summary",
+    "usageSummary": "{period} Usage Summary",
     "powerUsage": "Power Usage",
-    "estimatedCost": "Estimated cost approx. {{cost}} won",
+    "estimatedCost": "Estimated cost approx. {cost} won",
     "savingsRate": "Savings rate (vs. target)",
-    "savingsComparison": "Slightly lower usage than last {{period}} average.",
-    "energyUsagePattern": "Energy Usage Pattern ({{period}})",
+    "savingsComparison": "Slightly lower usage than last {period} average.",
+    "energyUsagePattern": "Energy Usage Pattern ({period})",
     "lowUsage": "Low usage",
     "highUsage": "High usage",
     "patternNote": "Hourly/daily patterns can be checked after backend and ML integration. All data is currently sample data.",
     "savingsGoalProgress": "Savings Goal Progress",
-    "savingsGoalDescription": "Currently saving {{percent}}% compared to this month's target usage.",
+    "savingsGoalDescription": "Currently saving {percent}% compared to this month's target usage.",
     "savingsLogicNote": "Detailed savings logic will be calculated after backend and ML integration.",
     "aiPrediction": "AI Usage Prediction (Coming Soon)",
     "aiPredictionDescription": "Next week's predicted usage, pattern anomaly detection, etc. will be displayed in this area with graphs after AI model and backend integration is complete.\n\nThe UI and layout are ready on the frontend, so once we connect an endpoint like /api/report later, data can be bound immediately as designed.",
@@ -165,11 +167,11 @@
     "back": "Back",
     "status": "Status",
     "filterLife": "Filter Life",
-    "filterReplacement": "{{percent}}% ({{eta}})",
+    "filterReplacement": "{percent}% ({eta})",
     "sensors": "Sensors",
     "on": "On",
     "standby": "Standby",
-    "replaceIn": "Replace in {{time}}"
+    "replaceIn": "Replace in {time}"
   },
   "SettingsPage": {
     "title": "Settings",
@@ -199,7 +201,7 @@
     "addDevice": "Add Device",
     "noDevices": "No devices registered.",
     "addDeviceAlert": "QR scan / serial input flow will be implemented in the next step.",
-    "deviceMenuAlert": "{{name}} context menu\n\n- Rename\n- Identify\n- Settings\n- Delete\n\nActual functionality will be implemented after device API integration.",
+    "deviceMenuAlert": "{name} context menu\n\n- Rename\n- Identify\n- Settings\n- Delete\n\nActual functionality will be implemented after device API integration.",
     "online": "Online",
     "offline": "Offline",
     "deviceOptions": "Device options"
@@ -281,7 +283,7 @@
     "clickToGetLocation": "Click to get your location",
     "timezoneDefaultNote": "Without location, timezone will default to UTC",
     "registering": "Registering...",
-    "deviceRegisteredSuccess": "Device registered successfully! Device ID: {{deviceId}}",
+    "deviceRegisteredSuccess": "Device registered successfully! Device ID: {deviceId}",
     "notAuthorized": "Not authenticated. Please log in first.",
     "registrationFailed": "Failed to register device",
     "geolocationNotSupported": "Geolocation is not supported by your browser",
@@ -295,7 +297,7 @@
     "veryUnhealthy": "Very Unhealthy"
   },
   "WeatherPage": {
-    "title": "{{city}} · Weather/Humidity/Map",
+    "title": "{city} · Weather/Humidity/Map",
     "back": "Back",
     "retryLocation": "Retry location",
     "currentLocation": "Current Location",
@@ -319,6 +321,74 @@
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday"
+  },
+  "DevicesAddQrPage": {
+    "back": "Back",
+    "qrTitle": "Scan QR Code",
+    "cameraUnsupported": "Camera is not available in this browser.",
+    "cameraErrorFallback": "There was a problem starting the camera. Please check your browser/OS permissions.",
+    "cameraHint": "Align the QR code inside the white frame and then take a picture.",
+    "retake": "Retake",
+    "startingCamera": "Starting camera...",
+    "retryCamera": "Retry camera",
+    "proceedWithPhoto": "Continue with this photo",
+    "proceedNext": "Go to next step",
+    "goSerial": "QR not working? Register with serial number",
+    "snapshotAlt": "QR capture image"
+  },
+  "DevicesAddQrConfirmPage": {
+    "back": "Back",
+    "title": "Confirm Device Registration",
+    "introTitleLine1": "Was the QR code",
+    "introTitleLine2": "captured correctly?",
+    "introBody": "If the QR code on the product label and the one you just captured <strong>look correct</strong>, press <strong>“Yes, that’s correct (Register device)”</strong> below to register the device.<br/>If it seems wrong or looks like a different product, you can retry using the buttons below.",
+    "roomQuestion": "Which room is this device placed in?",
+    "room": {
+      "living": "Living room",
+      "master": "Master bedroom",
+      "small": "Small room",
+      "small2": "Second small room",
+      "toilet": "Toilet",
+      "bath": "Bathroom"
+    },
+    "submitLoading": "Registering...",
+    "submitLabel": "Yes, that’s correct (Register device)",
+    "retryTitle": "Does the number look wrong?",
+    "retryBody": "You can capture the same product again or register it by manually entering the serial number.",
+    "retryQr": "Retake QR",
+    "retrySerial": "Register with serial number"
+  },
+  "DevicesAddSerialSuccessPage": {
+    "back": "Back",
+    "title": "Device Registration Complete",
+    "successTitle": "Your device has been registered successfully",
+    "successBody": "You can now check real-time air quality and\ndevice status from the home screen.",
+    "goHome": "Go to Home",
+    "goDevices": "View My Devices"
+  },
+  "DevicesAddSerialPage": {
+    "back": "Back",
+    "title": "Enter Serial Number",
+    "description": "Please enter the serial number printed on the back of the product or on the box.",
+    "serialLabel": "Serial Number",
+    "serialPlaceholder": "e.g., PC-AX34K-123456",
+    "roomQuestion": "Which room is this device placed in?",
+    "room": {
+      "living": "Living room",
+      "master": "Master bedroom",
+      "small": "Small room",
+      "small2": "Second small room",
+      "toilet": "Toilet",
+      "bath": "Bathroom"
+    },
+    "errorRequired": "Please enter a serial number.",
+    "errorFormat": "The serial number format is invalid.",
+    "errorInvalidSerial": "The serial number is not valid.",
+    "errorAlreadyRegistered": "This device has already been registered.",
+    "errorRegisterGeneric": "An error occurred while registering the device.",
+    "networkError": "A network error occurred. Please try again later.",
+    "submitLoading": "Registering...",
+    "submitNext": "Next"
   },
   "Components": {
     "BottomNav": {
