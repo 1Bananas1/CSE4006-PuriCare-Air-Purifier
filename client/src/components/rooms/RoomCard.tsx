@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 
-// 🔥 외부 import 지우고, 로컬 타입으로 선언
+// 외부 import 지우고, 로컬 타입으로 선언
 type RoomSummary = {
   id: string;
   name: string;

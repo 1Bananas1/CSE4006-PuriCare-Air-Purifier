@@ -1,5 +1,5 @@
 // Authenticated API + Device 관련 유틸
-//client/src/app/lib/api.ts
+// client/src/app/lib/api.ts
 
 // 🔹 1. API 기본 설정
 const API_BASE_URL =
@@ -45,7 +45,7 @@ function handleAuthError(): void {
 // 2. 공통 API 요청 함수
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const token = getAuthToken();
 
@@ -168,7 +168,7 @@ export interface RegisterDeviceResponse {
  * Response: { success: true, deviceId: "AP-001" }
  */
 export async function registerDevice(
-  data: RegisterDeviceRequest
+  data: RegisterDeviceRequest,
 ): Promise<RegisterDeviceResponse> {
   return apiRequest<RegisterDeviceResponse>('/api/devices/register', {
     method: 'POST',
@@ -202,7 +202,7 @@ export interface SensorReading {
 
 // get latest sensor Reading
 export async function getLatestSensorData(
-  deviceId: string
+  deviceId: string,
 ): Promise<SensorReading | null> {
   try {
     const response = await apiRequest<{
@@ -223,7 +223,7 @@ export async function getHistoricalSensorData(
     startTime?: Date;
     endTime?: Date;
     limit?: number;
-  } = {}
+  } = {},
 ): Promise<SensorReading[]> {
   try {
     const params = new URLSearchParams();
@@ -264,7 +264,7 @@ export interface Alert {
 export async function getDeviceAlerts(
   deviceId: string,
   limit: number = 20,
-  unacknowledgedOnly: boolean = false
+  unacknowledgedOnly: boolean = false,
 ): Promise<Alert[]> {
   try {
     const params = new URLSearchParams({
@@ -297,7 +297,7 @@ export interface DeviceStatus {
 
 // device control status
 export async function getDeviceStatus(
-  deviceId: string
+  deviceId: string,
 ): Promise<DeviceStatus | null> {
   try {
     const response = await apiRequest<{
@@ -318,7 +318,7 @@ export async function getDeviceStatus(
 // set fan speed
 export async function setFanSpeed(
   deviceId: string,
-  speed: number
+  speed: number,
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/fan-speed`, {
     method: 'POST',
@@ -329,7 +329,7 @@ export async function setFanSpeed(
 // auto mode
 export async function toggleAutoMode(
   deviceId: string,
-  enabled: boolean
+  enabled: boolean,
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/auto-mode`, {
     method: 'POST',
@@ -340,7 +340,7 @@ export async function toggleAutoMode(
 // set sensitivity
 export async function setSensitivity(
   deviceId: string,
-  level: 'low' | 'medium' | 'high'
+  level: 'low' | 'medium' | 'high',
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/sensitivity`, {
     method: 'POST',
@@ -351,7 +351,7 @@ export async function setSensitivity(
 // toggle power
 export async function togglePower(
   deviceId: string,
-  on: boolean
+  on: boolean,
 ): Promise<void> {
   await apiRequest(`/api/control/${deviceId}/power`, {
     method: 'POST',
@@ -374,10 +374,16 @@ function calculateAQI(measurements: any): number {
   if (pm25 <= 55.4)
     return Math.round(((150 - 101) / (55.4 - 35.5)) * (pm25 - 35.5) + 101);
   if (pm25 <= 150.4)
-    return Math.round(((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151);
+    return Math.round(
+      ((200 - 151) / (150.4 - 55.5)) * (pm25 - 55.5) + 151,
+    );
   if (pm25 <= 250.4)
-    return Math.round(((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201);
-  return Math.round(((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301);
+    return Math.round(
+      ((300 - 201) / (250.4 - 150.5)) * (pm25 - 150.5) + 201,
+    );
+  return Math.round(
+    ((500 - 301) / (500.4 - 250.5)) * (pm25 - 250.5) + 301,
+  );
 }
 
 // get AQI label
@@ -418,7 +424,7 @@ export interface OutdoorAQI {
 
 // outdoor AQI from device's station
 export async function getOutdoorAQI(
-  stationIdx: number
+  stationIdx: number,
 ): Promise<OutdoorAQI | null> {
   try {
     // This would call your backend which then calls the AQI API
@@ -435,3 +441,193 @@ export async function getOutdoorAQI(
     return null;
   }
 }
+
+// 11. Room Graph (Rooms + Edges)
+
+// ─────────────────────────────
+// 타입 정의
+// ─────────────────────────────
+export interface RoomPosition {
+  x: number;
+  y: number;
+}
+
+export interface RoomSensors {
+  avgPm25: number;
+  avgPm10: number;
+  avgVoc: number;
+  avgCo2: number;
+  avgTemperature: number;
+  avgHumidity: number;
+}
+
+export interface RoomNode {
+  id: string;
+  name: string;
+  userId: string;
+  position: RoomPosition;
+  deviceIds: string[];
+  sensors?: RoomSensors;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RoomEdgeType = 'door' | 'airflow';
+
+export interface RoomEdge {
+  id: string;
+  userId: string;
+  sourceRoomId: string;
+  targetRoomId: string;
+  type: RoomEdgeType;
+  createdAt: string;
+}
+
+// ─────────────────────────────
+// Rooms
+// ─────────────────────────────
+
+/**
+ * Get all rooms
+ * Endpoint: GET /api/rooms
+ * Response: { rooms: RoomNode[] }
+ */
+export async function getRooms(): Promise<RoomNode[]> {
+  const res = await apiRequest<{ rooms: RoomNode[] }>('/api/rooms');
+  return res.rooms;
+}
+
+/**
+ * Create room
+ * Endpoint: POST /api/rooms
+ * Body: { name, position, deviceIds? }
+ */
+export async function createRoom(payload: {
+  name: string;
+  position: RoomPosition;
+  deviceIds?: string[];
+}): Promise<{ success: boolean; roomId: string; message: string }> {
+  return apiRequest('/api/rooms', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: payload.name,
+      position: payload.position,
+      deviceIds: payload.deviceIds ?? [],
+    }),
+  });
+}
+
+/**
+ * Update room
+ * Endpoint: PATCH /api/rooms/:roomId
+ */
+export async function updateRoom(
+  roomId: string,
+  updates: Partial<Pick<RoomNode, 'name' | 'position' | 'deviceIds'>>,
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/api/rooms/${roomId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+/**
+ * Delete room
+ * Endpoint: DELETE /api/rooms/:roomId
+ */
+export async function deleteRoomApi(
+  roomId: string,
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/api/rooms/${roomId}`, {
+    method: 'DELETE',
+  });
+}
+
+// ─────────────────────────────
+// Edges
+// ─────────────────────────────
+
+/**
+ * Get all room edges
+ * Endpoint: GET /api/rooms/edges
+ * Response: { edges: RoomEdge[] }
+ */
+export async function getRoomEdges(): Promise<RoomEdge[]> {
+  const res = await apiRequest<{ edges: RoomEdge[] }>(
+    '/api/rooms/edges',
+  );
+  return res.edges;
+}
+
+/**
+ * Create room edge
+ * Endpoint: POST /api/rooms/edges
+ * Body: { sourceRoomId, targetRoomId, type }
+ */
+export async function createRoomEdge(payload: {
+  sourceRoomId: string;
+  targetRoomId: string;
+  type: RoomEdgeType;
+}): Promise<{ success: boolean; edgeId: string; message: string }> {
+  return apiRequest('/api/rooms/edges', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Update room edge type
+ * Endpoint: PATCH /api/rooms/edges/:edgeId
+ */
+export async function updateRoomEdgeType(
+  edgeId: string,
+  type: RoomEdgeType,
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/api/rooms/edges/${edgeId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ type }),
+  });
+}
+
+/**
+ * Delete room edge
+ * Endpoint: DELETE /api/rooms/edges/:edgeId
+ */
+export async function deleteRoomEdgeApi(
+  edgeId: string,
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest(`/api/rooms/edges/${edgeId}`, {
+    method: 'DELETE',
+  });
+}
+
+// 특정 deviceId를 하나의 Room에만 연결하는 헬퍼
+export async function assignDeviceToRoom(
+  deviceId: string,
+  targetRoomId: string | null, // null이면 모든 방에서 해제
+): Promise<void> {
+  // 1) 현재 모든 방 가져오기
+  const rooms = await getRooms();
+
+  const tasks: Promise<any>[] = [];
+
+  for (const room of rooms) {
+    const hasDevice = room.deviceIds.includes(deviceId);
+    const shouldHave = targetRoomId === room.id;
+
+    // 상태가 그대로면 패치 안 함
+    if (hasDevice === shouldHave) continue;
+
+    const nextIds = room.deviceIds.filter((id) => id !== deviceId);
+    if (shouldHave) nextIds.push(deviceId);
+
+    tasks.push(
+      updateRoom(room.id, {
+        deviceIds: nextIds,
+      }),
+    );
+  }
+
+  await Promise.all(tasks);
+}
+

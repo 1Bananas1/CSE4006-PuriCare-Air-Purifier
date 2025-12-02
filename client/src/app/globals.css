@@ -49,3 +49,5 @@ a {
 .mb-safe {
   margin-bottom: env(safe-area-inset-bottom);
 }
+
+@import '@xyflow/react/dist/style.css';

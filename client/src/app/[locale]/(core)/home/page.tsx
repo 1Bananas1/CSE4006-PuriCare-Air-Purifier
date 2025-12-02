@@ -13,8 +13,19 @@ import DeviceCarousel from '@/components/features/device-carousel';
 import RoomCard from '@/components/rooms/RoomCard';
 import AqiTrendChart from '@/components/features/aqi-trend-chart';
 
-// 🔹 API 클라이언트에서 Device 타입/함수 재사용
-import { getDevices, type Device } from '@/lib/api';
+// 🔹 API 클라이언트에서 Device / Room Graph 타입/함수 재사용
+import {
+  getDevices,
+  type Device,
+  getRooms,
+  getRoomEdges,
+  createRoom,
+  deleteRoomApi,
+  updateRoomEdgeType,
+  deleteRoomEdgeApi,
+  type RoomNode,
+  type RoomEdge,
+} from '@/lib/api';
 
 // ─────────────────────────────
 // 공통 상수/타입
@@ -42,14 +53,8 @@ function weatherEmoji(main?: string, icon?: string) {
   if (m.includes('thunder')) return '⛈️';
   if (m.includes('drizzle') || m.includes('rain')) return '🌧️';
   if (m.includes('snow')) return '❄️';
-  if (
-    m.includes('mist') ||
-    m.includes('fog') ||
-    m.includes('haze')
-  )
-    return '🌫️';
-  if (m.includes('clear'))
-    return icon?.endsWith('n') ? '🌙' : '☀️';
+  if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return '🌫️';
+  if (m.includes('clear')) return icon?.endsWith('n') ? '🌙' : '☀️';
   if (m.includes('cloud')) return '☁️';
   return '🌤️';
 }
@@ -107,16 +112,11 @@ export default function HomePage() {
       try {
         const raw =
           typeof window !== 'undefined'
-            ? window.localStorage.getItem(
-                LOCATION_STORAGE_KEY,
-              )
+            ? window.localStorage.getItem(LOCATION_STORAGE_KEY)
             : null;
         if (raw) {
           const saved: SavedLocation = JSON.parse(raw);
-          if (
-            typeof saved.lat === 'number' &&
-            typeof saved.lon === 'number'
-          ) {
+          if (typeof saved.lat === 'number' && typeof saved.lon === 'number') {
             setCoords({ lat: saved.lat, lon: saved.lon });
             return true;
           }
@@ -127,10 +127,7 @@ export default function HomePage() {
       return false;
     };
 
-    if (
-      typeof navigator === 'undefined' ||
-      !('geolocation' in navigator)
-    ) {
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
       if (!useSavedLocation()) {
         setCoords(SEOUL);
       }
@@ -145,9 +142,7 @@ export default function HomePage() {
         });
       },
       () => {
-        console.log(
-          'Geolocation permission denied or unavailable',
-        );
+        console.log('Geolocation permission denied or unavailable');
         if (!useSavedLocation()) {
           setCoords(SEOUL);
         }
@@ -161,24 +156,18 @@ export default function HomePage() {
 
   // 실외 날씨 / AQI
   const { data: weather } = useSWR(
-    coords
-      ? `/api/weather?lat=${coords.lat}&lon=${coords.lon}`
-      : null,
+    coords ? `/api/weather?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
     { revalidateOnFocus: false },
   );
 
   const { data: geo } = useSWR(
-    coords
-      ? `/api/geocode?lat=${coords.lat}&lon=${coords.lon}`
-      : null,
+    coords ? `/api/geocode?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
     { revalidateOnFocus: false },
   );
 
-  const city = coords
-    ? geo?.city ?? c('unknown')
-    : 'Location unavailable';
+  const city = coords ? geo?.city ?? c('unknown') : 'Location unavailable';
   const temp = weather?.current?.temp ?? '-';
   const humidity = weather?.current?.humidity ?? '-';
   const main = weather?.current?.main;
@@ -208,10 +197,7 @@ export default function HomePage() {
       return { value: 0, label: 'No Data' };
     }
 
-    const totalAQI = rooms.reduce(
-      (sum, room) => sum + room.aqi,
-      0,
-    );
+    const totalAQI = rooms.reduce((sum, room) => sum + room.aqi, 0);
     const avgAQI = Math.round(totalAQI / rooms.length);
 
     let label = 'Good';
@@ -245,6 +231,89 @@ export default function HomePage() {
   }, [coords, rooms]);
 
   // ─────────────────────────────
+  // Room Graph (Rooms + Edges)
+  // ─────────────────────────────
+
+  const {
+    data: roomGraph,
+    error: roomGraphError,
+    isLoading: isLoadingRoomGraph,
+    mutate: mutateRoomGraph,
+  } = useSWR<{ rooms: RoomNode[]; edges: RoomEdge[] }>(
+    auth.idToken ? 'room-graph' : null,
+    async () => {
+      const [roomNodes, roomEdges] = await Promise.all([getRooms(), getRoomEdges()]);
+      return { rooms: roomNodes, edges: roomEdges };
+    },
+  );
+
+  const roomsById = useMemo(() => {
+    const map: Record<string, RoomNode> = {};
+    if (roomGraph?.rooms) {
+      for (const r of roomGraph.rooms) {
+        map[r.id] = r;
+      }
+    }
+    return map;
+  }, [roomGraph?.rooms]);
+
+  const handleQuickAddRoom = async () => {
+    if (!auth.idToken) return;
+    const name = window.prompt('새 방 이름을 입력하세요');
+    if (!name) return;
+
+    try {
+      await createRoom({
+        name,
+        position: {
+          x: Math.floor(Math.random() * 400),
+          y: Math.floor(Math.random() * 300),
+        },
+        deviceIds: [],
+      });
+      await mutateRoomGraph();
+    } catch (e) {
+      console.error(e);
+      alert('방 생성에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteRoom = async (roomId: string) => {
+    if (!window.confirm('이 방을 삭제할까요? 연결도 함께 삭제됩니다.')) {
+      return;
+    }
+    try {
+      await deleteRoomApi(roomId);
+      await mutateRoomGraph();
+    } catch (e) {
+      console.error(e);
+      alert('방 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleToggleEdgeType = async (edge: RoomEdge) => {
+    const newType: 'door' | 'airflow' = edge.type === 'door' ? 'airflow' : 'door';
+    try {
+      await updateRoomEdgeType(edge.id, newType);
+      await mutateRoomGraph();
+    } catch (e) {
+      console.error(e);
+      alert('연결 타입 변경에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteEdge = async (edgeId: string) => {
+    if (!window.confirm('이 연결을 삭제할까요?')) return;
+    try {
+      await deleteRoomEdgeApi(edgeId);
+      await mutateRoomGraph();
+    } catch (e) {
+      console.error(e);
+      alert('연결 삭제에 실패했습니다.');
+    }
+  };
+
+  // ─────────────────────────────
   // 렌더
   // ─────────────────────────────
 
@@ -269,11 +338,7 @@ export default function HomePage() {
           zIndex: 10,
         }}
       >
-        <div
-          style={{ fontSize: 18, fontWeight: 800 }}
-        >
-          {n('home')}
-        </div>
+        <div style={{ fontSize: 18, fontWeight: 800 }}>{n('home')}</div>
       </div>
 
       <section
@@ -357,11 +422,7 @@ export default function HomePage() {
               >
                 Indoor Air Quality ·{' '}
                 {rooms && rooms.length > 0
-                  ? `${rooms.length} ${
-                      rooms.length === 1
-                        ? 'device'
-                        : 'devices'
-                    }`
+                  ? `${rooms.length} ${rooms.length === 1 ? 'device' : 'devices'}`
                   : 'No devices'}
               </div>
               <div
@@ -394,11 +455,7 @@ export default function HomePage() {
                 }}
               >
                 {rooms && rooms.length > 0
-                  ? `Monitoring ${rooms.length} ${
-                      rooms.length === 1
-                        ? 'room'
-                        : 'rooms'
-                    }`
+                  ? `Monitoring ${rooms.length} ${rooms.length === 1 ? 'room' : 'rooms'}`
                   : 'Add devices to start monitoring'}
               </div>
             </div>
@@ -406,9 +463,7 @@ export default function HomePage() {
         </ShellCard>
 
         {/* 2. 현재 위치 / 날씨 */}
-        <ShellCard
-          onClick={() => router.push('/weather')}
-        >
+        <ShellCard onClick={() => router.push('/weather')}>
           <div
             style={{
               display: 'flex',
@@ -494,12 +549,8 @@ export default function HomePage() {
                 name: room.name,
                 aqi: room.aqi,
                 aqiLabel: room.aqiLabel,
-                status: room.status.online
-                  ? 'online'
-                  : 'offline',
-                mode: room.settings.autoMode
-                  ? 'Auto'
-                  : 'Manual',
+                status: room.status.online ? 'online' : 'offline',
+                mode: room.settings.autoMode ? 'Auto' : 'Manual',
               }))}
             />
           ) : roomsError ? (
@@ -547,16 +598,12 @@ export default function HomePage() {
           <RoomCard
             key={room.id}
             room={room}
-            onClick={() =>
-              router.push(`/room/${room.id}`)
-            }
+            onClick={() => router.push(`/room/${room.id}`)}
           />
         ))}
 
         {/* Add Device CTA */}
-        <ShellCard
-          onClick={() => router.push('/devices/add')}
-        >
+        <ShellCard onClick={() => router.push('/devices/add')}>
           <div
             style={{
               fontSize: 15,
@@ -574,6 +621,311 @@ export default function HomePage() {
           >
             {t('registerQR')}
           </div>
+        </ShellCard>
+      </section>
+
+      {/* Room Graph (간단 리스트 뷰 + 전용 페이지 이동 버튼) */}
+      <section
+        className="mobile-wrap"
+        style={{
+          padding: '0 16px 16px 16px',
+        }}
+      >
+        <div
+          style={{
+            marginBottom: 8,
+            marginTop: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 800,
+                marginBottom: 4,
+              }}
+            >
+              Room Graph
+            </div>
+            <div
+              style={{
+                fontSize: 12,
+                opacity: 0.7,
+              }}
+            >
+              방별 센서 요약과 방 사이 연결(door / airflow)을 단순 리스트로
+              보여주는 홈 화면 요약입니다. 자세한 그래프는 전용 페이지에서
+              확인할 수 있어요.
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push('/rooms/graph')}
+            style={{
+              fontSize: 11,
+              padding: '6px 10px',
+              borderRadius: 999,
+              border: '1px solid rgba(148,163,184,0.6)',
+              background: 'transparent',
+              color: 'inherit',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Open Graph →
+          </button>
+        </div>
+
+        <ShellCard>
+          {isLoadingRoomGraph ? (
+            <div
+              style={{
+                padding: 12,
+                fontSize: 12,
+                opacity: 0.8,
+              }}
+            >
+              방 정보를 불러오는 중입니다...
+            </div>
+          ) : roomGraphError ? (
+            <div
+              style={{
+                padding: 12,
+                fontSize: 12,
+                opacity: 0.8,
+              }}
+            >
+              Room Graph를 불러오는 중 오류가 발생했습니다.
+            </div>
+          ) : !roomGraph || roomGraph.rooms.length === 0 ? (
+            <div
+              style={{
+                padding: 12,
+                fontSize: 12,
+                opacity: 0.8,
+              }}
+            >
+              아직 등록된 방이 없습니다. 아래 버튼으로 첫 방을 추가해보세요.
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+              }}
+            >
+              {/* 방 목록 */}
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                    opacity: 0.8,
+                  }}
+                >
+                  Rooms ({roomGraph.rooms.length})
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  {roomGraph.rooms.map((room) => (
+                    <div
+                      key={room.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: 12,
+                        padding: '6px 8px',
+                        borderRadius: 10,
+                        background: 'rgba(15,23,42,0.7)',
+                        border: '1px solid rgba(148,163,184,0.4)',
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                          }}
+                        >
+                          {room.name}
+                        </div>
+                        <div
+                          style={{
+                            opacity: 0.8,
+                          }}
+                        >
+                          ({room.position.x}, {room.position.y}) ·{' '}
+                          {room.deviceIds.length} devices
+                        </div>
+                        {room.sensors && (
+                          <div
+                            style={{
+                              opacity: 0.8,
+                              marginTop: 2,
+                            }}
+                          >
+                            PM2.5 {room.sensors.avgPm25} · CO2 {room.sensors.avgCo2}{' '}
+                            · Temp {room.sensors.avgTemperature}°C
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRoom(room.id)}
+                        style={{
+                          fontSize: 11,
+                          padding: '4px 8px',
+                          borderRadius: 999,
+                          border: '1px solid rgba(239,68,68,0.6)',
+                          background: 'rgba(127,29,29,0.9)',
+                          color: '#fee2e2',
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 엣지 목록 */}
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                    opacity: 0.8,
+                  }}
+                >
+                  Connections ({roomGraph.edges.length})
+                </div>
+                {roomGraph.edges.length === 0 ? (
+                  <div
+                    style={{
+                      fontSize: 12,
+                      opacity: 0.8,
+                    }}
+                  >
+                    아직 방 사이 연결이 없습니다. Room Graph 페이지에서 노드를
+                    연결해보세요.
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                    }}
+                  >
+                    {roomGraph.edges.map((edge) => {
+                      const source =
+                        roomsById[edge.sourceRoomId]?.name ?? edge.sourceRoomId;
+                      const target =
+                        roomsById[edge.targetRoomId]?.name ?? edge.targetRoomId;
+                      const isDoor = edge.type === 'door';
+                      return (
+                        <div
+                          key={edge.id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontSize: 12,
+                            padding: '6px 8px',
+                            borderRadius: 10,
+                            background: 'rgba(15,23,42,0.7)',
+                            border: '1px solid rgba(148,163,184,0.4)',
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{
+                                fontWeight: 600,
+                              }}
+                            >
+                              {source} → {target}
+                            </div>
+                            <div
+                              style={{
+                                opacity: 0.8,
+                              }}
+                            >
+                              {isDoor ? '🚪 door' : '💨 airflow'} ·{' '}
+                              {new Date(edge.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: 6,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleToggleEdgeType(edge)}
+                              style={{
+                                fontSize: 11,
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                                border: '1px solid rgba(59,130,246,0.7)',
+                                background: 'rgba(15,23,42,0.9)',
+                                color: '#bfdbfe',
+                              }}
+                            >
+                              타입 전환
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEdge(edge.id)}
+                              style={{
+                                fontSize: 11,
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                                border: '1px solid rgba(239,68,68,0.6)',
+                                background: 'rgba(127,29,29,0.9)',
+                                color: '#fee2e2',
+                              }}
+                            >
+                              삭제
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleQuickAddRoom}
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  padding: '6px 10px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(34,197,94,0.7)',
+                  background: 'rgba(22,163,74,0.95)',
+                  color: '#ecfdf5',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                + 새 방 추가
+              </button>
+            </div>
+          )}
         </ShellCard>
       </section>
 
@@ -611,15 +963,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <AqiTrendChart
-          defaultTimeframe="7D"
-          deviceId={rooms && rooms[0]?.id}
-        />
+        <AqiTrendChart defaultTimeframe="7D" deviceId={rooms && rooms[0]?.id} />
       </section>
 
       <BottomNav />
     </main>
   );
 }
-
-
