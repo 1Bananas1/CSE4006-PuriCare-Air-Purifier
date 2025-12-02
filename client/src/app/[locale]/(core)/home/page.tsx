@@ -53,7 +53,8 @@ function weatherEmoji(main?: string, icon?: string) {
   if (m.includes('thunder')) return '⛈️';
   if (m.includes('drizzle') || m.includes('rain')) return '🌧️';
   if (m.includes('snow')) return '❄️';
-  if (m.includes('mist') || m.includes('fog') || m.includes('haze')) return '🌫️';
+  if (m.includes('mist') || m.includes('fog') || m.includes('haze'))
+    return '🌫️';
   if (m.includes('clear')) return icon?.endsWith('n') ? '🌙' : '☀️';
   if (m.includes('cloud')) return '☁️';
   return '🌤️';
@@ -93,14 +94,14 @@ export default function HomePage() {
   const c = useTranslations('Common');
   const n = useTranslations('Navigation');
 
-  // 로그인 안 되어 있으면 /login
+  // 로그인 안 되어 있으면 /login (단, 데모 모드는 허용)
   useEffect(() => {
-    if (ready && !auth.idToken) router.replace('/login');
-  }, [auth.idToken, ready, router]);
+    if (ready && !auth.idToken && !auth.demoMode) router.replace('/login');
+  }, [auth.idToken, auth.demoMode, ready, router]);
 
   const name = useMemo(
     () => auth.profile?.name ?? '사용자',
-    [auth.profile?.name],
+    [auth.profile?.name]
   );
 
   // 위치
@@ -150,7 +151,7 @@ export default function HomePage() {
       {
         enableHighAccuracy: true,
         timeout: 8000,
-      },
+      }
     );
   }, []);
 
@@ -158,16 +159,16 @@ export default function HomePage() {
   const { data: weather } = useSWR(
     coords ? `/api/weather?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const { data: geo } = useSWR(
     coords ? `/api/geocode?lat=${coords.lat}&lon=${coords.lon}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
-  const city = coords ? geo?.city ?? c('unknown') : 'Location unavailable';
+  const city = coords ? (geo?.city ?? c('unknown')) : 'Location unavailable';
   const temp = weather?.current?.temp ?? '-';
   const humidity = weather?.current?.humidity ?? '-';
   const main = weather?.current?.main;
@@ -187,7 +188,7 @@ export default function HomePage() {
   } = useSWR<RoomSummary[]>(
     // 로그인된 상태에서만 호출
     auth.idToken ? '/api/devices' : null,
-    () => getDevices(),
+    () => getDevices()
   );
 
   const rooms: RoomSummary[] = roomsFromApi ?? [];
@@ -224,7 +225,7 @@ export default function HomePage() {
         const lon = lonRaw;
         setCoords({ lat, lon });
         console.log(
-          `Using location from device "${deviceWithGeo.name}": ${lat}, ${lon}`,
+          `Using location from device "${deviceWithGeo.name}": ${lat}, ${lon}`
         );
       }
     }
@@ -324,6 +325,8 @@ export default function HomePage() {
         minHeight: '100dvh',
         background: 'var(--bg)',
         color: 'var(--text)',
+        overflowX: 'hidden',
+        width: '100%',
       }}
     >
       <WelcomeModal />
@@ -386,8 +389,8 @@ export default function HomePage() {
                 ? averageIndoorAQI.value <= 50
                   ? t('goodAQINotice1')
                   : averageIndoorAQI.value <= 100
-                  ? t('moderateAQINotice1')
-                  : t('badAQINotice1')
+                    ? t('moderateAQINotice1')
+                    : t('badAQINotice1')
                 : t('addDeviceNotice')}
             </div>
             <div
@@ -399,64 +402,65 @@ export default function HomePage() {
                   averageIndoorAQI.value <= 50
                     ? 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(16,185,129,0.15))'
                     : averageIndoorAQI.value <= 100
-                    ? 'linear-gradient(135deg, rgba(234,179,8,0.25), rgba(202,138,4,0.15))'
-                    : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.15))',
+                      ? 'linear-gradient(135deg, rgba(234,179,8,0.25), rgba(202,138,4,0.15))'
+                      : 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.15))',
                 border:
                   averageIndoorAQI.value <= 50
                     ? '1.5px solid rgba(34,197,94,0.4)'
                     : averageIndoorAQI.value <= 100
-                    ? '1.5px solid rgba(234,179,8,0.4)'
-                    : '1.5px solid rgba(239,68,68,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
+                      ? '1.5px solid rgba(234,179,8,0.4)'
+                      : '1.5px solid rgba(239,68,68,0.4)',
               }}
-            ></div>
-            <div style={{ display: 'grid', gap: 2 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  opacity: 0.8,
-                }}
-              >
-                Indoor Air Quality ·{' '}
-                {rooms && rooms.length > 0
-                  ? `${rooms.length} ${rooms.length === 1 ? 'device' : 'devices'}`
-                  : 'No devices'}
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 800,
-                  color:
-                    averageIndoorAQI.value <= 50
-                      ? '#22c55e'
-                      : averageIndoorAQI.value <= 100
-                      ? '#eab308'
-                      : '#ef4444',
-                }}
-              >
-                AQI {averageIndoorAQI.value}{' '}
-                <span
+            >
+              <div style={{ display: 'grid', gap: 2 }}>
+                <div
                   style={{
-                    fontSize: 13,
-                    color: '#fff',
-                    opacity: 0.9,
+                    fontSize: 11,
+                    opacity: 0.8,
                   }}
                 >
-                  ({averageIndoorAQI.label})
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  opacity: 0.8,
-                }}
-              >
-                {rooms && rooms.length > 0
-                  ? `Monitoring ${rooms.length} ${rooms.length === 1 ? 'room' : 'rooms'}`
-                  : 'Add devices to start monitoring'}
+                  Indoor Air Quality ·{' '}
+                  {rooms && rooms.length > 0
+                    ? `${rooms.length} ${
+                        rooms.length === 1 ? 'device' : 'devices'
+                      }`
+                    : 'No devices'}
+                </div>
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color:
+                      averageIndoorAQI.value <= 50
+                        ? '#22c55e'
+                        : averageIndoorAQI.value <= 100
+                          ? '#eab308'
+                          : '#ef4444',
+                  }}
+                >
+                  AQI {averageIndoorAQI.value}{' '}
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: '#fff',
+                      opacity: 0.9,
+                    }}
+                  >
+                    ({averageIndoorAQI.label})
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    opacity: 0.8,
+                  }}
+                >
+                  {rooms && rooms.length > 0
+                    ? `Monitoring ${rooms.length} ${
+                        rooms.length === 1 ? 'room' : 'rooms'
+                      }`
+                    : 'Add devices to start monitoring'}
+                </div>
               </div>
             </div>
           </div>
@@ -499,11 +503,18 @@ export default function HomePage() {
         </ShellCard>
 
         {/* device carousel */}
-        <section style={{ marginTop: 8 }}>
+        <section
+          style={{
+            marginTop: 8,
+            maxWidth: '100vw',
+            overflow: 'hidden',
+          }}
+        >
           <div
             className="mobile-wrap"
             style={{
               paddingLeft: 16,
+              paddingRight: 16,
               marginBottom: 12,
             }}
           >
@@ -525,10 +536,10 @@ export default function HomePage() {
               {isLoadingRooms
                 ? 'Loading devices...'
                 : roomsError
-                ? 'Failed to load devices. Please try again.'
-                : rooms && rooms.length > 0
-                ? 'Tap any device to view details and controls'
-                : c('noDevicesRegistered')}
+                  ? 'Failed to load devices. Please try again.'
+                  : rooms && rooms.length > 0
+                    ? 'Tap any device to view details and controls'
+                    : c('noDevicesRegistered')}
             </div>
           </div>
           {isLoadingRooms ? (

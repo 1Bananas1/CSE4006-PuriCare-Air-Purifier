@@ -84,7 +84,9 @@
     "goToHome": "Go to Home",
     "switchAccount": "Log in with different account",
     "devLogin": "Dev Login (Skip)",
-    "loginFailed": "Login failed. Please try again."
+    "loginFailed": "Login failed. Please try again.",
+    "tryDemo": "Try the Demo",
+    "demoDescription": "Click to enter demo mode"
   },
   "SignupPage": {
     "title": "Sign Up",
@@ -320,7 +322,7 @@
     "friday": "Friday",
     "saturday": "Saturday"
   },
-  "DevicesAddQrPage":{
+  "DevicesAddQrPage": {
     "back": "Back",
     "qrTitle": "Scan QR Code",
     "cameraUnsupported": "Camera is not available in this browser.",
@@ -357,37 +359,37 @@
     "retrySerial": "Register with serial number"
   },
   "DevicesAddSerialSuccessPage": {
-  "back": "Back",
-  "title": "Device Registration Complete",
-  "successTitle": "Your device has been registered successfully",
-  "successBody": "You can now check real-time air quality and\ndevice status from the home screen.",
-  "goHome": "Go to Home",
-  "goDevices": "View My Devices"
-},
-  "DevicesAddSerialPage": {
-  "back": "Back",
-  "title": "Enter Serial Number",
-  "description": "Please enter the serial number printed on the back of the product or on the box.",
-  "serialLabel": "Serial Number",
-  "serialPlaceholder": "e.g., PC-AX34K-123456",
-  "roomQuestion": "Which room is this device placed in?",
-  "room": {
-    "living": "Living room",
-    "master": "Master bedroom",
-    "small": "Small room",
-    "small2": "Second small room",
-    "toilet": "Toilet",
-    "bath": "Bathroom"
+    "back": "Back",
+    "title": "Device Registration Complete",
+    "successTitle": "Your device has been registered successfully",
+    "successBody": "You can now check real-time air quality and\ndevice status from the home screen.",
+    "goHome": "Go to Home",
+    "goDevices": "View My Devices"
   },
-  "errorRequired": "Please enter a serial number.",
-  "errorFormat": "The serial number format is invalid.",
-  "errorInvalidSerial": "The serial number is not valid.",
-  "errorAlreadyRegistered": "This device has already been registered.",
-  "errorRegisterGeneric": "An error occurred while registering the device.",
-  "networkError": "A network error occurred. Please try again later.",
-  "submitLoading": "Registering...",
-  "submitNext": "Next"
-},
+  "DevicesAddSerialPage": {
+    "back": "Back",
+    "title": "Enter Serial Number",
+    "description": "Please enter the serial number printed on the back of the product or on the box.",
+    "serialLabel": "Serial Number",
+    "serialPlaceholder": "e.g., PC-AX34K-123456",
+    "roomQuestion": "Which room is this device placed in?",
+    "room": {
+      "living": "Living room",
+      "master": "Master bedroom",
+      "small": "Small room",
+      "small2": "Second small room",
+      "toilet": "Toilet",
+      "bath": "Bathroom"
+    },
+    "errorRequired": "Please enter a serial number.",
+    "errorFormat": "The serial number format is invalid.",
+    "errorInvalidSerial": "The serial number is not valid.",
+    "errorAlreadyRegistered": "This device has already been registered.",
+    "errorRegisterGeneric": "An error occurred while registering the device.",
+    "networkError": "A network error occurred. Please try again later.",
+    "submitLoading": "Registering...",
+    "submitNext": "Next"
+  },
   "Components": {
     "BottomNav": {
       "automation": "Automation",
