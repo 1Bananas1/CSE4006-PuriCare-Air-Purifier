@@ -202,9 +202,9 @@ export async function registerDevice(
   return apiRequest<RegisterDeviceResponse>('/api/devices/register', {
     method: 'POST',
     body: JSON.stringify({
-      deviceId: data.deviceId,
+      deviceID: data.deviceId,      // Backend expects deviceID (uppercase ID)
       name: data.name,
-      location: data.location,
+      customLocation: data.location, // Backend expects customLocation
     }),
   });
 }

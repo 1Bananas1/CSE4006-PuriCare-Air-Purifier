@@ -749,7 +749,6 @@ bbongvong@hanyang.ac.kr}
         \subsubsection{Simulation Logic}
         \subsubsection{Realistic Scenarios}
         \subsubsection{WebSocket Integration}
-        \subsubsection{Prediction Algorithm}
         \subsubsection{Integration with Device Control}
     \subsection{\textbf{Automation Routine System}}
         \subsubsection{Routine Data Structure (Firebase Firestore)}
@@ -760,6 +759,145 @@ bbongvong@hanyang.ac.kr}
         \subsubsection{Personalization Engine}
         \subsubsection{Delivery System}
         \subsubsection{Rate Limiting}
+    \subsection{\textbf{Audible Health Symption Detection}}
+        \begin{enumerate}
+            \item System Architecture: 
+                The PureCare Air Purifier implements a two-stage neural network architecture for intelligent cough detection and classification, replacing traditional threshold-based approaches with sophisticated machine learning inference.
+                \begin{enumerate}
+                    \item Cough Detection Model
+                        \begin{itemize} 
+                            \item Architecture: Lightweight 1D Convolutional Neural Network (CNN) 
+                            \item Task: Binary classification (cough vs. non-cough) 
+                            \item Input: 39-dimensional MFCC features over 1.5-second audio windows 
+                            \item Output: Sigmoid activation producing probability score [0,1] \item Decision threshold: 0.7 confidence for positive detection 
+                            \item Design priority: Real-time inference speed and low computational overhead 
+                        \end{itemize}
+                    \item Cough Classification Model
+                        \begin{itemize} 
+                            \item Architecture: Hybrid CNN-LSTM network 
+                            \item Task: Multi-class classification of cough types 
+                            \item Purpose: Identifies specific cough characteristics for health insights 
+                            \item Output: Softmax activation over N cough categories \item Temporal modeling: LSTM layer captures sequential dependencies in cough patterns 
+                            \item Activation: Only processes audio segments flagged by Stage 1 detection 
+                        \end{itemize}
+                \end{enumerate}
+            \item Feature Extraction
+                \begin{itemize}
+                    \item MFCC (Mel-Frequency Cepstral Coefficients):
+                        The system employs MFCC feature extraction, a standard technique in audio signal processing that mimics human auditory perception
+                         \begin{itemize} 
+                            \item Sample Rate: 8kHz (optimized for low-frequency respiratory sounds) 
+                            \item Window Size: 1.5 seconds (captures complete cough events) 
+                            \item Base MFCCs: 13 coefficients 
+                            \item Delta Features: 13 first-order derivatives (velocity of spectral change) 
+                            \item Delta-Delta Features: 13 second-order derivatives (acceleration of spectral change) 
+                            \item Total Feature Dimensions: 39 per time frame 
+                            \item FFT Window: 512 samples with 256-sample hop length 
+                            \item Mel Filterbank: 40 triangular filters spanning 50Hz to 4000Hz    
+                        \end{itemize}
+                    \item Feature Normalization
+                    \begin{itemize}
+                        \item All extracted features undergo zero-mean unit-variance normalization to improve neural network training stability and convergence: $$\text{normalized} = \frac{\text{features} - \mu}{\sigma}$$ where $\mu$ and $\sigma$ are computed per-feature across the time dimension
+                    \end{itemize}
+                \end{itemize}
+            \item Live Detection Pipeline
+                \begin{itemize}
+                    \item Audio Acquisition and Buffering
+                        \begin{enumerate} 
+                            \item Continuous audio stream captured at 8kHz, mono channel 
+                            \item Circular buffer maintains 10 seconds of recent audio (80,000 samples) 
+                            \item Thread-safe deque structure with mutex-protected access 
+                            \item Block size: 2048 samples for efficient callback processing
+                        \end{enumerate}
+                    \item Sliding Window Detection
+                        \begin{enumerate} 
+                            \item Detection Window: 1.5 seconds (12,000 samples) 
+                            \item Hop Length: 0.5 seconds (4,000 samples) — 66\% overlap between windows 
+                            \item Processing Rate: Approximately 2 windows per second 
+                            \item Overlap strategy: Ensures no cough events are missed between windows 
+                        \end{enumerate}
+                    \item Energy Pre-filtering (Optional Optimization): 
+                        Before neural network inference, a fast RMS energy calculation filters silent segments: $$\text{RMS} = \sqrt{\frac{1}{N}\sum_{i=1}^{N} x_i^2}$$
+                        \begin{itemize} 
+                            \item Energy Threshold: 0.01 (configurable) 
+                            \item Purpose: Reduces unnecessary NN inference on silence, improving efficiency 
+                            \item Computational cost: O(N) vs. O(N log N) for MFCC extraction
+                        \end{itemize}
+                    \item Neural Network Inference
+                        \begin{enumerate} 
+                            \item Extract MFCC features from 1.5s window: Shape (39, 47 frames)
+                            \item Stage 1: Pass features through detection CNN 
+                            \item If detection confidence >= 0.7: Flag as cough event 
+                            \item Stage 2: Pass same features through classification CNN-LSTM 
+                            \item Extract cough type/category and confidence score 
+                            \item Log detection with timestamp, confidence, and classification
+                        \end{enumerate}
+                \end{itemize}
+            \item Training and Data Augmentation
+                \begin{itemize}
+                    \item Dataset Preparation
+                        \begin{itemize} 
+                            \item Train/Validation/Test Split: 70\%/15\%/15\% 
+                            \item Fixed random seed for reproducible splits 
+                            \item Stratified sampling maintains class balance across splits 
+                        \end{itemize}
+                    \item Data Augmentation Techniques
+                        To improve model generalization and robustness to real-world variations: 
+                        \begin{enumerate} 
+                            \item Time Shifting: Circular shift of up to ±20\% of signal length 
+                            \item Speed Perturbation: Time-stretching with rate factor in [0.9, 1.1] 
+                            \item Additive Noise: White noise or environmental noise at SNR between -5dB and 15dB 
+                            \item Application: Random combination of augmentations during training only 
+                        \end{enumerate}
+                    \item Training Configuration
+                        \textbf{Detection Model:} 
+                            \begin{itemize} 
+                                \item Optimizer: Adam with learning rate 0.001 
+                                \item Loss Function: Binary cross-entropy 
+                                \item Batch Size: 32 
+                                \item Epochs: 50 (with early stopping, patience=10) 
+                                \item Learning Rate Schedule: ReduceLROnPlateau (factor=0.5, patience=5) 
+                                \item Metrics: Accuracy, Precision, Recall, AUC 
+                            \end{itemize} 
+                        \textbf{Classification Model:} 
+                            \begin{itemize} 
+                                \item Optimizer: Adam with learning rate 0.0001 
+                                \item Loss Function: Categorical cross-entropy 
+                                \item Batch Size: 32 
+                                \item Epochs: 100 (with early stopping, patience=15) 
+                                \item Learning Rate Schedule: ReduceLROnPlateau (factor=0.5, patience=7) 
+                                \item Metrics: Categorical accuracy, Top-2 accuracy 
+                            \end{itemize}
+                \end{itemize}
+            \item Model Architecture Details
+                \begin{itemize}
+                    \item Detection Model (1D CNN)
+                        \begin{enumerate} 
+                            \item Input: (39 features, 47 time frames) 
+                            \item Permutation: Transpose to (47 time frames, 39 features) for 1D convolution 
+                            \item Conv1D Block 1: 32 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Conv1D Block 2: 64 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Conv1D Block 3: 128 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Global Average Pooling: Reduces temporal dimension 
+                            \item Dense: 64 units, ReLU → Dropout(0.3) 
+                            \item Output: 1 unit, Sigmoid activation 
+                            \item Total Parameters: ~50K (lightweight for edge deployment) 
+                        \end{enumerate}
+                    \item Classification Model (CNN-LSTM)
+                        \begin{enumerate} 
+                            \item Input: (39 features, 47 time frames) 
+                            \item Permutation: Transpose to (47 time frames, 39 features) 
+                            \item Conv1D Block 1: 64 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item Conv1D Block 2: 128 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item Conv1D Block 3: 256 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item LSTM Layer: 128 units (captures temporal dependencies in cough dynamics) 
+                            \item Dropout(0.4) 
+                            \item Dense: 128 units, ReLU → Dropout(0.4) 
+                            \item Output: N units (number of cough classes), Softmax activation 
+                            \item Total Parameters: ~400K 
+                        \end{enumerate}
+                \end{itemize}
+        \end{enumerate}
     \subsection{\textbf{Cost Analysis \& Infrastructure}}
             \begin{table}[htbp]
             \caption{Heroku Deployment Costs}
@@ -797,7 +935,7 @@ bbongvong@hanyang.ac.kr}
     \subsection{Overall Architecture}
     \subsection{Directory Organization}
     \subsection{Next.js Frontend}
-        For the PureCare Air Purifier to have apathetic intelligence, we needed a way to deliver this sentiment to the user. To do this, we made a Next.js based Progressive Web App. The app allows us to communicate and receive inputs from users, making for a truly responsive design. Within the app, users are able to register, control, and receive real time data from the air purifier.
+        For the PureCare Air Purifier to have empathetic intelligence, we needed a way to deliver this sentiment to the user. To do this, we made a Next.js based Progressive Web App. The app allows us to communicate and receive inputs from users, making for a truly responsive design. Within the app, users are able to register, control, and receive real time data from the air purifier.
         The source code for the front end can be found in the \texttt{client} folder.
     \subsection{Express Backend}
         In order to fulfill key essential functions for the device, we needed to design some sort of server to support our devices and front end. To resolve this issue, we designed a fully custom express.js backend to power our services. The backend, which is hosted on Heroku, allows us to be a middleman between the physical hardware and the user software, while also giving crucial information for the hardware so that it can act proactively rather than reactively.

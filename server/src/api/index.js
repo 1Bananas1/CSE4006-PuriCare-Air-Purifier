@@ -38,6 +38,10 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3020;
 
+// Enable trust proxy for Heroku deployment
+// This allows rate limiters and other middleware to correctly identify client IPs
+app.set('trust proxy', 1);
+
 // Configure allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:3000',
