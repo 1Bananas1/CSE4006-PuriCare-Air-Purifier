@@ -10,6 +10,7 @@
 \usepackage{textcomp}
 \usepackage{fixltx2e}
 \usepackage{url}
+\usepackage{seqsplit}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \setlist[enumerate,1]{label=\Alph*., leftmargin=25pt, itemsep=8pt}
@@ -973,103 +974,122 @@ bbongvong@hanyang.ac.kr}
     \end{figure}
     \subsection{Directory Organization}
         \begin{enumerate}
-            \item Front End
-            \begin{table}[htbp]
-                \caption{Front end directory}
-                \begin{center}
-                    \small
-                    \setlength{\tabcolsep}{4pt} 
-                    \renewcommand{\arraystretch}{1.3} 
-                        \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
-                            \hline
-                            \multicolumn{1}{|c|}{\textbf{Directory}} & 
-                            \multicolumn{1}{c|}{\textbf{Key Files}} & 
-                            \multicolumn{1}{c|}{\textbf{Module Components}} & 
-                            \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
-                            \path{/client/src/app/[locale]/(auth)/} &
-                            \path{login/page.tsx} \path{signup/page.tsx} &
-                            User Authentication UI & 
-                            Google OAuth 2.0 login/signup screens (FR-002) \\ \hline
-                            \path{/client/src/app/[locale]/(core)/} & 
-                            \path{home/page.tsx} & 
-                            Home Page & 
-                            Main dashboard with device list, AQI display, user greeting (FR-004) \\ \hline
-                            \path{/client/src/app/[locale]/automation/} &
-                            \path{page.tsx} & 
-                            Automation/Routine System UI & 
-                            Routine management screen with routine cards (FR-006) \\ \hline
-                            \path{/client/src/app/[locale]/room/[id]/} &
-                            \path{page.tsx} &
-                            Device Control Page &
-                            Real-time device control interface with power, fan speed, timer, child lock controls (FR-008) \\ \hline
-                            \path{/client/src/app/[locale]/settings/} &
-                            \path{page.tsx} \path{account/page.tsx}
-                            \path{devices/page.tsx}
-                            \path{location/page.tsx}
-                            \path{privacy/page.tsx} &
-                            Settings Module &
-                            Account settings, device management, location selection, privacy controls (FR-009 to FR-013) & \\ \hline
-                            \path{/client/src/app/[locale]/devices/add/} &
-                            \path{page.tsx}
-                            \path{qr/page.tsx}
-                            \path{qr/confirm/page.tsx}
-                            \path{serial/page.tsx}
-                            \path{serial/success/page.tsx} &
-                            Device Registration &
-                            QR code scanning and serial number entry for device pairing (FR-003) \\ \hline
-                            \path{/client/src/app/[locale]/report/} &
-                            \path{page.tsx} &
-                            Data Visualization &
-                            Sensor data reports and analytics dashboard \\ \hline
-                            \path{/client/src/app/[locale]/weather/} &
-                            \path{page.tsx} &
-                            Weather Integration &
-                            External AQI and weather data display interface \\ \hline
-                            \path{/client/src/app/api/} &
-                            \path{forecast/route.ts}
-                            \path{geocode/route.ts}
-                            \path{weather/route.ts} &
-                            API Routes &
-                            Next.js API endpoints for weather and geocoding services \\ \hline
-                            \path{/client/src/components/features/} &
-                            \path{aqi-trend-chart.tsx}
-                            \path{device-carousel.tsx}
-                            \path{kakao-map.tsx}
-                            \path{welcome-modal.tsx} &
-                            Feature Components &
-                            Reusable UI components for charts, device displays, maps \\ \hline
-                            \path{/client/src/components/layout/} &
-                            \path{bottom-nav.tsx}
-                            \path{client-layout-wrapper.tsx}
-                            \path{splash.tsx} &
-                            Layout Components &
-                            Navigation bar (FR-005), splash screen, layout wrappers \\ \hline
-                            \path{/client/src/components/ui/} &
-                            \path{demo-mode-banner.tsx}
-                            \path{segmented-control.tsx} &
-                            UI Components &
-                            Shared UI elements like segmented controls, banners \\ \hline
-                            \path{/client/src/lib/} &
-                            \path{api.ts}
-                            \path{auth.tsx}
-                            \path{firebase.ts}
-                            \path{fcm.ts}
-                            \path{weather.tsx} &
-                            Client Libraries &
-                            API client, authentication logic, Firebase config, FCM push notifications (FR-014), weather API integration \\ \hline
-                            \path{/client/src/i18n/} &
-                            \path{request.ts}
-                            \path{routing.ts} &
-                            Internationalization &
-                            Multi-language support (i18n) routing and request handling \\ \hline
+                \begin{table}[htbp]
+                    \caption{Front end directory}
+                    \begin{center}
+                        \footnotesize
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                                \hline
+                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                                \path{/client/src/app/[locale]/(auth)/} &
+                                \path{login/page.tsx} \path{signup/page.tsx} &
+                                User Authentication UI & 
+                                Google OAuth 2.0 login/signup screens (FR-002) \\ \hline
+                                \path{/client/src/app/[locale]/(core)/} & 
+                                \path{home/page.tsx} & 
+                                Home Page & 
+                                Main dashboard with device list, AQI display, user greeting (FR-004) \\ \hline
+                                \path{/client/src/app/[locale]/automation/} &
+                                \path{page.tsx} & 
+                                Automation/Routine System UI & 
+                                Routine management screen with routine cards (FR-006) \\ \hline
+                                \path{/client/src/app/[locale]/room/[id]/} &
+                                \path{page.tsx} &
+                                Device Control Page &
+                                Real-time device control interface with power, fan speed, timer, child lock controls (FR-008) \\ \hline
+                                \path{/client/src/app/[locale]/settings/} &
+                                \path{page.tsx} \path{account/page.tsx}
+                                \path{devices/page.tsx}
+                                \path{location/page.tsx}
+                                \path{privacy/page.tsx} &
+                                Settings Module &
+                                Account settings, device management, location selection, privacy controls (FR-009 to FR-013) & \\ \hline
+                                \path{/client/src/app/[locale]/devices/add/} &
+                                \path{page.tsx}
+                                \path{qr/page.tsx}
+                                \path{qr/confirm/page.tsx}
+                                \path{serial/page.tsx}
+                                \path{serial/success/page.tsx} &
+                                Device Registration &
+                                QR code scanning and serial number entry for device pairing (FR-003) \\ \hline
+                                \path{/client/src/app/[locale]/report/} &                  
+                                \path{page.tsx} &
+                                Data Visualization &
+                                Sensor data reports and analytics dashboard \\ \hline
+                                \path{/client/src/app/[locale]/weather/} &
+                                \path{page.tsx} &
+                                Weather Integration &
+                                External AQI and weather data display interface \\ \hline
+                                \path{/client/src/app/api/} &
+                                \path{forecast/route.ts}
+                                \path{geocode/route.ts}
+                                \path{weather/route.ts} &
+                                API Routes &
+                                Next.js API endpoints for weather and geocoding services \\ \hline
+                            \end{tabular}%
+                        \end{center}
+                    \end{table}
+                    \begin{table}[htbp]
+                    \caption{Front end directory contd.}
+                    \begin{center}
+                        \footnotesize
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                                \hline
+                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                                
+                                \path{/client/src/components/features/} &
+                                \seqsplit{aqi-trend-chart.tsx} 
+                                \seqsplit{device-carousel.tsx}
+                                \seqsplit{kakao-map.tsx}
+                                \seqsplit{welcome-modal.tsx} &
+                                Feature Components &
+                                Reusable UI components for charts, device displays, maps \\ \hline
+                                
+                                \path{/client/src/components/layout/} &
+                                \seqsplit{bottom-nav.tsx}
+                                \seqsplit{client-layout-wrapper.tsx}
+                                \seqsplit{splash.tsx} &
+                                Layout Components &
+                                Navigation bar (FR-005), splash screen, layout wrappers \\ \hline
+                                
+                                \path{/client/src/components/ui/} &
+                                \seqsplit{demo-mode-banner.tsx}
+                                \seqsplit{segmented-control.tsx} &
+                                UI Components &
+                                Shared UI elements like segmented controls, banners \\ \hline
+                                
+                                \path{/client/src/lib/} &
+                                \path{api.ts}
+                                \path{auth.tsx}
+                                \path{firebase.ts}
+                                \path{fcm.ts}
+                                \path{weather.tsx} &
+                                Client Libraries &
+                                API client, authentication logic, Firebase config, FCM push notifications (FR-014), weather API integration \\ \hline
+                                
+                                \path{/client/src/i18n/} &
+                                \path{request.ts}
+                                \path{routing.ts} &
+                                Internationalization &
+                                Multi-language support (i18n) routing and request handling \\ \hline
+                                
                         \end{tabular}%
             \end{center}
         \end{table}
-            \item Backend
             \begin{table}[htbp]
                 \caption{Backend directory}
                 \begin{center}
-                    \small
+                    \footnotesize
                     \setlength{\tabcolsep}{4pt} 
                     \renewcommand{\arraystretch}{1.3} 
                         \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
@@ -1089,44 +1109,43 @@ bbongvong@hanyang.ac.kr}
                             \path{/server/src/api/database/} &
                             \path{init.js} & 
                             Database Initialization & 
-                            PostgreSQL/TimescaleDB connection setup \\ \hline
+                            PostgreSQL / TimescaleDB connection setup \\ \hline
                             \path{/server/src/api/middleware/} &
                             \path{auth.js}
-                            \path{rateLimiter.js} &
+                            \seqsplit{rateLimiter.js} &
                             Authentication \& Security &
                             JWT token verification middleware, API rate limiting \\ \hline
                             \path{/server/src/api/routes/} &
-                            \path{auth.js}
-                            \path{controlRoutes.js}
-                            \path{deviceRoutes.js}
-                            \path{roomRoutes.js}
-                            \path{sensorRoutes.js}
-                            \path{userRoutes.js}
-                            \path{notificationRoutes.js} &
+                            \seqsplit{auth.js}
+                            \seqsplit{controlRoutes.js}
+                            \seqsplit{deviceRoutes.js}
+                            \seqsplit{roomRoutes.js}
+                            \seqsplit{sensorRoutes.js}
+                            \seqsplit{userRoutes.js}
+                            \seqsplit{notificationRoutes.js} &
                             REST API Endpoints &
                             Authentication, device control commands, device registration, room management, sensor data queries, user profile, push notifications \\ \hline
                             \path{/server/src/api/services/} &
-                            \path{deviceService.js}
-                            \path{sensorDataService.js}
-                            \path{notificationService.js}
-                            \path{timezoneService.js} &
+                            \seqsplit{deviceService.js}
+                            \seqsplit{sensorDataService.js}
+                            \seqsplit{notificationService.js}
+                            \seqsplit{timezoneService.js} &
                             Business Logic Services &
                             Device state management, time-series data aggregation, empathetic notification generation (FR-014), timezone handling \\ \hline
                             \path{/server/src/api/scripts/} &
-                            \path{aqiScripts.js}
-                            \path{midnightRoutine.js}
-                            \path{processNotifications.js} &
+                            \seqsplit{aqiScripts.js}
+                            \seqsplit{midnightRoutine.js}
+                            \seqsplit{processNotifications.js} &
                             Background Jobs \& Scripts &
                             AQI data fetching, daily reset routines, notification batch processing \\ \hline
                         \end{tabular}%
                 \end{center}
             \end{table}
             
-            \item Hardware Simulator
             \begin{table}[htbp]
                 \caption{Hardware simulator directory}
                 \begin{center}
-                    \small
+                    \footnotesize
                     \setlength{\tabcolsep}{4pt} 
                     \renewcommand{\arraystretch}{1.3} 
                         \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
@@ -1175,11 +1194,10 @@ bbongvong@hanyang.ac.kr}
                 \end{center}
             \end{table}
             
-            \item Machine Learning / AI
             \begin{table}[htbp]
                 \caption{ML/AI audio detection directory}
                 \begin{center}
-                    \small
+                    \footnotesize
                     \setlength{\tabcolsep}{4pt} 
                     \renewcommand{\arraystretch}{1.3} 
                         \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
@@ -1199,7 +1217,7 @@ bbongvong@hanyang.ac.kr}
                             Neural Network Architecture & 
                             Stage 1: 1D CNN for binary cough detection (39 MFCCs, 0.7 confidence threshold, $\sim$50K params). Stage 2: CNN-LSTM for cough classification (128 LSTM units, $\sim$400K params) \\ \hline
                             \path{/hardware/audio_analyzer/} &
-                            \path{feature_extraction.py} & 
+                            \seqsplit{feature_extraction.py} & 
                             Audio Feature Engineering & 
                             MFCC extraction (8kHz, 13 base + 13 delta + 13 delta-delta = 39 features), 1.5s windows with 0.5s hop length, zero-mean unit-variance normalization \\ \hline
                             \path{/hardware/audio_analyzer/} &
@@ -1227,12 +1245,6 @@ bbongvong@hanyang.ac.kr}
                             \path{segmentation.py} &
                             Audio Utilities &
                             Audio recording tools, playback utilities, audio segmentation for dataset preparation \\ \hline
-                            \path{/hardware/} &
-                            \path{collect_cough_samples.py}
-                            \path{collect_training_samples.py}
-                            \path{quick_collect_samples.py} &
-                            Data Collection Scripts &
-                            Tools for recording and labeling training data samples \\ \hline
                         \end{tabular}%
                 \end{center}
             \end{table}
@@ -1255,6 +1267,7 @@ bbongvong@hanyang.ac.kr}
 \section{Software Installation Guide}
 
 \section{Discussion}
+One of the biggest issues in this project was the language barrier which lead to many problems. Clear communication was a struggle and keeping track of what each other had done, despite the use of the github projects, was a real issue.
 
 \begin{thebibliography}{00}
 \bibitem{b1}  World Health Organization, "Billions of people still breathe unhealthy air: new WHO data," WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
