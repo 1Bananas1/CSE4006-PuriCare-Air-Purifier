@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-/** UTF-8 안전 JWT Payload 디코더 (Base64URL → Uint8Array → TextDecoder → JSON) */
+// UTF-8 안전 JWT Payload 디코더 (Base64URL → Uint8Array → TextDecoder → JSON) 
 function decodeJwtPayload(token: string) {
   const b64url = token.split('.')[1] || '';
   // Base64URL → Base64
