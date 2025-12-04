@@ -9,6 +9,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
 \usepackage{fixltx2e}
+\usepackage{float}
 \usepackage{url}
 \usepackage{seqsplit}
 \usepackage{xcolor}
@@ -71,7 +72,7 @@ bbongvong@hanyang.ac.kr}
 \begin{tabular}{|p{2cm}|p{1.5cm}|p{4cm}|}
 \hline
 \multicolumn{1}{|c|}{\textbf{Roles}} & \multicolumn{1}{c|}{\textbf{Name}} & \multicolumn{1}{c|}{\textbf{Task description and etc.}} \\ \hline
-\centering User & \centering Yim Soobin & Identifies user needs and improves product usability. Thinks of ideas, designs functions, and suggests practical ways to implement features that address real-world problems. \\ \hline
+\centering User & \centering Yim Soobeen & Identifies user needs and improves product usability. Thinks of ideas, designs functions, and suggests practical ways to implement features that address real-world problems. \\ \hline
 \centering Customer & \centering Jimmy MacDonald & Conducts competitive analysis and plans differentiation strategy. Examines competitor services, identifies market gaps, and designs UI elements that attract customers. \\ \hline
 \centering Software developer & \centering Kim Yeonwoo & Converts requirements into functional software. Writes code, implements features, debugs programs, monitors performance, and ensures all components execute properly. \\ \hline
 \centering Development Manager & \centering Kim Minjin & Manages overall development process and team coordination. Creates plans, assigns roles, monitors progress, manages schedules, and ensures smooth communication among team members. \\ \hline
@@ -180,6 +181,7 @@ bbongvong@hanyang.ac.kr}
                             \end{enumerate}
                         \item Device Status Synchronization\\
                             Loads device list from database, queries IoT server status, updates UI with real-time data, auto-refreshes every 30 seconds
+                            
                         \item Navigation Bar\\
                             The Home Page must include the bottom navigation bar as specified in FR-005, with the "Home" tab highlighted/active
                     \end{enumerate}
@@ -229,6 +231,7 @@ bbongvong@hanyang.ac.kr}
                                         \item \textit{FR-ITS-4.3}: The "New Routine" button must display the text "New Routine" and an "Add" icon (+).
                                         \item \textit{FR-ITS-4.4}: Tapping the "New Routine" button (FR-RTS-4.2) must navigate the user to the "Create Routine" screen (same action as FR-RTS-4.0).
                                     \end{enumerate}
+                                    \newpage
                                 \item Navigation Bar
                                     \begin{enumerate}
                                         \item \textit{FR-RTS-5.0}: The Automation Page must include the bottom navigation bar as specified in FR-005, with the "Automation" tab highlighted/active
@@ -288,6 +291,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-RTA-6.2}: Tapping "New Event" must navigate to the event creation screen
                             \item \textit{FR-RTA-6.3}: The button must maintain consistent styling with other UI elements (dark background, light text)
                         \end{enumerate}
+                        \newpage
                     \item Event Ordering and Management
                         \begin{enumerate}
                             \item \textit{FR-RTA-7.0}: Events must be automatically sorted chronologically by their trigger time
@@ -325,7 +329,8 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-CTL-3.1}: Slider must show current fan speed percentage as text above or beside slider
                             \item \textit{FR-CTL-3.2}: Fan speed adjustments must be sent to device in real-time during slider movement
                             \item \textit{FR-CTL-3.3}: Slider must be disabled when device is in Timer Mode or Auto Mode
-                        \end{enumerate} 
+                        \end{enumerate}
+                        \newpage
                     \item Timer Mode
                         \begin{enumerate}
                             \item \textit{FR-CTL-4.0}: Provide timer mode selection with options: OFF, 4hr, 6hr, 8hr
@@ -357,7 +362,8 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-CTL-7.2}: Display "Manual Mode" indicator when active
                             \item \textit{FR-CTL-7.3}: User must manually adjust all settings (fan speed, timer, etc.)
                             \item \textit{FR-CTL-7.4}: Manual Mode remains active until user switches to Auto Mode or device power cycle
-                        \end{enumerate}                
+                        \end{enumerate}  
+                        \newpage
                     \item Auto Mode Operation
                         \begin{enumerate}
                             \item \textit{FR-CTL-8.0}: In Auto Mode, device must take sensor readings every 15 minutes
@@ -433,6 +439,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-ACC-3.5}: Validate that account name is not empty and is between 2-50 characters
                         \end{enumerate}
                 \end{enumerate}
+                \newpage
             \subsubsection{FR-011: My Devices Screen}
                 \begin{enumerate}
                     \item Screen Structure
@@ -510,6 +517,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-LOC-1.1}: Include a back button (<) in the top-left corner
                             \item \textit{FR-LOC-1.2}: Include a "Save" button in the top-right corner
                         \end{enumerate}
+                        \newpage
                     \item Location Search
                         \begin{enumerate}
                             \item \textit{FR-LOC-2.0}: Display a search bar below the header with placeholder text "Search"
@@ -581,6 +589,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-NOTIF-3.4}: Follow-up notification after 2 hours: "How are you feeling? The air should be much cleaner now"
                             \item \textit{FR-NOTIF-3.5}: Avoid sending duplicate responsive notifications within 4-hour window for same symptom type
                         \end{enumerate}
+                        \newpage
                     \item Predictive Notifications
                         \begin{enumerate}
                             \item \textit{FR-NOTIF-4.0}: Integrate external AQI data with user health sensitivity profiles to predict issues
@@ -600,6 +609,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-NOTIF-5.4}: Send reminder notifications every 3 days after initial filter warning
                             \item \textit{FR-NOTIF-5.5}: Other maintenance notifications: cleaning reminders, sensor calibration, software updates
                         \end{enumerate}
+                        \newpage
                     \item Notification Timing and Frequency
                         \begin{enumerate}
                             \item \textit{FR-NOTIF-6.0}: Respect user's local time zone and avoid notifications between 10 PM - 7 AM unless critical
@@ -625,7 +635,7 @@ bbongvong@hanyang.ac.kr}
                             \item \textit{FR-NOTIF-8.4}: Include emergency contact information or support links when appropriate
                         \end{enumerate}
                 \end{enumerate}
-
+\newpage
 \section{Development environment}
     \subsection{\textbf{Choice of Software Development Platform}}
         \begin{itemize}
@@ -633,6 +643,7 @@ bbongvong@hanyang.ac.kr}
             \item \textbf{Language}: Python 3.11.9/3.12.5 for rapid prototyping, strong audio and ML ecosystem
             \item \textbf{Target Edge}: Ideal LG Purifier Hardware (for convenience).
         \end{itemize}
+        
     \subsection{\textbf{Software in Use}}
         \begin{itemize}
             \item \textbf{ML}: TensorFlow, Scipy, librosa, scikit-learn.
@@ -650,7 +661,7 @@ bbongvong@hanyang.ac.kr}
                     \begin{tabular}{|p{2cm}|p{1.5cm}|p{4cm}|}
                     \hline
                     \multicolumn{1}{|c|}{\textbf{Jobs}} & \multicolumn{1}{c|}{\textbf{Name}} & \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
-                    \centering Frontend & \centering Kim Soobin, Kim Yeonwoo & In charge of the planning, development and rollout of the PWA onto mobile devices. \\ \hline
+                    \centering Frontend & \centering Yim Soobeen, Kim Yeonwoo & In charge of the planning, development and rollout of the PWA onto mobile devices. \\ \hline
                     \centering Backend & \centering Kim Yeonwoo & In charge of database and API creation, management, and maintainment \\ \hline
                     \centering ML/AI & \centering Jimmy MacDonald, Kim Minjin, et Al & In charge of collecting data, planning and creating an AI model to achieve the task at hand \\ \hline
                     \centering Project Manager & \centering Kim Minjin & Keeps track of documentation, assigns tasks, and make sure deadlines are met on time \\ \hline
@@ -717,6 +728,7 @@ bbongvong@hanyang.ac.kr}
                     \item Timeout Handling: 3-second timeout with 2 automatic retries
                     \item Error Recovery: Rollback UI state if command fails
                 \end{itemize}
+                \newpage
             \item Controls
                 \begin{itemize}
                     \item Power 
@@ -781,12 +793,19 @@ bbongvong@hanyang.ac.kr}
                 \end{itemize}
         \end{enumerate}
     \subsection{\textbf{Automation Routine System}}
-        \subsubsection{Routine Data Structure (Firebase Firestore)}
-        \subsubsection{Execution Logic}
-            \begin{enumerate}
-                \item Based on a cloud function scheduled for certain times, run the user created function
-            \end{enumerate}
-        \subsubsection{Event Types}
+        \begin{enumerate}
+            \item Routine Data Structure (Firebase Firestore)
+                \begin{itemize}
+                    \item Routines use a fan-out architecture. The master copy lives under the users collection. This is where the front end creates and modifies routines. The local copy lives under the devices collection and is what the hardware reads.
+                    \item Using a cloud function/trigger, it listens to the master copy of the routines and then updates the local copy upon change
+                    \item Each routine has these fields: name, enabled, a schedule object containing time, days, and timezone\_offset, an action object with a type, mode, and duration, and an array of target devices. The local hardware device for each routine also keeps track of whether the routine has ran today.
+                \end{itemize}
+            \item Execution Logic
+                \begin{enumerate}
+                    \item Every second we get the current day, minute, and hour and iterate through all the routines for the device. 
+                    \item If all of the conditions of a routine are met, the action is started. 
+                \end{enumerate}
+        \end{enumerate}
     \subsection{\textbf{Notification System with Empathetic Intelligence}}
         \subsubsection{Notification Types}
         \subsubsection{Personalization Engine}
@@ -866,6 +885,7 @@ bbongvong@hanyang.ac.kr}
                             \item Log detection with timestamp, confidence, and classification
                         \end{enumerate}
                 \end{itemize}
+                \newpage
             \item Training and Data Augmentation
                 \begin{itemize}
                     \item Dataset Preparation
@@ -911,6 +931,7 @@ bbongvong@hanyang.ac.kr}
                             \item Conv1D Block 1: 32 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
                             \item Conv1D Block 2: 64 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
                             \item Conv1D Block 3: 128 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \newpage
                             \item Global Average Pooling: Reduces temporal dimension 
                             \item Dense: 64 units, ReLU → Dropout(0.3) 
                             \item Output: 1 unit, Sigmoid activation 
@@ -966,7 +987,7 @@ bbongvong@hanyang.ac.kr}
             
 \section{Architecture Design \& Implementation}
     \subsection{Overall Architecture}
-    \begin{figure}
+    \begin{figure}[H]
         \centering
         \includegraphics[width=1\linewidth]{NetworkArchitecture.png}
         \caption{Network Architecture}
@@ -974,7 +995,7 @@ bbongvong@hanyang.ac.kr}
     \end{figure}
     \subsection{Directory Organization}
         \begin{enumerate}
-                \begin{table}[htbp]
+                \begin{table}[H]
                     \caption{Front end directory}
                     \begin{center}
                         \footnotesize
@@ -1009,6 +1030,23 @@ bbongvong@hanyang.ac.kr}
                                 \path{privacy/page.tsx} &
                                 Settings Module &
                                 Account settings, device management, location selection, privacy controls (FR-009 to FR-013) & \\ \hline
+                                
+                            \end{tabular}%
+                        \end{center}
+                    \end{table}
+                    \begin{table}[H]
+                    \caption{Front end directory contd.}
+                    \begin{center}
+                        \footnotesize
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                                \hline
+                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+
                                 \path{/client/src/app/[locale]/devices/add/} &
                                 \path{page.tsx}
                                 \path{qr/page.tsx}
@@ -1031,22 +1069,6 @@ bbongvong@hanyang.ac.kr}
                                 \path{weather/route.ts} &
                                 API Routes &
                                 Next.js API endpoints for weather and geocoding services \\ \hline
-                            \end{tabular}%
-                        \end{center}
-                    \end{table}
-                    \begin{table}[htbp]
-                    \caption{Front end directory contd.}
-                    \begin{center}
-                        \footnotesize
-                        \setlength{\tabcolsep}{4pt} 
-                        \renewcommand{\arraystretch}{1.3} 
-                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
-                                \hline
-                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
-                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
-                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
-                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
-                                
                                 \path{/client/src/components/features/} &
                                 \seqsplit{aqi-trend-chart.tsx} 
                                 \seqsplit{device-carousel.tsx}
@@ -1086,7 +1108,7 @@ bbongvong@hanyang.ac.kr}
                         \end{tabular}%
             \end{center}
         \end{table}
-            \begin{table}[htbp]
+            \begin{table}[H]
                 \caption{Backend directory}
                 \begin{center}
                     \footnotesize
@@ -1142,7 +1164,7 @@ bbongvong@hanyang.ac.kr}
                 \end{center}
             \end{table}
             
-            \begin{table}[htbp]
+            \begin{table}[H]
                 \caption{Hardware simulator directory}
                 \begin{center}
                     \footnotesize
@@ -1194,7 +1216,7 @@ bbongvong@hanyang.ac.kr}
                 \end{center}
             \end{table}
             
-            \begin{table}[htbp]
+            \begin{table}[H]
                 \caption{ML/AI audio detection directory}
                 \begin{center}
                     \footnotesize
@@ -1258,16 +1280,224 @@ bbongvong@hanyang.ac.kr}
         As the main product for our service, the hardware serves as the very heart of our project. Our hardware serves to build off pre existing \textit{LG PuriCare Air Purifiers} and enhance them to provide a better experience for users. 
 
 \section{Use Cases}
-    \subsection{Use Case 1}
-        \begin{enumerate}
-            \item 1st instruction
-            \item 2nd Instruction
-        \end{enumerate}
-    \subsection{Use case 2}
-\section{Software Installation Guide}
-
+    \begin{enumerate}
+        \item Login with Google Account
+            \begin{table}[htbp]
+                \caption{UC-1. Login with Google Account}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user launches the app and views the login screen. &  \\ \hline
+                                The user selects the 'Google Account' button. & The system initiates the Google OAuth authentication process.  \\ \hline
+                                The user selects their account and logs in. & The system validates the idToken and stores it in the sessionStorage. \\ \hline
+                                & Upon successful login, the system navigates the user to the Home screen. \\ \hline
+                                & [Alternative 3a] If login fails, the system displays a failure message. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            \newpage
+        \item Demo Mode
+            \begin{table}[htbp]
+                \caption{UC-2. Use App in Demo Mode}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects the ‘Try the Demo’ button on the login screen. & The system activates the isDemoMode() flag to switch context to demo mode. \\ \hline
+                                & The system simulates network latency using mockDelay to mimic real API behavior.  \\ \hline
+                                The user views the Home screen. & The system loads MOCK-DEVICES and MOCK-ALERTS data instead of querying the live server. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            
+        \item Check Air Quality \& Outdoor Weather
+            \begin{table}[H]
+                \caption{UC-3. Check Air Quality Summary & Outdoor Weather}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user views the Home screen. & The system fetches the device list via getDevices(). \\ \hline
+                                 & The system calculates real-time AQI from PM\textsubscript{2.5} data using the simplified EPA formula and displays the status label. \\ \hline
+                                The user checks the outdoor information section. & The system fetches outdoor AQI data (getOutdoorAQI) based on the device's station index. \\ \hline
+                                The user selects the outdoor information section. & The system navigates to the detailed weather and map screen. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+        \item Add a device
+            \begin{table}[htbp]
+                \caption{UC-4. Add Air Purifier Device}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects the ‘Add Device’ button. & The system displays options: ‘QR Code Scan’ or ‘Enter Serial Number’. \\ \hline
+                                The user selects a method and enters/scans the info. & The system sends a POST request to /api/devices/register with the deviceId, name, and location. \\ \hline
+                                The user completes the registration. & The system verifies the response (success: true) and registers the device to the user account. & & The system updates the device list on the Home screen. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            \newpage
+            \item Check Energy Report
+            \begin{table}[htbp]
+                \caption{UC-5. Check Energy Usage Report}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects the 'Report' tab. & The system initializes the view with the default range 'Today'. \\ \hline
+                                The user switches tabs (Today / This Week / This Month). & The system fetches usage, cost, and saving data corresponding to the selected range. & & The system renders a TinyBarChart component to visualize usage patterns. \\ \hline
+                                The user checks the 'Energy Savings Progress' section. & The system displays a progress bar comparing the current savings rate against the monthly goal. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            \item Manage Room Structure \& Connections via Room Graph
+            \begin{table}[htbp]
+                \caption{UC-6. Manage Room Structure \& Connections via Room Graph}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects 'Room Graph' on the Home screen. & The system fetches room and connection data via getRooms and getRoomEdges APIs. & & The system renders nodes and edges using the React Flow library. \\ \hline
+                                The user clicks '+ New Room' and enters a name. & The system calls the createRoom API and generates a new node at a random position. \\ \hline
+                                The user drags a room node to a new position. & The system updates the node's coordinates on the screen in real-time. \\ \hline
+                                The user releases the node (Drop). & The system calls the updateRoom API to persist the new (x, y) coordinates.\\ \hline
+                                The user connects two room nodes. & The system calls the createRoomEdge API and renders a default 'Door' edge.\\ \hline
+                                The user taps a connection edge. & The system calls updateRoomEdgeType to toggle the type to 'Airflow' and enables the flow animation.\\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            \newpage
+        \item Manage Automation Settings
+            \begin{table}[H]
+                \caption{UC-7. Manage Automation Settings}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects ‘Automation’ from the menu. & The system loads the list of configured Routines and Schedules. \\ \hline
+                                The user toggles an automation to 'Active'. & The system updates the automation state to 'Active' and sends the request to the server. \\ \hline
+                                (Background) The system receives sensor data. & The system evaluates if the condition (e.g., PM\textsubscript{2.5} > 35) is met. & &
+                                If triggered, the system automatically executes the defined action.\\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+        \item Check AQI Trend Report
+            \begin{table}[htbp]
+                \caption{UC-8. Check AQI Trend Report}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user navigates to the AQI Trend section. & The system initiates a call to the getHistoricalSensorData API. \\ \hline
+                                The user selects a time range. & The system queries historical data using startTime, endTime, and limit parameters. & & The system renders a line chart showing trends for PM\textsubscript{2.5}, CO\textsubscript{2}, and Temperature. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+        \item Check and Manage User Account Information
+            \begin{table}[htbp]
+                \caption{UC-9. Check and Manage User Account Information}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects 'Account' in Settings. & The system displays the user profile information stored in the session. \\ \hline
+                                The user selects Logout. & The system removes the purecare-auth token from sessionStorage. & & The system redirects the user to the login page (/login). \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}
+            \newpage
+        \item Manage Privacy and Location-Based Settings
+            \begin{table}[htbp]
+                \caption{UC-10. Manage Privacy and Location-Based Settings}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects 'Location' or 'Privacy'. & The system displays the current data collection consent status. \\ \hline
+                                The user modifies the settings. & The system updates the user preferences on the server.  \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table}  
+        \item Device Addition Method (Detail)
+            \begin{table}[htbp]
+                \caption{UC-11. Device Addition Method (Detail)}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects 'QR Code Scan'. & The system activates the camera module for scanning.\\ \hline
+                                The user scans the QR code. & The system decodes the QR code to extract the deviceId. \\ \hline
+                                The user selects 'Serial Number'. & The system provides an input form for manual entry. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table} 
+        \item Manage Registered Devices
+            \begin{table}[htbp]
+                \caption{UC-12. Manage Registered Devices}
+                    \begin{center}
+                        \small
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{4cm}|p{4cm}|}
+                                \hline
+                                \multicolumn{1}{c|}{\textbf{User}} & \multicolumn{1}{c|}{\textbf{System Response}} \\ \hline
+                                The user selects a device from the list. & The system displays the control panel.\\ \hline
+                                The user adjusts settings. & The system calls control APIs such as setFanSpeed or toggleAutoMode.\\ \hline
+                                The user selects 'Delete Device'. & The system calls the deleteDevice API and removes the device from the list. \\ \hline
+                            \end{tabular}%
+                        \label{tab:heroku_costs}
+                    \end{center}
+            \end{table} 
+    \end{enumerate}
 \section{Discussion}
 One of the biggest issues in this project was the language barrier which lead to many problems. Clear communication was a struggle and keeping track of what each other had done, despite the use of the github projects, was a real issue.
+
 
 \begin{thebibliography}{00}
 \bibitem{b1}  World Health Organization, "Billions of people still breathe unhealthy air: new WHO data," WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
