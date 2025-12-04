@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if isOwner(userId);
+
+      // Inbox notifications subcollection
+      match /inboxNotifications/{notificationId} {
+        // Users can read and manage their own notifications
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Devices collection
+    match /devices/{deviceId} {
+      // Users can read devices they own (linkedUserID matches their uid)
+      allow read: if isAuthenticated() &&
+                     resource.data.linkedUserID == request.auth.uid;
+
+      // Users can update devices they own
+      allow update: if isAuthenticated() &&
+                       resource.data.linkedUserID == request.auth.uid;
+
+      // Only server (admin SDK) can create/delete devices
+      allow create, delete: if false;
+    }
+
+    // Notifications collection (pending notifications created by server)
+    match /notifications/{notificationId} {
+      // Only server (admin SDK) can read/write
+      // This is for the notification queue/processing system
+      allow read, write: if false;
+    }
+
+    // Rooms collection (if you have one)
+    match /rooms/{roomId} {
+      // Users can read rooms
+      allow read: if isAuthenticated();
+
+      // Users can create/update/delete their own rooms
+      allow create, update, delete: if isAuthenticated() &&
+                                        resource.data.userId == request.auth.uid;
+    }
+
+    // Default: deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,4 +1,22 @@
-require('dotenv').config();
+// Load .env.local if it exists (for local development), otherwise fallback to .env or Heroku config
+const fs = require('fs');
+const path = require('path');
+const isHeroku = !!process.env.DYNO;
+
+if (isHeroku) {
+  console.log('Running on Heroku - using config var');
+} else {
+  const localEnvPath = path.join(__dirname, '.env.local');
+  if (fs.existsSync(localEnvPath)) {
+    require('dotenv').config({ path: localEnvPath });
+    console.log(' Local development - using .env.local');
+  } else {
+    require('dotenv').config();
+    console;
+    log('Using local development .env');
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -11,12 +29,18 @@ const deviceRoutes = require('./routes/deviceRoutes');
 const sensorRoutes = require('./routes/sensorRoutes');
 const controlRoutes = require('./routes/controlRoutes');
 const exportRoutes = require('./routes/exportRoutes');
+const userRoutes = require('./routes/userRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { runMidnightRoutine } = require('./scripts/midnightRoutine');
 const { processNotifications } = require('./scripts/processNotifications');
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3020;
+
+// Enable trust proxy for Heroku deployment
+// This allows rate limiters and other middleware to correctly identify client IPs
+app.set('trust proxy', 1);
 
 // Configure allowed origins for CORS
 const allowedOrigins = [
@@ -89,6 +113,12 @@ app.use('/api/sensor-data', sensorRoutes);
 
 // Device control routes
 app.use('/api/control', controlRoutes);
+
+//User management routes
+app.use('/api/users', userRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
 
 // Data export routes
 app.use('/api/export', exportRoutes);

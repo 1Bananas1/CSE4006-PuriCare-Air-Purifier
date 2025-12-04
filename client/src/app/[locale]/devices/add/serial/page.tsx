@@ -6,7 +6,16 @@ import { useSWRConfig } from 'swr';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/lib/auth';
-import { registerDevice } from '@/lib/api';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+type RegistrationPayload = {
+  deviceID: string;
+  customLocation?: string; // Optional, defaults to 'Bedroom' on backend
+  name?: string; // Optional, defaults to model name or 'New Device'
+  geo?: [number | null, number | null]; // Tuple: [latitude, longitude] or [null, null]
+  measurements?: Record<string, any>; // Optional, defaults to {}
+};
 
 type RoomType =
   | 'living'
@@ -24,6 +33,31 @@ const ROOM_OPTIONS: { value: RoomType; labelKey: string }[] = [
   { value: 'toilet', labelKey: 'room.toilet' },
   { value: 'bath', labelKey: 'room.bath' },
 ];
+
+// Helper function to map roomType to Korean label
+function getRoomLabel(roomType: RoomType): string {
+  const labels: Record<RoomType, string> = {
+    living: '거실',
+    master: '안방',
+    small: '작은방',
+    small2: '작은방2',
+    toilet: '화장실',
+    bath: '욕실',
+  };
+  return labels[roomType] || '거실';
+}
+
+async function getDeviceLocation(): Promise<[number, number] | [null, null]> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve([null, null]);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve([pos.coords.latitude, pos.coords.longitude]),
+      () => resolve([null, null]),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  });
+}
 
 export default function AddDeviceSerialPage() {
   const t = useTranslations('DevicesAddSerialPage');
@@ -43,14 +77,14 @@ export default function AddDeviceSerialPage() {
     e.preventDefault();
     if (loading) return;
 
-    const deviceId = serial.trim();
+    const trimmed = serial.trim();
 
     // 1. 기본 검증
-    if (!deviceId) {
+    if (!trimmed) {
       setError(t('errorRequired'));
       return;
     }
-    if (deviceId.length < 6) {
+    if (trimmed.length < 6) {
       setError(t('errorFormat'));
       return;
     }
@@ -63,39 +97,56 @@ export default function AddDeviceSerialPage() {
     setLoading(true);
 
     try {
-      /**
-       * 명세서 그대로 호출
-       * POST /api/devices/register
-       * {
-       *   deviceId,
-       *   name,
-       *   location
-       * }
-       */
-      await registerDevice({
-        deviceId,
-        name: 'Air Purifier',
-        location: roomType,
+      // Get user's location for AQI station lookup
+      const geo = await getDeviceLocation();
+
+      // Map roomType to Korean label for backend
+      const customLocation = getRoomLabel(roomType);
+
+      // Build payload matching backend expectations
+      const payload: RegistrationPayload = {
+        deviceID: trimmed,
+        customLocation,
+        geo,
+        name: '새 기기', // Default name, backend will use model name if available
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/devices/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.idToken}`,
+        },
+        body: JSON.stringify(payload),
       });
 
-      // 홈 기기 목록 최신화
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const msg =
+          data?.error ||
+          (res.status === 400
+            ? t('errorInvalidSerial')
+            : res.status === 409
+              ? t('errorAlreadyRegistered')
+              : t('errorRegisterGeneric'));
+        setError(msg);
+        setLoading(false);
+        return;
+      }
+
+      // Success - Backend returns { success: true, deviceId: "..." }
+      const response = await res.json();
+      console.log('✅ Device registered:', response.deviceId);
+
+      // Invalidate devices cache to trigger refetch
       await mutate('/api/devices');
 
       // 성공 페이지 이동
       router.push('/devices/add/serial/success');
-    } catch (err: any) {
-      console.error('Register device failed:', err);
-
-      const msg =
-        err?.message?.includes('409')
-          ? t('errorAlreadyRegistered')
-          : err?.message?.includes('400')
-          ? t('errorInvalidSerial')
-          : t('errorRegisterGeneric');
-
-      setError(msg);
+    } catch (err) {
+      console.error('등록 요청 중 오류:', err);
+      setError(t('errorRegisterGeneric'));
       setLoading(false);
-      return;
     }
   };
 

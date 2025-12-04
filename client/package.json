@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "firebase": "^12.6.0",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "next": "16.0.1",

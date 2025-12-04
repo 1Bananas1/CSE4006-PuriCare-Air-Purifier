@@ -6,9 +6,17 @@ import { mutate } from 'swr';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/lib/auth';
-import { registerDevice } from '@/lib/api';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const LOCAL_DEVICES_KEY = 'puricare_mock_devices';
+
+type RegistrationPayload = {
+  deviceID: string;
+  customLocation?: string; // Optional, defaults to 'Bedroom' on backend
+  name?: string; // Optional, defaults to model name or 'New Device'
+  geo?: [number | null, number | null]; // Tuple: [latitude, longitude] or [null, null]
+  measurements?: Record<string, any>; // Optional, defaults to {}
+};
 
 type RoomType =
   | 'living' // 거실
@@ -36,6 +44,31 @@ const ROOM_OPTIONS: { value: RoomType; labelKey: string }[] = [
   { value: 'toilet', labelKey: 'room.toilet' },
   { value: 'bath', labelKey: 'room.bath' },
 ];
+
+// Helper function to map roomType to Korean label
+function getRoomLabel(roomType: RoomType): string {
+  const labels: Record<RoomType, string> = {
+    living: '거실',
+    master: '안방',
+    small: '작은방',
+    small2: '작은방2',
+    toilet: '화장실',
+    bath: '욕실',
+  };
+  return labels[roomType] || '거실';
+}
+
+async function getDeviceLocation(): Promise<[number, number] | [null, null]> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve([null, null]);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve([pos.coords.latitude, pos.coords.longitude]),
+      () => resolve([null, null]),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  });
+}
 
 function addMockDeviceFromQr(roomType: RoomType) {
   if (typeof window === 'undefined') return;
@@ -86,7 +119,7 @@ export default function QrConfirmPage() {
 
       // QR에서 기기 ID를 제대로 못 읽은 경우
       if (!deviceId) {
-        alert('QR 코드에서 기기 ID를 인식하지 못했습니다. 다시 촬영해 주세요.');
+        alert(t('errorNoDeviceId') || 'QR 코드에서 기기 ID를 인식하지 못했습니다. 다시 촬영해 주세요.');
         setIsSubmitting(false);
         router.replace('/devices/add/qr');
         return;
@@ -94,16 +127,42 @@ export default function QrConfirmPage() {
 
       const hasBackendAuth = !!auth?.idToken;
 
-      // 1) 백엔드 연동 가능한 경우 → 명세서대로 registerDevice 호출
+      // 1) 백엔드 연동 가능한 경우 → 명세서대로 payload 구성
       if (hasBackendAuth) {
-        // location: roomType 그대로 보내도 되고, 번역 문자열로 보내도 됨
-        const locationLabel = roomType; // 예: "living", "master" 등
+        // Get user's location for AQI station lookup
+        const geo = await getDeviceLocation();
 
-        await registerDevice({
-          deviceId,               // QR에서 읽은 진짜 deviceId
-          name: '새 기기(QR)',   // 명세서 상 "name"
-          location: locationLabel // 명세서 상 "location"
+        // Map roomType to Korean label for backend
+        const customLocation = getRoomLabel(roomType);
+
+        // Build payload matching backend expectations
+        const payload: RegistrationPayload = {
+          deviceID: deviceId,
+          customLocation,
+          geo,
+          name: '새 기기(QR)', // Default name, backend will use model name if available
+        };
+
+        const res = await fetch(`${API_BASE_URL}/api/devices/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${auth.idToken}`,
+          },
+          body: JSON.stringify(payload),
         });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          const errorMsg = data?.error || '기기 등록 중 오류가 발생했습니다.';
+          alert(errorMsg);
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Success - Backend returns { success: true, deviceId: "..." }
+        const response = await res.json();
+        console.log('✅ Device registered from QR:', response.deviceId);
 
         // 기기 등록 후 홈에서 기기 리스트 최신화
         await mutate('/api/devices');

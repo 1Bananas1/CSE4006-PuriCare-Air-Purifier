@@ -26,14 +26,15 @@ function initializeDatabase() {
   }
 
   try {
+    // Determine if we need SSL (Heroku databases require SSL)
+    const isHerokuDatabase = databaseUrl.includes('amazonaws.com') ||
+                            databaseUrl.includes('heroку');
+
     pool = new Pool({
       connectionString: databaseUrl,
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? {
-              rejectUnauthorized: false,
-            }
-          : false,
+      ssl: isHerokuDatabase ? {
+        rejectUnauthorized: false, // Required for Heroku Postgres
+      } : false,
       max: 20, // Maximum number of clients in pool
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,

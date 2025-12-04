@@ -131,45 +131,67 @@ export async function getDevices(): Promise<Device[]> {
   try {
     const devices = await apiRequest<any[]>('/api/devices');
 
-    // Transform backend format to frontend format
-    return devices.map((device) => {
-      const aqi = calculateAQI(device.data?.measurements);
+    // 🔄 Fetch latest sensor data from PostgreSQL for each device
+    const devicesWithSensorData = await Promise.all(
+      devices.map(async (device) => {
+        const deviceId = device.id || device.data?.deviceID;
 
-      // Convert sensitivity number (0, 1, 2) to string ('low', 'medium', 'high')
-      const sensitivityMap: Record<number, 'low' | 'medium' | 'high'> = {
-        0: 'low',
-        1: 'medium',
-        2: 'high',
-      };
-      const sensitivity = typeof device.settings?.sensitivity === 'number'
-        ? sensitivityMap[device.settings.sensitivity] || 'medium'
-        : (device.settings?.sensitivity as 'low' | 'medium' | 'high') || 'medium';
+        // Fetch latest sensor data from PostgreSQL
+        let latestSensorData: SensorReading | null = null;
+        try {
+          const response = await apiRequest<{
+            success: boolean;
+            data: SensorReading;
+          }>(`/api/sensor-data/${deviceId}/latest`);
+          latestSensorData = response.data;
+        } catch (error) {
+          console.warn(`No sensor data found for device ${deviceId}, using Firebase fallback`);
+          // Fallback to Firebase measurements if PostgreSQL has no data
+        }
 
-      return {
-        id: device.id || device.data?.deviceID,
-        name: device.data?.name || 'Unnamed Device',
-        customLocation: device.data?.customLocation || 'Unknown',
-        aqi,
-        aqiLabel: getAQILabel(aqi),
-        subtitle: getDeviceSubtitle(device),
-        status: {
-          online: device.status?.online || false,
-          lastSeen: device.status?.lastSeen
-            ? new Date(device.status.lastSeen)
-            : new Date(),
-        },
-        settings: {
-          autoMode: device.settings?.autoMode || false,
-          fanSpeed: device.settings?.fanSpeed || 0,
-          sensitivity,
-        },
-        data: {
-          timezone: device.data?.timezone,
-          stationIdx: device.data?.stationIdx,
-          geo: device.data?.geo,
-        },
-      };
-    });
+        // Calculate AQI from PostgreSQL data (preferred) or Firebase data (fallback)
+        const aqi = latestSensorData
+          ? calculateAQIFromSensorReading(latestSensorData)
+          : calculateAQI(device.data?.measurements);
+
+        // Convert sensitivity number (0, 1, 2) to string ('low', 'medium', 'high')
+        const sensitivityMap: Record<number, 'low' | 'medium' | 'high'> = {
+          0: 'low',
+          1: 'medium',
+          2: 'high',
+        };
+        const sensitivity = typeof device.settings?.sensitivity === 'number'
+          ? sensitivityMap[device.settings.sensitivity] || 'medium'
+          : (device.settings?.sensitivity as 'low' | 'medium' | 'high') || 'medium';
+
+        return {
+          id: deviceId,
+          name: device.data?.name || 'Unnamed Device',
+          customLocation: device.data?.customLocation || 'Unknown',
+          aqi,
+          aqiLabel: getAQILabel(aqi),
+          subtitle: getDeviceSubtitle(device),
+          status: {
+            online: device.status?.online || false,
+            lastSeen: device.status?.lastSeen
+              ? new Date(device.status.lastSeen)
+              : new Date(),
+          },
+          settings: {
+            autoMode: device.settings?.autoMode || false,
+            fanSpeed: device.settings?.fanSpeed || 0,
+            sensitivity,
+          },
+          data: {
+            timezone: device.data?.timezone,
+            stationIdx: device.data?.stationIdx,
+            geo: device.data?.geo,
+          },
+        };
+      })
+    );
+
+    return devicesWithSensorData;
   } catch (error) {
     console.error('Failed to fetch devices:', error);
     return [];
@@ -202,9 +224,9 @@ export async function registerDevice(
   return apiRequest<RegisterDeviceResponse>('/api/devices/register', {
     method: 'POST',
     body: JSON.stringify({
-      deviceId: data.deviceId,
+      deviceID: data.deviceId,      // Backend expects deviceID (uppercase ID)
       name: data.name,
-      location: data.location,
+      customLocation: data.location, // Backend expects customLocation
     }),
   });
 }
@@ -448,12 +470,24 @@ export async function togglePower(
 
 // 9. Helper functions
 
-// calculate AQI
+// calculate AQI from Firebase measurements (uppercase field names)
 function calculateAQI(measurements: any): number {
   if (!measurements || !measurements.PM25) return 0;
 
   const pm25 = measurements.PM25;
 
+  return calculateAQIFromPM25(pm25);
+}
+
+// calculate AQI from PostgreSQL sensor reading (lowercase field names)
+function calculateAQIFromSensorReading(reading: SensorReading): number {
+  if (!reading || !reading.pm25) return 0;
+
+  return calculateAQIFromPM25(reading.pm25);
+}
+
+// Core AQI calculation from PM2.5 value (EPA formula)
+function calculateAQIFromPM25(pm25: number): number {
   // Simple PM2.5 to AQI conversion (simplified EPA formula)
   if (pm25 <= 12) return Math.round((50 / 12) * pm25);
   if (pm25 <= 35.4)
