@@ -30,6 +30,18 @@
     "refresh": "Refresh",
     "copy": "Copy"
   },
+  "Errors": {
+    "connectionAlreadyExists": "The connection already exists",
+    "failedCreateConnection": "Failed to create a connection",
+    "connectionTypeFail": "Failed to change connection type",
+    "roomCreationFail": "Failed to create room"
+  },
+  "Rooms": {
+    "newRoom": "New Room",
+    "instructionOne": "You can drag a node to adjust the room's position, and connect nodes to create a door / airflow link between rooms. Tap the edge to toggle between door ↔ airflow.",
+    "instructionTwo": "Click the + New Room button in the top right to add the first room.",
+    "noRooms": "There are no rooms registered yet"
+  },
   "HomePage": {
     "title": "Welcome to PuriCare",
     "description": "Monitor and control your air purifiers",
@@ -99,7 +111,7 @@
     "automationSummary": "Automation Summary",
     "currentlyActive": "Currently active automations",
     "count": "{count} active",
-    
+
     "myAutomations": "My Automations",
     "noAutomations": "No automations registered yet. Try adding a routine with the \"Create New Automation\" button below.",
     "routine": "Routine",

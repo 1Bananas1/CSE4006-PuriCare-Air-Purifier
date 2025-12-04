@@ -21,7 +21,9 @@ export async function GET(req: Request) {
   }
 
   const key = process.env.KAKAO_REST_API_KEY;
+  console.log('Geocode API: KAKAO_REST_API_KEY found:', !!key);
   if (!key) {
+    console.error('Geocode API: KAKAO_REST_API_KEY missing from environment');
     return NextResponse.json(
       { error: 'KAKAO_REST_API_KEY missing' },
       { status: 500 }
@@ -42,6 +44,7 @@ export async function GET(req: Request) {
 
     if (!res.ok) {
       const text = await res.text();
+      console.error('Geocode API: Kakao API request failed. Status:', res.status, 'Response:', text);
       return NextResponse.json(
         { error: 'kakao_error', detail: text },
         { status: 502 }

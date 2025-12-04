@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { useRouter } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import useSWR from 'swr';
 import {
   ReactFlow,
@@ -53,7 +54,6 @@ function getPm25Status(pm25?: number) {
 // → NodeProps 제네릭 안 쓰고, 안에서 RoomNodeData로 캐스팅해서 타입 에러 제거
 function RoomNodeComponent({ data }: NodeProps) {
   const nodeData = data as RoomNodeData;
-
   const name: string = nodeData.label;
   const sensors = nodeData.sensors;
   const deviceCount: number = nodeData.deviceCount ?? 0;
@@ -229,6 +229,8 @@ const nodeTypes: NodeTypes = {
 
 export default function RoomGraphPage() {
   const router = useRouter();
+  const errorTranslation = useTranslations('Errors');
+  const roomTranslation = useTranslations('Rooms');
 
   // 1) 백엔드에서 rooms / edges 불러오기
   const {
@@ -238,12 +240,9 @@ export default function RoomGraphPage() {
   } = useSWR<{ rooms: RoomNode[]; edges: RoomEdge[] }>(
     'room-graph-page',
     async () => {
-      const [rooms, edges] = await Promise.all([
-        getRooms(),
-        getRoomEdges(),
-      ]);
+      const [rooms, edges] = await Promise.all([getRooms(), getRoomEdges()]);
       return { rooms, edges };
-    },
+    }
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -272,7 +271,7 @@ export default function RoomGraphPage() {
         alert('방 위치를 저장하는 데 실패했습니다.');
       }
     },
-    [mutate],
+    [mutate]
   );
 
   // 노드 더블클릭 → 이름 변경
@@ -289,7 +288,7 @@ export default function RoomGraphPage() {
         alert('방 이름 변경에 실패했습니다.');
       }
     },
-    [mutate],
+    [mutate]
   );
 
   // 노드 삭제
@@ -304,7 +303,7 @@ export default function RoomGraphPage() {
       }
       mutate();
     },
-    [mutate],
+    [mutate]
   );
 
   // 노드 간 연결 생성
@@ -327,20 +326,20 @@ export default function RoomGraphPage() {
               animated: false,
               label: '🚪',
             },
-            eds,
-          ),
+            eds
+          )
         );
         mutate();
       } catch (e: any) {
         console.error(e);
         alert(
           e?.message?.includes('already exists')
-            ? '이미 존재하는 연결입니다.'
-            : '연결 생성에 실패했습니다.',
+            ? errorTranslation('connectionAlreadyExists')
+            : errorTranslation('failedCreateConnection')
         );
       }
     },
-    [mutate, setEdges],
+    [mutate, setEdges]
   );
 
   // 엣지 삭제
@@ -355,7 +354,7 @@ export default function RoomGraphPage() {
       }
       mutate();
     },
-    [mutate],
+    [mutate]
   );
 
   // 엣지 클릭 → 타입 door <-> airflow 토글
@@ -378,15 +377,15 @@ export default function RoomGraphPage() {
                   animated: newType === 'airflow',
                   label: newType === 'door' ? '🚪' : '💨',
                 }
-              : e,
-          ),
+              : e
+          )
         );
       } catch (e) {
         console.error(e);
-        alert('연결 타입 변경에 실패했습니다.');
+        alert(errorTranslation('connectionTypeFail'));
       }
     },
-    [setEdges],
+    [setEdges]
   );
 
   // 방 추가
@@ -406,7 +405,7 @@ export default function RoomGraphPage() {
       mutate();
     } catch (e) {
       console.error(e);
-      alert('방 생성에 실패했습니다.');
+      alert(errorTranslation('roomCreationFail'));
     }
   };
 
@@ -436,7 +435,7 @@ export default function RoomGraphPage() {
       >
         <button
           type="button"
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/home')}
           style={{
             fontSize: 13,
             padding: '4px 10px',
@@ -469,7 +468,7 @@ export default function RoomGraphPage() {
             color: '#ecfdf5',
           }}
         >
-          + 새 방
+          + {roomTranslation('newRoom')}
         </button>
       </header>
 
@@ -483,9 +482,7 @@ export default function RoomGraphPage() {
           borderBottom: '1px solid rgba(30,64,175,0.6)',
         }}
       >
-        노드를 드래그해서 방 위치를 조정하고, 노드를 이어서 방 사이{' '}
-        <strong>door / airflow</strong> 연결을 만들 수 있어요. 엣지를
-        탭하면 door ↔ airflow가 토글됩니다.
+        {roomTranslation('instructionOne')}
       </div>
 
       <div style={{ flex: 1, position: 'relative' }}>
@@ -520,11 +517,10 @@ export default function RoomGraphPage() {
                   marginBottom: 4,
                 }}
               >
-                아직 등록된 방이 없어요
+                {roomTranslation('noRooms')}
               </div>
               <div style={{ opacity: 0.8, marginBottom: 10 }}>
-                오른쪽 상단의 <strong>+ 새 방</strong> 버튼을 눌러
-                첫 번째 방을 추가해 보세요.
+                {roomTranslation('instructionTwo')}
               </div>
             </div>
           </div>

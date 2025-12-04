@@ -209,6 +209,7 @@ async function deleteDevice(secureUserId, deviceID) {
       // Update master device list to unclaim the device
       t.update(masterDeviceRef, {
         claimedAt: null,
+        linkedUserID: null,
       });
 
       // Remove device from timezone's devices array if timezone exists
@@ -228,6 +229,9 @@ async function deleteDevice(secureUserId, deviceID) {
           });
         }
       }
+
+      // Delete the device document from the devices collection
+      t.delete(userDeviceRef);
     });
   } catch (error) {
     console.error('transaction failed:', error.message);
@@ -254,7 +258,12 @@ async function getDevicesByUser(secureUserId) {
     const devices = [];
     snapshot.forEach((doc) => {
       const docData = doc.data();
-      console.log('✅ Device found:', doc.id, 'linkedUserID:', docData.linkedUserID);
+      console.log(
+        '✅ Device found:',
+        doc.id,
+        'linkedUserID:',
+        docData.linkedUserID
+      );
 
       // Return raw Firestore structure with timestamp conversion
       devices.push({

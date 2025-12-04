@@ -1,5 +1,5 @@
 const moment = require('moment-timezone');
-const { db } = require('../config/firebase');
+const { db, admin } = require('../config/firebase');
 
 /**
  * Notification Service
@@ -152,16 +152,46 @@ class NotificationService {
     // Examples:
 
     // 1. Firebase Cloud Messaging (Push notifications)
-    // if (userData.fcmToken) {
-    //   await admin.messaging().send({
-    //     token: userData.fcmToken,
-    //     notification: {
-    //       title: notification.title,
-    //       body: notification.message,
-    //     },
-    //     data: notification.data,
-    //   });
-    // }
+    if (userData.fcmToken) {
+      try {
+        await admin.messaging().send({
+          token: userData.fcmToken,
+          notification: {
+            title: notification.title,
+            body: notification.message,
+          },
+          data: {
+            ...notification.data,
+            type: notification.type,
+            deviceId: deviceId,
+            clickAction: notification.data?.clickAction || '/dashboard',
+          },
+          webpush: {
+            fcmOptions: {
+              link: notification.data?.clickAction || '/dashboard',
+            },
+          },
+        });
+
+        console.log(`    ✓ Push notification sent via FCM`);
+      } catch (fcmError) {
+        // Handle invalid/expired tokens
+        if (
+          fcmError.code === 'messaging/invalid-registration-token' ||
+          fcmError.code === 'messaging/registration-token-not-registered'
+        ) {
+          console.log(`    ⚠️  FCM token invalid/expired - removing from user`);
+
+          // Remove invalid token from user document
+          await db.collection('users').doc(userId).update({
+            fcmToken: null,
+            fcmTokenUpdatedAt: new Date(),
+          });
+        } else {
+          console.error(`    ❌ FCM error:`, fcmError.message);
+        }
+      }
+    }
 
     // 2. Email (SendGrid, Mailgun, etc.)
     // if (userData.email && userData.emailNotifications) {

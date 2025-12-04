@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.9.3",
+    "firebase": "^12.6.0",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
-    "next": "16.0.1",
+    "next": "16.0.7",
     "next-intl": "^4.5.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",

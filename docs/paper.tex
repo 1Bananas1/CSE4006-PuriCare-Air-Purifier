@@ -9,6 +9,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
 \usepackage{fixltx2e}
+\usepackage{url}
+\usepackage{seqsplit}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \setlist[enumerate,1]{label=\Alph*., leftmargin=25pt, itemsep=8pt}
@@ -633,10 +635,10 @@ bbongvong@hanyang.ac.kr}
         \end{itemize}
     \subsection{\textbf{Software in Use}}
         \begin{itemize}
-            \item \textbf{ML}: PyTorch, Scipy, librosa, MLlib(optional).
-            \item \textbf{Streaming/Backend}: Firebase, Heroku
+            \item \textbf{ML}: TensorFlow, Scipy, librosa, scikit-learn.
+            \item \textbf{Backend}: Firebase, Heroku
             \item \textbf{Database}: Firestore Database, PostgreSQL
-            \item \textbf{DevOps}: VS Code, Git/GitHub, Git Projects, Docker,
+            \item \textbf{DevOps}: VS Code, Git/GitHub, Git Projects, Docker
         \end{itemize}
         
     \begin{table}[!h] 
@@ -659,107 +661,276 @@ bbongvong@hanyang.ac.kr}
 
 \section{Specification}
     \subsection{\textbf{User Authentication}}
-        \subsubsection{Technology Stack}
-            \begin{itemize}
-                \item Frontend: React with Google OAuth 2.0 integration
-                \item Backend: Firebase Authentication via Admin SDK
-                \item Token Management: Google ID Tokens with localStorage persistence
-                \item Session Handling: Token-based authentication with automatic refresh
-            \end{itemize}
-        \subsubsection{Authentication Flow}
-            \begin{enumerate}
-                \item User clicks "Login with Google"
-                \item User grants permissions
-                \item Frontend receives Google ID token
-                \item Token stored in localStorage as JSON: \{ "idToken": "...", "refreshToken": "...", "expiresIn": 3600 \}
-                \item Token included in Authorization header for all API requests
-                \item Backend validates token via Firebase Admin SDK
-                \item User authenticated and redirected to Home Page
-            \end{enumerate}
-        \subsubsection{Token Verification Process}
-            \begin{enumerate}
-                \item Frontend retrieves token from localStorage: purecare\_auth
-                \item All API requests include header: Authorization: Bearer \{idToken\}
-                \item Backend validates using Firebase Admin SDK
-            \end{enumerate}
-        \subsubsection{Security Measures}
-            \begin{itemize}
-                \item HTTPS-only communication in production
-                \item Token expiration: 1 hour (auto-refresh via Firebase SDK)
-                \item Secure localStorage (inaccessible to external scripts)
-                \item CORS configuration limits allowed origins to frontend URL only
-            \end{itemize}
+        \begin{enumerate}
+            \item Technology Stack
+                \begin{itemize}
+                    \item Frontend: React with Google OAuth 2.0 integration
+                    \item Backend: Firebase Authentication via Admin SDK
+                    \item Token Management: Google ID Tokens with sessionStorage persistence
+                    \item Session Handling: Token-based authentication with automatic refresh
+                \end{itemize}
+            \item Authentication Flow
+                \begin{enumerate}
+                    \item User clicks "Login with Google"
+                    \item User grants permissions
+                    \item Frontend receives Google ID token
+                    \item Token stored in sessionStorage as JSON: \{ "idToken": "...", "refreshToken": "...", "expiresIn": 3600 \}
+                    \item Token included in Authorization header for all API requests
+                    \item Backend validates token via Firebase Admin SDK
+                    \item User authenticated and redirected to Home Page
+                \end{enumerate}
+            \item Token Verification Process
+                \begin{enumerate}
+                    \item Frontend retrieves token from localStorage: purecare\_auth
+                    \item All API requests include header: Authorization: Bearer \{idToken\}
+                    \item Backend validates using Firebase Admin SDK
+                \end{enumerate}
+            \item Security Measures
+                \begin{itemize}
+                    \item HTTPS-only communication in production
+                    \item Token expiration: 1 hour (auto-refresh via Firebase SDK)
+                    \item Secure sessionStorage (inaccessible to external scripts)
+                    \item CORS configuration limits allowed origins to frontend URL only
+                \end{itemize}
+        \end{enumerate}
     \subsection{\textbf{Real-Time Device Control System}}
-        \subsubsection{Communication Architecture}
-            \begin{itemize}
-                \item Protocol: WebSocket (Socket.io v4)
-                \item Transport: Bidirectional event-based communication
-                \item Fallback: HTTP long-polling if WebSocket unavailable
-                \item Connection: Persistent connection maintained per client
-            \end{itemize}
-        \subsubsection{WebSocket Communication Flow}
-            INSERT DIAGRAM HERE
-        \subsubsection{Control Command Structure}
-            Commands sent from Frontend -> Backend -> Device
-            \begin{itemize}
-                \item Power Control
-                    \begin{itemize}
-                        \item type: "power"
-                        \item value: true|false
-                        \item deviceId
-                        \item timestamp
-                    \end{itemize}
-                \item Fan Speed Control
-                    \begin{itemize}
-                        \item type: "fan\_speed"
-                        \item value: 0-10
-                        \item deviceId
-                    \end{itemize}
-                \item Mode Selection
-                    \begin{itemize}
-                        \item type: "auto\_mode"
-                        \item value: true|false
-                        \item deviceId
-                    \end{itemize}
-                \item Sensitivity
-                    \begin{itemize}
-                        \item type: "sensitivity"
-                        \item value: "low" | "medium" | "high"
-                    \end{itemize}
-            \end{itemize}
-        \subsubsection{State Synchronization}
-            \begin{itemize}
-                \item Optimistic UI Updates: Frontend immediately reflects user changes 
-                \item Confirmation: Backend acknowledges command receipt within 200ms
-                \item Device Execution: Hardware simulator applies changes and confirms
-                \item Broadcast: Backend emits state update to all clients monitoring device
-                \item Timeout Handling: 3-second timeout with 2 automatic retries
-                \item Error Recovery: Rollback UI state if command fails
-            \end{itemize}
+        \begin{enumerate}
+            \item Communication Architecture
+                \begin{itemize}
+                    \item Protocol: WebSocket (Socket.io v4)
+                    \item Transport: Bidirectional event-based communication
+                    \item Fallback: HTTP long-polling if WebSocket unavailable
+                    \item Connection: Persistent connection maintained per client
+                \end{itemize}
+            \item WebSocket Communication Flow
+                \begin{enumerate}
+                    \item Frontend
+                    \item Backend
+                    \item Device
+                \end{enumerate}
+            \item State Synchronization
+                \begin{itemize}
+                    \item Optimistic UI Updates: Frontend immediately reflects user changes 
+                    \item Confirmation: Backend acknowledges command receipt within 200ms
+                    \item Device Execution: Hardware simulator applies changes and confirms
+                    \item Broadcast: Backend emits state update to all clients monitoring device
+                    \item Timeout Handling: 3-second timeout with 2 automatic retries
+                    \item Error Recovery: Rollback UI state if command fails
+                \end{itemize}
+            \item Controls
+                \begin{itemize}
+                    \item Power 
+                        \begin{itemize}
+                            \item type: "power"
+                            \item value: true|false
+                            \item deviceId
+                            \item timestamp
+                        \end{itemize}
+                    \item Fan Speed 
+                        \begin{itemize}
+                            \item type: "fan\_speed"
+                            \item value: 0-10
+                            \item deviceId
+                        \end{itemize}
+                    \item Mode Selection
+                        \begin{itemize}
+                            \item type: "auto\_mode"
+                            \item value: true|false
+                            \item deviceId
+                        \end{itemize}
+                    \item Sensitivity
+                        \begin{itemize}
+                            \item type: "sensitivity"
+                            \item value: "low" | "medium" | "high"
+                        \end{itemize}
+                \end{itemize}
+        \end{enumerate}       
     \subsection{\textbf{Sensor Data Collection \& Time-Series Database}}
-        \subsubsection{Database Architecture}
-            \begin{itemize}
-                \item Primary: PostgreSQL with TimescaleDB extension (Heroku Postgres Mini)
-                \item Schema: Hypert able optimized for time-series data
-                \item Aggregation: Continuous aggregates for hourly/daily summaries
-                \item Retention: 7 days raw data, 30 days hourly, 1 year daily
-            \end{itemize}
+        \begin{enumerate}
+            \item Database Architecture
+                \begin{itemize}
+                    \item Primary: PostgreSQL with TimescaleDB extension (Heroku Postgres Mini)
+                    \item Schema: Hypertable optimized for time-series data
+                    \item Aggregation: Continuous aggregates for hourly/daily summaries
+                    \item Retention: 7 days raw data, 30 days hourly, 1 year daily
+                \end{itemize}
+        \end{enumerate}   
     \subsection{\textbf{Hardware Simulator (Python-based IoT Mock)}}
-        \subsubsection{Purpose}
-        \subsubsection{Simulation Logic}
-        \subsubsection{Realistic Scenarios}
-        \subsubsection{WebSocket Integration}
-        \subsubsection{Prediction Algorithm}
-        \subsubsection{Integration with Device Control}
+        \begin{enumerate}
+            \item Purpose
+                \begin{itemize}
+                    \item In order to simulate our air purifier without having to purchase hardware, we made a python simulator to act as a mock device.
+                \end{itemize}
+            \item Simulation Logic
+                \begin{itemize}
+                    \item To initialize our variables, we take data from our cached database of the nearest station and set those as our active measurements.
+                    \item Connect to our websocket so that our information shows up in the database and furthermore in our front end.
+                    \item Send our current readings every \texttt{UPDATE\_INTERVAL} (default 15 seconds) through REST API.
+                    \item If auto mode is on and if PM\textsubscript{2.5} is greater than 35, set the fan speed to the nearest integer corresponding to the total PM\textsubscript{2.5} / 10, with a maximum speed of 10
+                    \item Reduction rate of particulate matter is determined on fan speed, calculated by 0.05 * fan speed. This is updated on each update interval.
+                    \item Randomly events will appear based on the update interval.
+                \end{itemize}
+            \item Realistic Scenarios
+                \begin{itemize}
+                    \item To simulate a window being open, for each of these outside variables that aren't 0 (PM\textsubscript{2.5}, PM\textsubscript{10}, NO\textsubscript{2}), multiply the difference between the outdoor readings and the indoor readings by 0.15 and add it to the current sensor data
+                    \item To simulate cooking, to each of these variables (PM\textsubscript{2.5}, PM\textsubscript{10}, NO\textsubscript{2}, TVOC, CO) we add a random uniform variable within norms of their respective scales.
+                \end{itemize}
+            \item Integration with Device Control
+                \begin{itemize}
+                    \item While the settings of the device can be controlled through the python script, updating its configuration in the front end will also update the simulator's values.
+                \end{itemize}
+        \end{enumerate}
     \subsection{\textbf{Automation Routine System}}
         \subsubsection{Routine Data Structure (Firebase Firestore)}
         \subsubsection{Execution Logic}
+            \begin{enumerate}
+                \item Based on a cloud function scheduled for certain times, run the user created function
+            \end{enumerate}
         \subsubsection{Event Types}
     \subsection{\textbf{Notification System with Empathetic Intelligence}}
         \subsubsection{Notification Types}
         \subsubsection{Personalization Engine}
         \subsubsection{Delivery System}
         \subsubsection{Rate Limiting}
+    \subsection{\textbf{Audible Health Symptom Detection}}
+        \begin{enumerate}
+            \item System Architecture: 
+                The PureCare Air Purifier implements a two-stage neural network architecture for intelligent cough detection and classification, replacing traditional threshold-based approaches with sophisticated machine learning inference.
+                \begin{enumerate}
+                    \item Cough Detection Model
+                        \begin{itemize} 
+                            \item Architecture: Lightweight 1D Convolutional Neural Network (CNN) 
+                            \item Task: Binary classification (cough vs. non-cough) 
+                            \item Input: 39-dimensional MFCC features over 1.5-second audio windows 
+                            \item Output: Sigmoid activation producing probability score [0,1] \item Decision threshold: 0.7 confidence for positive detection 
+                            \item Design priority: Real-time inference speed and low computational overhead 
+                        \end{itemize}
+                    \item Cough Classification Model
+                        \begin{itemize} 
+                            \item Architecture: Hybrid CNN-LSTM network 
+                            \item Task: Multi-class classification of cough types 
+                            \item Purpose: Identifies specific cough characteristics for health insights 
+                            \item Output: Softmax activation over N cough categories \item Temporal modeling: LSTM layer captures sequential dependencies in cough patterns 
+                            \item Activation: Only processes audio segments flagged by Stage 1 detection 
+                        \end{itemize}
+                \end{enumerate}
+            \item Feature Extraction
+                \begin{itemize}
+                    \item MFCC (Mel-Frequency Cepstral Coefficients):
+                        The system employs MFCC feature extraction, a standard technique in audio signal processing that mimics human auditory perception
+                         \begin{itemize} 
+                            \item Sample Rate: 8kHz (optimized for low-frequency respiratory sounds) 
+                            \item Window Size: 1.5 seconds (captures complete cough events) 
+                            \item Base MFCCs: 13 coefficients 
+                            \item Delta Features: 13 first-order derivatives (velocity of spectral change) 
+                            \item Delta-Delta Features: 13 second-order derivatives (acceleration of spectral change) 
+                            \item Total Feature Dimensions: 39 per time frame 
+                            \item FFT Window: 512 samples with 256-sample hop length 
+                            \item Mel Filterbank: 40 triangular filters spanning 50Hz to 4000Hz    
+                        \end{itemize}
+                    \item Feature Normalization
+                    \begin{itemize}
+                        \item All extracted features undergo zero-mean unit-variance normalization to improve neural network training stability and convergence: $$\text{normalized} = \frac{\text{features} - \mu}{\sigma}$$ where $\mu$ and $\sigma$ are computed per-feature across the time dimension
+                    \end{itemize}
+                \end{itemize}
+            \item Live Detection Pipeline
+                \begin{itemize}
+                    \item Audio Acquisition and Buffering
+                        \begin{enumerate} 
+                            \item Continuous audio stream captured at 8kHz, mono channel 
+                            \item Circular buffer maintains 10 seconds of recent audio (80,000 samples) 
+                            \item Thread-safe deque structure with mutex-protected access 
+                            \item Block size: 2048 samples for efficient callback processing
+                        \end{enumerate}
+                    \item Sliding Window Detection
+                        \begin{enumerate} 
+                            \item Detection Window: 1.5 seconds (12,000 samples) 
+                            \item Hop Length: 0.5 seconds (4,000 samples) — 66\% overlap between windows 
+                            \item Processing Rate: Approximately 2 windows per second 
+                            \item Overlap strategy: Ensures no cough events are missed between windows 
+                        \end{enumerate}
+                    \item Energy Pre-filtering (Optional Optimization): 
+                        Before neural network inference, a fast RMS energy calculation filters silent segments: $$\text{RMS} = \sqrt{\frac{1}{N}\sum_{i=1}^{N} x_i^2}$$
+                        \begin{itemize} 
+                            \item Energy Threshold: 0.01 (configurable) 
+                            \item Purpose: Reduces unnecessary NN inference on silence, improving efficiency 
+                            \item Computational cost: O(N) vs. O(N log N) for MFCC extraction
+                        \end{itemize}
+                    \item Neural Network Inference
+                        \begin{enumerate} 
+                            \item Extract MFCC features from 1.5s window: Shape (39, 47 frames)
+                            \item Stage 1: Pass features through detection CNN 
+                            \item If detection confidence >= 0.7: Flag as cough event 
+                            \item Stage 2: Pass same features through classification CNN-LSTM 
+                            \item Extract cough type/category and confidence score 
+                            \item Log detection with timestamp, confidence, and classification
+                        \end{enumerate}
+                \end{itemize}
+            \item Training and Data Augmentation
+                \begin{itemize}
+                    \item Dataset Preparation
+                        \begin{itemize} 
+                            \item Train/Validation/Test Split: 70\%/15\%/15\% 
+                            \item Fixed random seed for reproducible splits 
+                            \item Stratified sampling maintains class balance across splits 
+                        \end{itemize}
+                    \item Data Augmentation Techniques
+                        To improve model generalization and robustness to real-world variations: 
+                        \begin{enumerate} 
+                            \item Time Shifting: Circular shift of up to ±20\% of signal length 
+                            \item Speed Perturbation: Time-stretching with rate factor in [0.9, 1.1] 
+                            \item Additive Noise: White noise or environmental noise at SNR between -5dB and 15dB 
+                            \item Application: Random combination of augmentations during training only 
+                        \end{enumerate}
+                    \item Training Configuration
+                        \textbf{Detection Model:} 
+                            \begin{itemize} 
+                                \item Optimizer: Adam with learning rate 0.001 
+                                \item Loss Function: Binary cross-entropy 
+                                \item Batch Size: 32 
+                                \item Epochs: 50 (with early stopping, patience=10) 
+                                \item Learning Rate Schedule: ReduceLROnPlateau (factor=0.5, patience=5) 
+                                \item Metrics: Accuracy, Precision, Recall, AUC 
+                            \end{itemize} 
+                        \textbf{Classification Model:} 
+                            \begin{itemize} 
+                                \item Optimizer: Adam with learning rate 0.0001 
+                                \item Loss Function: Categorical cross-entropy 
+                                \item Batch Size: 32 
+                                \item Epochs: 100 (with early stopping, patience=15) 
+                                \item Learning Rate Schedule: ReduceLROnPlateau (factor=0.5, patience=7) 
+                                \item Metrics: Categorical accuracy, Top-2 accuracy 
+                            \end{itemize}
+                \end{itemize}
+            \item Model Architecture Details
+                \begin{itemize}
+                    \item Detection Model (1D CNN)
+                        \begin{enumerate} 
+                            \item Input: (39 features, 47 time frames) 
+                            \item Permutation: Transpose to (47 time frames, 39 features) for 1D convolution 
+                            \item Conv1D Block 1: 32 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Conv1D Block 2: 64 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Conv1D Block 3: 128 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.3)
+                            \item Global Average Pooling: Reduces temporal dimension 
+                            \item Dense: 64 units, ReLU → Dropout(0.3) 
+                            \item Output: 1 unit, Sigmoid activation 
+                            \item Total Parameters: ~50K (lightweight for edge deployment) 
+                        \end{enumerate}
+                    \item Classification Model (CNN-LSTM)
+                        \begin{enumerate} 
+                            \item Input: (39 features, 47 time frames) 
+                            \item Permutation: Transpose to (47 time frames, 39 features) 
+                            \item Conv1D Block 1: 64 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item Conv1D Block 2: 128 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item Conv1D Block 3: 256 filters, kernel=3, ReLU → BatchNorm → MaxPool(2) → Dropout(0.4)
+                            \item LSTM Layer: 128 units (captures temporal dependencies in cough dynamics) 
+                            \item Dropout(0.4) 
+                            \item Dense: 128 units, ReLU → Dropout(0.4) 
+                            \item Output: N units (number of cough classes), Softmax activation 
+                            \item Total Parameters: ~400K 
+                        \end{enumerate}
+                \end{itemize}
+        \end{enumerate}
     \subsection{\textbf{Cost Analysis \& Infrastructure}}
             \begin{table}[htbp]
             \caption{Heroku Deployment Costs}
@@ -795,9 +966,291 @@ bbongvong@hanyang.ac.kr}
             
 \section{Architecture Design \& Implementation}
     \subsection{Overall Architecture}
+    \begin{figure}
+        \centering
+        \includegraphics[width=1\linewidth]{NetworkArchitecture.png}
+        \caption{Network Architecture}
+        \label{fig:placeholder}
+    \end{figure}
     \subsection{Directory Organization}
+        \begin{enumerate}
+                \begin{table}[htbp]
+                    \caption{Front end directory}
+                    \begin{center}
+                        \footnotesize
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                                \hline
+                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                                \path{/client/src/app/[locale]/(auth)/} &
+                                \path{login/page.tsx} \path{signup/page.tsx} &
+                                User Authentication UI & 
+                                Google OAuth 2.0 login/signup screens (FR-002) \\ \hline
+                                \path{/client/src/app/[locale]/(core)/} & 
+                                \path{home/page.tsx} & 
+                                Home Page & 
+                                Main dashboard with device list, AQI display, user greeting (FR-004) \\ \hline
+                                \path{/client/src/app/[locale]/automation/} &
+                                \path{page.tsx} & 
+                                Automation/Routine System UI & 
+                                Routine management screen with routine cards (FR-006) \\ \hline
+                                \path{/client/src/app/[locale]/room/[id]/} &
+                                \path{page.tsx} &
+                                Device Control Page &
+                                Real-time device control interface with power, fan speed, timer, child lock controls (FR-008) \\ \hline
+                                \path{/client/src/app/[locale]/settings/} &
+                                \path{page.tsx} \path{account/page.tsx}
+                                \path{devices/page.tsx}
+                                \path{location/page.tsx}
+                                \path{privacy/page.tsx} &
+                                Settings Module &
+                                Account settings, device management, location selection, privacy controls (FR-009 to FR-013) & \\ \hline
+                                \path{/client/src/app/[locale]/devices/add/} &
+                                \path{page.tsx}
+                                \path{qr/page.tsx}
+                                \path{qr/confirm/page.tsx}
+                                \path{serial/page.tsx}
+                                \path{serial/success/page.tsx} &
+                                Device Registration &
+                                QR code scanning and serial number entry for device pairing (FR-003) \\ \hline
+                                \path{/client/src/app/[locale]/report/} &                  
+                                \path{page.tsx} &
+                                Data Visualization &
+                                Sensor data reports and analytics dashboard \\ \hline
+                                \path{/client/src/app/[locale]/weather/} &
+                                \path{page.tsx} &
+                                Weather Integration &
+                                External AQI and weather data display interface \\ \hline
+                                \path{/client/src/app/api/} &
+                                \path{forecast/route.ts}
+                                \path{geocode/route.ts}
+                                \path{weather/route.ts} &
+                                API Routes &
+                                Next.js API endpoints for weather and geocoding services \\ \hline
+                            \end{tabular}%
+                        \end{center}
+                    \end{table}
+                    \begin{table}[htbp]
+                    \caption{Front end directory contd.}
+                    \begin{center}
+                        \footnotesize
+                        \setlength{\tabcolsep}{4pt} 
+                        \renewcommand{\arraystretch}{1.3} 
+                            \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                                \hline
+                                \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                                \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                                \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                                \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                                
+                                \path{/client/src/components/features/} &
+                                \seqsplit{aqi-trend-chart.tsx} 
+                                \seqsplit{device-carousel.tsx}
+                                \seqsplit{kakao-map.tsx}
+                                \seqsplit{welcome-modal.tsx} &
+                                Feature Components &
+                                Reusable UI components for charts, device displays, maps \\ \hline
+                                
+                                \path{/client/src/components/layout/} &
+                                \seqsplit{bottom-nav.tsx}
+                                \seqsplit{client-layout-wrapper.tsx}
+                                \seqsplit{splash.tsx} &
+                                Layout Components &
+                                Navigation bar (FR-005), splash screen, layout wrappers \\ \hline
+                                
+                                \path{/client/src/components/ui/} &
+                                \seqsplit{demo-mode-banner.tsx}
+                                \seqsplit{segmented-control.tsx} &
+                                UI Components &
+                                Shared UI elements like segmented controls, banners \\ \hline
+                                
+                                \path{/client/src/lib/} &
+                                \path{api.ts}
+                                \path{auth.tsx}
+                                \path{firebase.ts}
+                                \path{fcm.ts}
+                                \path{weather.tsx} &
+                                Client Libraries &
+                                API client, authentication logic, Firebase config, FCM push notifications (FR-014), weather API integration \\ \hline
+                                
+                                \path{/client/src/i18n/} &
+                                \path{request.ts}
+                                \path{routing.ts} &
+                                Internationalization &
+                                Multi-language support (i18n) routing and request handling \\ \hline
+                                
+                        \end{tabular}%
+            \end{center}
+        \end{table}
+            \begin{table}[htbp]
+                \caption{Backend directory}
+                \begin{center}
+                    \footnotesize
+                    \setlength{\tabcolsep}{4pt} 
+                    \renewcommand{\arraystretch}{1.3} 
+                        \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                            \hline
+                            \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                            \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                            \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                            \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                            \path{/server/src/api/} &
+                            \path{index.js} &
+                            Express Server Entry &
+                            Main server initialization with Socket.io WebSocket integration \\ \hline
+                            \path{/server/src/api/config/} & 
+                            \path{firebase.js} & 
+                            Firebase Configuration & 
+                            Firebase Admin SDK initialization for authentication \\ \hline
+                            \path{/server/src/api/database/} &
+                            \path{init.js} & 
+                            Database Initialization & 
+                            PostgreSQL / TimescaleDB connection setup \\ \hline
+                            \path{/server/src/api/middleware/} &
+                            \path{auth.js}
+                            \seqsplit{rateLimiter.js} &
+                            Authentication \& Security &
+                            JWT token verification middleware, API rate limiting \\ \hline
+                            \path{/server/src/api/routes/} &
+                            \seqsplit{auth.js}
+                            \seqsplit{controlRoutes.js}
+                            \seqsplit{deviceRoutes.js}
+                            \seqsplit{roomRoutes.js}
+                            \seqsplit{sensorRoutes.js}
+                            \seqsplit{userRoutes.js}
+                            \seqsplit{notificationRoutes.js} &
+                            REST API Endpoints &
+                            Authentication, device control commands, device registration, room management, sensor data queries, user profile, push notifications \\ \hline
+                            \path{/server/src/api/services/} &
+                            \seqsplit{deviceService.js}
+                            \seqsplit{sensorDataService.js}
+                            \seqsplit{notificationService.js}
+                            \seqsplit{timezoneService.js} &
+                            Business Logic Services &
+                            Device state management, time-series data aggregation, empathetic notification generation (FR-014), timezone handling \\ \hline
+                            \path{/server/src/api/scripts/} &
+                            \seqsplit{aqiScripts.js}
+                            \seqsplit{midnightRoutine.js}
+                            \seqsplit{processNotifications.js} &
+                            Background Jobs \& Scripts &
+                            AQI data fetching, daily reset routines, notification batch processing \\ \hline
+                        \end{tabular}%
+                \end{center}
+            \end{table}
+            
+            \begin{table}[htbp]
+                \caption{Hardware simulator directory}
+                \begin{center}
+                    \footnotesize
+                    \setlength{\tabcolsep}{4pt} 
+                    \renewcommand{\arraystretch}{1.3} 
+                        \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                            \hline
+                            \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                            \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                            \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                            \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                            \path{/hardware/simulator/} &
+                            \path{__main__.py}
+                            \path{run_simulator.py} &
+                            Simulator Entry Point &
+                            Main Python script to launch air purifier simulator \\ \hline
+                            \path{/hardware/simulator/core/} & 
+                            \path{device.py}
+                            \path{audio_detector_wrapper.py} & 
+                            Device Simulation Logic & 
+                            Air purifier behavior simulation: PM reduction rate (0.05 $\times$ fan\_speed), auto mode logic (PM\textsubscript{2.5} $>$ 35), sensor value updates every 15s \\ \hline
+                            \path{/hardware/simulator/models/} &
+                            \path{commands.py}
+                            \path{responses.py}
+                            \path{sensor_data.py} & 
+                            Data Models & 
+                            Command structures (power, fan\_speed, auto\_mode, sensitivity), response formats, sensor reading schemas \\ \hline
+                            \path{/hardware/simulator/communication/} &
+                            \path{websocket_client.py}
+                            \path{http_client.py}
+                            \path{event_sender.py} &
+                            Real-Time Device Control &
+                            WebSocket client for bidirectional Socket.io communication, REST API client for sensor data upload, event emission for cough/sneeze detection \\ \hline
+                            \path{/hardware/simulator/config/} &
+                            \path{settings.py}
+                            \path{constants.py} &
+                            Configuration &
+                            Update intervals (default 15s), AQI station data, device serial numbers, server URLs \\ \hline
+                            \path{/hardware/shared/events/} &
+                            \path{bus.py} &
+                            Event System &
+                            Event bus for inter-process communication between simulator and audio detector \\ \hline
+                            \path{/hardware/} &
+                            \path{cli_controller.py}
+                            \path{send_command.py} &
+                            CLI Control &
+                            Command-line interface for manual device control \\ \hline
+                        \end{tabular}%
+                \end{center}
+            \end{table}
+            
+            \begin{table}[htbp]
+                \caption{ML/AI audio detection directory}
+                \begin{center}
+                    \footnotesize
+                    \setlength{\tabcolsep}{4pt} 
+                    \renewcommand{\arraystretch}{1.3} 
+                        \begin{tabular}{|p{2.1cm}|p{1.4cm}|p{1cm}|p{2cm}|}
+                            \hline
+                            \multicolumn{1}{|c|}{\textbf{Directory}} & 
+                            \multicolumn{1}{c|}{\textbf{Key Files}} & 
+                            \multicolumn{1}{c|}{\textbf{Module Components}} & 
+                            \multicolumn{1}{c|}{\textbf{Description}} \\ \hline
+                            \path{/hardware/audio_analyzer/} &
+                            \path{train.py}
+                            \path{evaluate_model.py}
+                            \path{live_detection.py} &
+                            Model Training \& Inference &
+                            Train detection/classification CNNs, evaluate model performance, real-time audio detection pipeline \\ \hline
+                            \path{/hardware/audio_analyzer/} & 
+                            \path{models.py} & 
+                            Neural Network Architecture & 
+                            Stage 1: 1D CNN for binary cough detection (39 MFCCs, 0.7 confidence threshold, $\sim$50K params). Stage 2: CNN-LSTM for cough classification (128 LSTM units, $\sim$400K params) \\ \hline
+                            \path{/hardware/audio_analyzer/} &
+                            \seqsplit{feature_extraction.py} & 
+                            Audio Feature Engineering & 
+                            MFCC extraction (8kHz, 13 base + 13 delta + 13 delta-delta = 39 features), 1.5s windows with 0.5s hop length, zero-mean unit-variance normalization \\ \hline
+                            \path{/hardware/audio_analyzer/} &
+                            \path{data_loader.py}
+                            \path{prepare_dataset.py}
+                            \path{download_audeering_dataset.py} &
+                            Dataset Management &
+                            70/15/15 train/val/test split, stratified sampling, data augmentation (time shifting, speed perturbation, additive noise) \\ \hline
+                            \path{/hardware/audio_analyzer/hardware/AI/models/} &
+                            \path{detection_model_best.h5}
+                            \path{classification_model_best.h5}
+                            \path{*.json} &
+                            Trained Models \& Metadata &
+                            Best detection model checkpoint, best classification model checkpoint, training history logs, fixed data split configuration \\ \hline
+                            \path{/hardware/audio_analyzer/hardware/AI/cough_dataset/} &
+                            \path{cough/}
+                            \path{non_cough/}
+                            \path{sneeze/}
+                            \path{speech/} &
+                            Training Dataset &
+                            Labeled audio samples for model training (multi-class categories) \\ \hline
+                            \path{/hardware/tools/} &
+                            \path{audio_capture.py}
+                            \path{playback.py}
+                            \path{segmentation.py} &
+                            Audio Utilities &
+                            Audio recording tools, playback utilities, audio segmentation for dataset preparation \\ \hline
+                        \end{tabular}%
+                \end{center}
+            \end{table}
+        \end{enumerate}
     \subsection{Next.js Frontend}
-        For the PureCare Air Purifier to have apathetic intelligence, we needed a way to deliver this sentiment to the user. To do this, we made a Next.js based Progressive Web App. The app allows us to communicate and receive inputs from users, making for a truly responsive design. Within the app, users are able to register, control, and receive real time data from the air purifier.
+        For the PureCare Air Purifier to have empathetic intelligence, we needed a way to deliver this sentiment to the user. To do this, we made a Next.js based Progressive Web App. The app allows us to communicate and receive inputs from users, making for a truly responsive design. Within the app, users are able to register, control, and receive real time data from the air purifier.
         The source code for the front end can be found in the \texttt{client} folder.
     \subsection{Express Backend}
         In order to fulfill key essential functions for the device, we needed to design some sort of server to support our devices and front end. To resolve this issue, we designed a fully custom express.js backend to power our services. The backend, which is hosted on Heroku, allows us to be a middleman between the physical hardware and the user software, while also giving crucial information for the hardware so that it can act proactively rather than reactively.
@@ -814,9 +1267,11 @@ bbongvong@hanyang.ac.kr}
 \section{Software Installation Guide}
 
 \section{Discussion}
+One of the biggest issues in this project was the language barrier which lead to many problems. Clear communication was a struggle and keeping track of what each other had done, despite the use of the github projects, was a real issue.
 
 \begin{thebibliography}{00}
 \bibitem{b1}  World Health Organization, "Billions of people still breathe unhealthy air: new WHO data," WHO News, 04-Apr-2022. [Online]. Available: https://www.who.int/news/item/04-04-2022-billions-of-people-still-breathe-unhealthy-air-new-who-data  (Accessed: 01-Oct-2025).
+\bibitem{b2} IEEE S. Amiriparian et al., "CAST a database: Rapid targeted large-scale big data acquisition via small-world modelling of social media platforms," in 2017 Seventh International Conference on Affective Computing and Intelligent Interaction (ACII), 2017, pp. 340–345, doi: 10.1109/ACII.2017.8273622.
 
 \end{thebibliography}
 \vspace{12pt}

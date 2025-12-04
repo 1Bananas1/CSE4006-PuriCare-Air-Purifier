@@ -30,6 +30,18 @@
     "refresh": "새로고침",
     "copy": "복사"
   },
+  "Errors": {
+    "connectionAlreadyExists": "이미 존재하는 연결입니다",
+    "failedCreateConnection": "연결 생성에 실패했습니다",
+    "connectionTypeFail": "연결 타입 변경에 실패했습니다",
+    "roomCreationFail": "방 생성에 실패했습니다"
+  },
+  "Rooms": {
+    "newRoom": "새 방",
+    "instructionOne": "노드를 드래그해서 방 위치를 조정하고, 노드를 이어서 방 사이 door / airflow 연결을 만들 수 있어요. 엣지를 탭하면 door ↔ airflow가 토글됩니다.",
+    "instructionTwo": "오른쪽 상단의 + 새 방 버튼을 눌러 첫 번째 방을 추가해 보세요.",
+    "noRooms": "아직 등록된 방이 없어요"
+  },
   "HomePage": {
     "title": "퓨리케어에 오신 것을 환영합니다",
     "description": "공기청정기를 모니터링하고 제어하세요",
@@ -359,20 +371,54 @@
       "title": "기기 등록 확인",
       "introTitleLine1": "QR 코드가 제대로",
       "introTitleLine2": "촬영되었나요?",
-      "introBody": "제품 뒷면 스티커에 적힌 QR 코드와 방금 촬영한 코드가 <strong>맞다고 느껴지면</strong> 아래 <strong>“네, 맞아요 (기기 등록)”</strong> 버튼을 눌러 기기를 등록해 주세요.<br/>잘못 찍었거나 다른 제품인 것 같다면 아래 버튼으로 다시 시도할 수 있습니다.",
+      "introBody": "제품 뒷면 스티커에 적힌 QR 코드와 방금 촬영한 코드가 <strong>맞다고 느껴지면</strong> 아래 <strong>\"네, 맞아요 (기기 등록)\"</strong> 버튼을 눌러 기기를 등록해 주세요.<br/>잘못 찍었거나 다른 제품인 것 같다면 아래 버튼으로 다시 시도할 수 있습니다.",
       "roomQuestion": "이 기기는 어느 방에 두셨나요?",
-      "room.living": "거실",
-      "room.master": "안방",
-      "room.small": "작은방",
-      "room.small2": "작은방2",
-      "room.toilet": "화장실",
-      "room.bath": "욕실",
+      "room": {
+        "living": "거실",
+        "master": "안방",
+        "small": "작은방",
+        "small2": "작은방2",
+        "toilet": "화장실",
+        "bath": "욕실"
+      },
       "submitLoading": "등록 처리 중...",
       "submitLabel": "네, 맞아요 (기기 등록)",
       "retryTitle": "번호가 잘못된 것 같나요?",
       "retryBody": "같은 제품을 다시 촬영하거나, 시리얼 번호를 직접 입력해서 등록할 수 있어요.",
       "retryQr": "QR 다시 찍기",
       "retrySerial": "시리얼 번호로 등록"
+    },
+    "DevicesAddSerialSuccessPage": {
+      "back": "뒤로",
+      "title": "기기 등록 완료",
+      "successTitle": "기기가 성공적으로 등록되었습니다",
+      "successBody": "이제 홈 화면에서 실시간 공기 질과\n기기 상태를 확인할 수 있습니다.",
+      "goHome": "홈으로 가기",
+      "goDevices": "내 기기 보기"
+    },
+    "DevicesAddSerialPage": {
+      "back": "뒤로",
+      "title": "시리얼 번호 입력",
+      "description": "제품 뒷면이나 박스에 인쇄된 시리얼 번호를 입력해주세요.",
+      "serialLabel": "시리얼 번호",
+      "serialPlaceholder": "예: PC-AX34K-123456",
+      "roomQuestion": "이 기기는 어느 방에 두셨나요?",
+      "room": {
+        "living": "거실",
+        "master": "안방",
+        "small": "작은방",
+        "small2": "작은방2",
+        "toilet": "화장실",
+        "bath": "욕실"
+      },
+      "errorRequired": "시리얼 번호를 입력해주세요.",
+      "errorFormat": "시리얼 번호 형식이 올바르지 않습니다.",
+      "errorInvalidSerial": "유효하지 않은 시리얼 번호입니다.",
+      "errorAlreadyRegistered": "이미 등록된 기기입니다.",
+      "errorRegisterGeneric": "기기 등록 중 오류가 발생했습니다.",
+      "networkError": "네트워크 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+      "submitLoading": "등록 중...",
+      "submitNext": "다음"
     }
   }
 }

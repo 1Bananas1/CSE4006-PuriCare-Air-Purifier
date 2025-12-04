@@ -5,11 +5,12 @@ import {
   togglePower,
   toggleAutoMode,
   setFanSpeed,
+  deleteDevice,
 } from '@/lib/api';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 // import { useTranslations } from 'next-intl'; // TODO: Uncomment when adding i18n
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import useSWR from 'swr';
 
 // Timer type
@@ -34,6 +35,25 @@ export default function RoomPage() {
     timer: 'OFF',
     childLock: false,
   });
+
+  // Menu and dialog state
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMenu]);
 
   // Fetch device status from backend with SWR
   const {
@@ -60,17 +80,6 @@ export default function RoomPage() {
         childLock: localState.childLock,
       }
     : null;
-
-  // TODO: Replace with actual API call to fetch device status
-  // useEffect(() => {
-  //   const fetchStatus = async () => {
-  //     const deviceStatus = await getDeviceStatus(deviceId);
-  //     setStatus(deviceStatus);
-  //   };
-  //   fetchStatus();
-  //   const interval = setInterval(fetchStatus, 5000);
-  //   return () => clearInterval(interval);
-  // }, [deviceId]);
 
   // Handle power toggle with optimistic update
   const handlePowerToggle = async (checked: boolean) => {
@@ -151,6 +160,21 @@ export default function RoomPage() {
   const handleViewSensorData = () => {
     // TODO: Navigate to sensor data page or show modal
     alert('View sensor data - To be implemented');
+  };
+
+  // Handle delete device
+  const handleDeleteDevice = async () => {
+    try {
+      await deleteDevice(deviceId);
+      setShowDeleteConfirm(false);
+      setShowMenu(false);
+      // Navigate back to home/devices list after deletion
+      router.push('/');
+    } catch (err) {
+      console.error('Failed to delete device:', err);
+      alert('Failed to delete device. Please try again.');
+      setShowDeleteConfirm(false);
+    }
   };
 
   // Loading state
@@ -275,21 +299,71 @@ export default function RoomPage() {
         >
           Living Room Purifier
         </h1>
-        <button
-          style={{
-            width: 48,
-            height: 48,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 24,
-          }}
-        >
-          ⋮
-        </button>
+        <div style={{ position: 'relative' }} ref={menuRef}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            aria-label="Menu"
+            style={{
+              width: 48,
+              height: 48,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 24,
+            }}
+          >
+            ⋮
+          </button>
+
+          {/* Dropdown Menu */}
+          {showMenu && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: 4,
+                background: 'var(--surface)',
+                borderRadius: 8,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                minWidth: 180,
+                border: '1px solid rgba(148, 163, 184, 0.2)',
+                zIndex: 1000,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowDeleteConfirm(true);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#D0021B',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  borderRadius: 8,
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(208, 2, 27, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Delete Device
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Body Content */}
@@ -716,6 +790,98 @@ export default function RoomPage() {
           </div>
         </div>
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: 16,
+          }}
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="mobile-wrap"
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 16,
+              padding: 24,
+              maxWidth: 400,
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginBottom: 12,
+                color: 'var(--text)',
+              }}
+            >
+              Delete Device?
+            </h2>
+            <p
+              style={{
+                fontSize: 14,
+                color: '#AEB5C0',
+                marginBottom: 24,
+                lineHeight: 1.5,
+              }}
+            >
+              Are you sure you want to delete this device? This action cannot be
+              undone and will remove all associated data.
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                gap: 12,
+                justifyContent: 'flex-end',
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  background: 'transparent',
+                  color: 'var(--text)',
+                  border: '1px solid var(--divider)',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteDevice}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  background: '#D0021B',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
