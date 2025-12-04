@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@xyflow/react": "^12.9.3",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "next": "16.0.1",
