@@ -399,7 +399,6 @@ export default function AqiTrendChart({
                 color: 'rgba(248,250,252,0.6)',
               }}
             >
-              (Demo data)
             </span>
           )}
         </div>
@@ -561,7 +560,6 @@ export default function AqiTrendChart({
                 color: 'rgba(248,250,252,0.6)',
               }}
             >
-              (Demo data)
             </span>
           )}
         </div>

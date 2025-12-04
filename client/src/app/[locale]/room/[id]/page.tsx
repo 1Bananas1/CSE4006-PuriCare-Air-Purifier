@@ -1,209 +1,229 @@
 // app/room/[id]/page.tsx
 'use client';
-
-import type { ChangeEvent } from 'react';
-import { useMemo, useState } from 'react';
+import {
+  getDeviceStatus,
+  togglePower,
+  toggleAutoMode,
+  setFanSpeed,
+} from '@/lib/api';
 import { useParams } from 'next/navigation';
-import BottomNav from '@/components/layout/bottom-nav';
-import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+// import { useTranslations } from 'next-intl'; // TODO: Uncomment when adding i18n
+import { useState } from 'react';
 import useSWR from 'swr';
 
-import { getRooms, updateRoom, type RoomNode } from '@/lib/api';
+// Timer type
+type TimerValue = 'OFF' | '4hr' | '6hr' | '8hr';
 
-type RoomDetail = {
-  name: string;
-  state: string;
-  mode: string;
-  wind: string;
-  filterPercent: number;
-  filterEta: string;
-  pm25: string;
-  voc: string;
-};
-
-// 방별 목업 데이터 (추후 백엔드 연동)
-// key는 예전 home에서 쓰던 roomType(living/bath/master/...) 기준
-const ROOM_DETAIL: Record<string, RoomDetail> = {
-  living: {
-    name: '거실',
-    state: '켜짐',
-    mode: 'AUTO',
-    wind: '2단',
-    filterPercent: 68,
-    filterEta: '교체까지 예상 3주',
-    pm25: 'PM2.5 12 µg/m³',
-    voc: 'VOC 낮음',
-  },
-  master: {
-    name: '안방',
-    state: '대기',
-    mode: 'SLEEP',
-    wind: '1단',
-    filterPercent: 82,
-    filterEta: '교체까지 예상 1달',
-    pm25: 'PM2.5 9 µg/m³',
-    voc: 'VOC 매우 낮음',
-  },
-  small: {
-    name: '작은방',
-    state: '켜짐',
-    mode: 'AUTO',
-    wind: '1단',
-    filterPercent: 74,
-    filterEta: '교체까지 예상 4주',
-    pm25: 'PM2.5 15 µg/m³',
-    voc: 'VOC 보통',
-  },
-  small2: {
-    name: '작은방2',
-    state: '켜짐',
-    mode: 'AUTO',
-    wind: '1단',
-    filterPercent: 60,
-    filterEta: '교체까지 예상 2주',
-    pm25: 'PM2.5 18 µg/m³',
-    voc: 'VOC 보통',
-  },
-  toilet: {
-    name: '화장실',
-    state: '켜짐',
-    mode: 'DEODORIZE',
-    wind: '강풍',
-    filterPercent: 55,
-    filterEta: '교체까지 예상 2주',
-    pm25: 'PM2.5 20 µg/m³',
-    voc: 'VOC 높음',
-  },
-  bath: {
-    name: '욕실',
-    state: '켜짐',
-    mode: 'DEHUMIDIFY',
-    wind: '1단',
-    filterPercent: 54,
-    filterEta: '교체까지 예상 2주',
-    pm25: 'PM2.5 18 µg/m³',
-    voc: 'VOC 보통',
-  },
-};
-
-// 공통 카드
-function InfoCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        borderRadius: 16,
-        border: '1px solid rgba(148,163,184,0.4)',
-        padding: 16,
-        display: 'grid',
-        gap: 6,
-      }}
-    >
-      <div style={{ fontWeight: 800, fontSize: 15 }}>{title}</div>
-      <div style={{ fontSize: 13 }}>{children}</div>
-    </div>
-  );
+// Local UI state for features not yet in backend
+interface LocalState {
+  timer: TimerValue;
+  childLock: boolean;
 }
 
 export default function RoomPage() {
-  const t = useTranslations('RoomPage');
+  // TODO: Uncomment when adding i18n support
+  // const t = useTranslations('RoomPage');
+
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const deviceId = (params?.id as string) ?? 'living';
 
-  // 이 페이지의 id는 "기기 ID"로 사용 (Home에서 router.push(`/room/${room.id}`) 호출)
-  const deviceId = (params?.id as string) ?? '';
+  // Local state for timer and child lock (not in backend yet)
+  const [localState, setLocalState] = useState<LocalState>({
+    timer: 'OFF',
+    childLock: false,
+  });
 
-  // ─────────────────────────────
-  // 1) 기본 룸 상세(옛 목업) – 백엔드 없을 때용 fallback
-  // ─────────────────────────────
-  const mockDetail: RoomDetail =
-    ROOM_DETAIL[deviceId] ?? {
-      name: '새 기기',
-      state: '정보 준비 중',
-      mode: '-',
-      wind: '-',
-      filterPercent: 100,
-      filterEta: '백엔드 연동 후 표시됩니다.',
-      pm25: 'PM2.5 데이터 준비 중',
-      voc: 'VOC 데이터 준비 중',
-    };
-
-  // ─────────────────────────────
-  // 2) Room Graph와 연동된 방 목록 / 현재 매핑 상태
-  //    - GET /api/rooms   → getRooms()
-  //    - PATCH /api/rooms/:roomId  → updateRoom({ deviceIds })
-  // ─────────────────────────────
-
+  // Fetch device status from backend with SWR
   const {
-    data: rooms,
-    isLoading: roomsLoading,
-    error: roomsError,
-    mutate: mutateRooms,
-  } = useSWR<RoomNode[]>(deviceId ? 'rooms-for-device-detail' : null, getRooms);
+    data: deviceStatus,
+    error,
+    mutate,
+    isLoading,
+  } = useSWR(
+    deviceId ? ['device-status', deviceId] : null,
+    () => getDeviceStatus(deviceId),
+    {
+      refreshInterval: 5000, // Poll every 5 seconds
+      revalidateOnFocus: true,
+    }
+  );
 
-  // 현재 이 deviceId를 가지고 있는 Room 찾기
-  const currentRoomId = useMemo(() => {
-    if (!rooms || !deviceId) return '';
-    const found = rooms.find((r) => r.deviceIds.includes(deviceId));
-    return found?.id ?? '';
-  }, [rooms, deviceId]);
+  // Combine backend status with local state
+  const status = deviceStatus
+    ? {
+        online: deviceStatus.online,
+        fanSpeed: deviceStatus.fanSpeed,
+        autoMode: deviceStatus.autoMode,
+        timer: localState.timer,
+        childLock: localState.childLock,
+      }
+    : null;
 
-  const [selectedRoomId, setSelectedRoomId] = useState<string>('');
+  // TODO: Replace with actual API call to fetch device status
+  // useEffect(() => {
+  //   const fetchStatus = async () => {
+  //     const deviceStatus = await getDeviceStatus(deviceId);
+  //     setStatus(deviceStatus);
+  //   };
+  //   fetchStatus();
+  //   const interval = setInterval(fetchStatus, 5000);
+  //   return () => clearInterval(interval);
+  // }, [deviceId]);
 
-  // rooms / deviceId가 바뀌면 드롭다운 값 최신화
-  const effectiveSelectedRoomId = selectedRoomId || currentRoomId;
+  // Handle power toggle with optimistic update
+  const handlePowerToggle = async (checked: boolean) => {
+    if (!deviceStatus) return;
 
-  const handleRoomChange = async (e: ChangeEvent<HTMLSelectElement>) => {
-    const newRoomId = e.target.value; // '' 이면 "어느 방에도 연결 안 함"
-    if (!rooms || !deviceId) return;
-
-    // UI 즉시 반영
-    setSelectedRoomId(newRoomId);
-
-    // 실제로 변경이 없으면 리턴
-    if (newRoomId === currentRoomId) return;
+    // Optimistic update
+    mutate({ ...deviceStatus, online: checked }, false);
 
     try {
-      const ops: Promise<unknown>[] = [];
-
-      // 1) 이전 방에서 이 기기 제거
-      if (currentRoomId) {
-        const prevRoom = rooms.find((r) => r.id === currentRoomId);
-        if (prevRoom) {
-          const nextIds = prevRoom.deviceIds.filter((id) => id !== deviceId);
-          ops.push(updateRoom(prevRoom.id, { deviceIds: nextIds }));
-        }
-      }
-
-      // 2) 새 방에 이 기기 추가 (선택이 '' 인 경우는 건너뜀)
-      if (newRoomId) {
-        const targetRoom = rooms.find((r) => r.id === newRoomId);
-        if (targetRoom) {
-          const alreadyIn = targetRoom.deviceIds.includes(deviceId);
-          const nextIds = alreadyIn
-            ? targetRoom.deviceIds
-            : [...targetRoom.deviceIds, deviceId];
-          ops.push(updateRoom(targetRoom.id, { deviceIds: nextIds }));
-        }
-      }
-
-      await Promise.all(ops);
-      await mutateRooms();
-      alert('방 연결이 업데이트되었습니다.');
+      await togglePower(deviceId, checked);
+      // Revalidate to sync with backend
+      mutate();
     } catch (err) {
-      console.error(err);
-      alert('방 연결 변경 중 오류가 발생했습니다.');
-      // 실패 시 UI 되돌리기
-      setSelectedRoomId(currentRoomId);
+      console.error('Failed to toggle power:', err);
+      // Revert on error
+      mutate();
+      alert('Failed to toggle power. Please try again.');
     }
   };
+
+  // Handle mode toggle with optimistic update
+  const handleModeChange = async (mode: 'Manual' | 'Auto') => {
+    if (!deviceStatus) return;
+
+    const enabled = mode === 'Auto';
+
+    // Optimistic update
+    mutate({ ...deviceStatus, autoMode: enabled }, false);
+
+    try {
+      await toggleAutoMode(deviceId, enabled);
+      // Revalidate to sync with backend
+      mutate();
+    } catch (err) {
+      console.error('Failed to change mode:', err);
+      // Revert on error
+      mutate();
+      alert('Failed to change mode. Please try again.');
+    }
+  };
+
+  // Handle fan speed change with optimistic update
+  const handleFanSpeedChange = async (speed: number) => {
+    if (!deviceStatus || deviceStatus.autoMode) return; // Don't allow manual change in auto mode
+
+    // Optimistic update
+    mutate({ ...deviceStatus, fanSpeed: speed }, false);
+
+    try {
+      await setFanSpeed(deviceId, speed);
+      // Revalidate to sync with backend
+      mutate();
+    } catch (err) {
+      console.error('Failed to change fan speed:', err);
+      // Revert on error
+      mutate();
+      alert('Failed to change fan speed. Please try again.');
+    }
+  };
+
+  // Handle timer change (local state only - no backend yet)
+  const handleTimerChange = (timer: TimerValue) => {
+    setLocalState((prev) => ({ ...prev, timer }));
+
+    // TODO: Call backend API to set timer when available
+    // await setTimer(deviceId, timer);
+  };
+
+  // Handle child lock toggle (local state only - no backend yet)
+  const handleChildLockToggle = (checked: boolean) => {
+    setLocalState((prev) => ({ ...prev, childLock: checked }));
+
+    // TODO: Call backend API to toggle child lock when available
+    // await setChildLock(deviceId, checked);
+  };
+
+  // Handle view sensor data
+  const handleViewSensorData = () => {
+    // TODO: Navigate to sensor data page or show modal
+    alert('View sensor data - To be implemented');
+  };
+
+  // Loading state
+  if (isLoading || !status) {
+    return (
+      <main
+        className="pb-safe"
+        style={{
+          minHeight: '100dvh',
+          background: 'var(--bg)',
+          color: 'var(--text)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ fontSize: 16 }}>Loading device status...</div>
+      </main>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <main
+        className="pb-safe"
+        style={{
+          minHeight: '100dvh',
+          background: 'var(--bg)',
+          color: 'var(--text)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 16,
+          padding: 16,
+        }}
+      >
+        <div style={{ fontSize: 16, color: '#D0021B', textAlign: 'center' }}>
+          Failed to load device status
+        </div>
+        <button
+          onClick={() => mutate()}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            background: '#4A90E2',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          Retry
+        </button>
+        <button
+          onClick={() => router.back()}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            background: 'transparent',
+            color: 'var(--text)',
+            border: '1px solid var(--divider)',
+            cursor: 'pointer',
+          }}
+        >
+          Go Back
+        </button>
+      </main>
+    );
+  }
+
+  const currentMode = status.autoMode ? 'Auto' : 'Manual';
+  const fanSpeedPercent = Math.round((status.fanSpeed / 10) * 100);
 
   return (
     <main
@@ -212,11 +232,9 @@ export default function RoomPage() {
         minHeight: '100dvh',
         background: 'var(--bg)',
         color: 'var(--text)',
-        display: 'flex',
-        flexDirection: 'column',
       }}
     >
-      {/* 헤더 */}
+      {/* Top App Bar */}
       <div
         className="mobile-wrap"
         style={{
@@ -227,95 +245,477 @@ export default function RoomPage() {
           zIndex: 10,
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          justifyContent: 'space-between',
         }}
       >
         <button
           onClick={() => router.back()}
-          aria-label={t('back')}
+          aria-label="Back"
           style={{
-            height: 40,
-            width: 40,
-            borderRadius: 20,
-            border: '1px solid var(--divider)',
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: 'transparent',
-            fontSize: 18,
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 24,
           }}
         >
           ←
         </button>
-        <div style={{ fontSize: 18, fontWeight: 800 }}>
-          {mockDetail.name}
-        </div>
+        <h1
+          style={{
+            flex: 1,
+            fontSize: 18,
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          Living Room Purifier
+        </h1>
+        <button
+          style={{
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 24,
+          }}
+        >
+          ⋮
+        </button>
       </div>
 
-      {/* 내용 */}
+      {/* Body Content */}
       <section
         className="mobile-wrap"
-        style={{ padding: 16, display: 'grid', gap: 12, flex: 1 }}
+        style={{
+          padding: '0 16px 32px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}
       >
-        {/* 2-1. 방 매핑 카드 (Room Graph 연동 핵심) */}
-        <InfoCard title="연결된 방">
-          {roomsLoading ? (
-            <>방 목록을 불러오는 중입니다...</>
-          ) : roomsError ? (
-            <>방 정보를 불러오는 중 오류가 발생했습니다.</>
-          ) : !rooms || rooms.length === 0 ? (
-            <>아직 생성된 방이 없습니다. Room Graph 페이지에서 방을 먼저 만들어 주세요.</>
-          ) : (
-            <>
-              <div style={{ marginBottom: 8, fontSize: 13 }}>
-                이 기기가 어떤 방에 속하는지 선택하면, Room Graph에서도
-                동일하게 반영됩니다.
-              </div>
-              <select
-                value={effectiveSelectedRoomId}
-                onChange={handleRoomChange}
+        {/* Status Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: status.online ? '#50E3C2' : '#AEB5C0',
+            }}
+          />
+          <p
+            style={{
+              fontSize: 14,
+              color: status.online ? '#50E3C2' : '#AEB5C0',
+            }}
+          >
+            {status.online ? 'Connected' : 'Disconnected'}
+          </p>
+        </div>
+
+        {/* Power Control Card */}
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: 16,
+            padding: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            border: '1px solid rgba(148, 163, 184, 0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                background: 'rgba(74, 144, 226, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#4A90E2',
+                fontSize: 24,
+              }}
+            >
+              ⏻
+            </div>
+            <p style={{ fontSize: 18, fontWeight: 'bold' }}>Power</p>
+          </div>
+          <label
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              width: 51,
+              height: 31,
+              borderRadius: 9999,
+              background: status.online
+                ? '#4A90E2'
+                : 'rgba(174, 181, 192, 0.5)',
+              cursor: 'pointer',
+              padding: 2,
+              justifyContent: status.online ? 'flex-end' : 'flex-start',
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <div
+              style={{
+                width: 27,
+                height: 27,
+                borderRadius: '50%',
+                background: 'white',
+                boxShadow:
+                  'rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px',
+              }}
+            />
+            <input
+              type="checkbox"
+              checked={status.online}
+              onChange={(e) => handlePowerToggle(e.target.checked)}
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+            />
+          </label>
+        </div>
+
+        {/* Mode Section */}
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>
+            Mode
+          </h2>
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 16,
+              padding: 8,
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+          >
+            <div
+              style={{
+                height: 48,
+                background: 'rgba(174, 181, 192, 0.1)',
+                borderRadius: 8,
+                padding: 4,
+                display: 'flex',
+                gap: 4,
+              }}
+            >
+              {(['Manual', 'Auto'] as const).map((mode) => (
+                <label
+                  key={mode}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 8,
+                    background:
+                      currentMode === mode ? 'var(--surface)' : 'transparent',
+                    color: currentMode === mode ? 'var(--text)' : '#AEB5C0',
+                    fontWeight: 500,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {mode}
+                  <input
+                    type="radio"
+                    name="mode-selection"
+                    value={mode}
+                    checked={currentMode === mode}
+                    onChange={() => handleModeChange(mode)}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+          <p
+            style={{
+              fontSize: 14,
+              color: '#AEB5C0',
+              marginTop: 12,
+              paddingLeft: 8,
+            }}
+          >
+            Next sensor reading in: 12 minutes.
+          </p>
+        </div>
+
+        {/* Fan Speed Section */}
+        <div
+          style={{
+            opacity: status.autoMode ? 0.5 : 1,
+            pointerEvents: status.autoMode ? 'none' : 'auto',
+            transition: 'opacity 0.3s ease',
+          }}
+        >
+          <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>
+            Fan Speed
+          </h2>
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 16,
+              padding: 16,
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}
+            >
+              <p style={{ fontSize: 16, fontWeight: 500, color: '#AEB5C0' }}>
+                {status.autoMode ? 'Auto Mode Active' : 'Manual Control'}
+              </p>
+              <p style={{ fontSize: 24, fontWeight: 'bold', color: '#4A90E2' }}>
+                {fanSpeedPercent}%
+              </p>
+            </div>
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: 8,
+                borderRadius: 9999,
+                background: 'rgba(174, 181, 192, 0.2)',
+              }}
+            >
+              <div
                 style={{
+                  position: 'absolute',
+                  height: '100%',
+                  borderRadius: 9999,
+                  background: '#4A90E2',
+                  width: `${fanSpeedPercent}%`,
+                  transition: 'width 0.3s ease',
+                }}
+              />
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={status.fanSpeed}
+                onChange={(e) => handleFanSpeedChange(parseInt(e.target.value))}
+                disabled={status.autoMode}
+                style={{
+                  position: 'absolute',
                   width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 12,
-                  border: '1px solid rgba(148,163,184,0.7)',
-                  background: 'rgba(15,23,42,0.9)',
-                  color: 'inherit',
-                  fontSize: 14,
+                  height: '100%',
+                  opacity: 0,
+                  cursor: status.autoMode ? 'not-allowed' : 'pointer',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Timer Section */}
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>
+            Set Timer
+          </h2>
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 16,
+              padding: 8,
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+          >
+            <div
+              style={{
+                height: 48,
+                background: 'rgba(174, 181, 192, 0.1)',
+                borderRadius: 8,
+                padding: 4,
+                display: 'flex',
+                gap: 4,
+              }}
+            >
+              {(['OFF', '4hr', '6hr', '8hr'] as const).map((timer) => (
+                <label
+                  key={timer}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 8,
+                    background:
+                      status.timer === timer ? 'var(--surface)' : 'transparent',
+                    color: status.timer === timer ? 'var(--text)' : '#AEB5C0',
+                    fontWeight: 500,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {timer}
+                  <input
+                    type="radio"
+                    name="timer-selection"
+                    value={timer}
+                    checked={status.timer === timer}
+                    onChange={() => handleTimerChange(timer)}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Utilities Section */}
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>
+            Utilities
+          </h2>
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: 16,
+              padding: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+          >
+            {/* Child Lock */}
+            <div
+              style={{
+                minHeight: 56,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    background: 'rgba(174, 181, 192, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 20,
+                  }}
+                >
+                  🔒
+                </div>
+                <p style={{ fontSize: 16 }}>Child Lock</p>
+              </div>
+              <label
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: 51,
+                  height: 31,
+                  borderRadius: 9999,
+                  background: status.childLock
+                    ? '#4A90E2'
+                    : 'rgba(174, 181, 192, 0.2)',
+                  cursor: 'pointer',
+                  padding: 2,
+                  justifyContent: status.childLock ? 'flex-end' : 'flex-start',
+                  transition: 'all 0.3s ease',
                 }}
               >
-                <option value="">
-                  (아직 어떤 방에도 연결되지 않음)
-                </option>
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-        </InfoCard>
+                <div
+                  style={{
+                    width: 27,
+                    height: 27,
+                    borderRadius: '50%',
+                    background: 'white',
+                    boxShadow:
+                      'rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px',
+                  }}
+                />
+                <input
+                  type="checkbox"
+                  checked={status.childLock}
+                  onChange={(e) => handleChildLockToggle(e.target.checked)}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    width: 0,
+                    height: 0,
+                  }}
+                />
+              </label>
+            </div>
 
-        {/* 기존 상태 카드들 – 일단 목업 유지 */}
-        <InfoCard title={t('status')}>
-          {mockDetail.state === '켜짐' ? t('on') : t('standby')} ·{' '}
-          {mockDetail.mode} · {mockDetail.wind}
-        </InfoCard>
+            {/* Separator */}
+            <div
+              style={{ height: 1, background: 'rgba(174, 181, 192, 0.2)' }}
+            />
 
-        <InfoCard title={t('filterLife')}>
-          {t('filterReplacement', {
-            percent: mockDetail.filterPercent,
-            eta: mockDetail.filterEta
-              .replace('교체까지 예상 ', '')
-              .replace('달', ' month')
-              .replace('주', ' weeks'),
-          })}
-        </InfoCard>
-
-        <InfoCard title={t('sensors')}>
-          {mockDetail.pm25} · {mockDetail.voc}
-        </InfoCard>
+            {/* Sensor History */}
+            <button
+              onClick={handleViewSensorData}
+              style={{
+                minHeight: 56,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 8px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: 8,
+                transition: 'background 0.2s ease',
+                color: 'var(--text)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(174, 181, 192, 0.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    background: 'rgba(174, 181, 192, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 20,
+                  }}
+                >
+                  📊
+                </div>
+                <p style={{ fontSize: 16 }}>View Sensor Data</p>
+              </div>
+              <div style={{ fontSize: 20, color: '#AEB5C0' }}>›</div>
+            </button>
+          </div>
+        </div>
       </section>
-
-      <BottomNav />
     </main>
   );
 }

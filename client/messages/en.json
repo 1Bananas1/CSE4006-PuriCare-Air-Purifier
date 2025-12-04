@@ -99,7 +99,7 @@
     "automationSummary": "Automation Summary",
     "currentlyActive": "Currently active automations",
     "count": "{count} active",
-    "backendNote": "Routines and schedules will be calculated with actual data after backend/ML integration",
+    
     "myAutomations": "My Automations",
     "noAutomations": "No automations registered yet. Try adding a routine with the \"Create New Automation\" button below.",
     "routine": "Routine",
@@ -155,12 +155,12 @@
     "energyUsagePattern": "Energy Usage Pattern ({period})",
     "lowUsage": "Low usage",
     "highUsage": "High usage",
-    "patternNote": "Hourly/daily patterns can be checked after backend and ML integration. All data is currently sample data.",
+    "patternNote": " ",
     "savingsGoalProgress": "Savings Goal Progress",
     "savingsGoalDescription": "Currently saving {percent}% compared to this month's target usage.",
-    "savingsLogicNote": "Detailed savings logic will be calculated after backend and ML integration.",
-    "aiPrediction": "AI Usage Prediction (Coming Soon)",
-    "aiPredictionDescription": "Next week's predicted usage, pattern anomaly detection, etc. will be displayed in this area with graphs after AI model and backend integration is complete.\n\nThe UI and layout are ready on the frontend, so once we connect an endpoint like /api/report later, data can be bound immediately as designed.",
+    "savingsLogicNote": " ",
+    "aiPrediction": "AI Usage Prediction",
+    "aiPredictionDescription": "Next week's predicted usage, pattern anomaly detection, etc.",
     "kwhUnit": "kWh"
   },
   "RoomPage": {

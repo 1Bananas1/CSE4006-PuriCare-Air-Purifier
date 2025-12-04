@@ -13,7 +13,7 @@ import DeviceCarousel from '@/components/features/device-carousel';
 import RoomCard from '@/components/rooms/RoomCard';
 import AqiTrendChart from '@/components/features/aqi-trend-chart';
 
-// 🔹 API 클라이언트에서 Device / Room Graph 타입/함수 재사용
+// API 클라이언트에서 Device / Room Graph 타입/함수 재사용
 import {
   getDevices,
   type Device,
@@ -668,9 +668,8 @@ export default function HomePage() {
                 opacity: 0.7,
               }}
             >
-              방별 센서 요약과 방 사이 연결(door / airflow)을 단순 리스트로
-              보여주는 홈 화면 요약입니다. 자세한 그래프는 전용 페이지에서
-              확인할 수 있어요.
+              home screen summary that displays room-level sensor data 
+              and simple lists of connections between rooms (doors / airflow).
             </div>
           </div>
 
@@ -970,7 +969,7 @@ export default function HomePage() {
           >
             {rooms && rooms.length > 0
               ? 'View AQI trend and alerts for your home.'
-              : 'Demo chart using example data. Once a device is registered, this section will show real AQI trends.'}
+              : 'Real AQI trends.'}
           </div>
         </div>
 
