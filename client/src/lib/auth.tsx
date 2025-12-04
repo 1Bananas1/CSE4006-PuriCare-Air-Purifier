@@ -42,7 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) setAuth(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setAuth(parsed);
+        setReady(true); // 복구 완료
+        return;
+      }
+      // sessionStorage에 없으면 localStorage 체크 (데모 모드 영속성)
+      const rawLocal = localStorage.getItem(STORAGE_KEY);
+      if (rawLocal) {
+        const parsed = JSON.parse(rawLocal);
+        // localStorage에 데모 모드가 있으면 복구
+        if (parsed.demoMode) {
+          setAuth(parsed);
+        }
+      }
     } catch {}
     setReady(true); // 복구 완료
   }, []);
@@ -51,12 +65,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+      // 데모 모드일 때만 localStorage에도 저장 (영속성)
+      if (auth.demoMode) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+      } else {
+        // 데모 모드가 아니면 localStorage에서 제거
+        localStorage.removeItem(STORAGE_KEY);
+      }
     } catch {}
   }, [auth]);
 
   // 로그아웃: 상태/스토리지 초기화
   const signOut = useCallback(() => {
-    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
     setAuth({ idToken: null, profile: null, demoMode: false });
   }, []);
 

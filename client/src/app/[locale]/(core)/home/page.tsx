@@ -93,6 +93,7 @@ export default function HomePage() {
   const t = useTranslations('HomePage');
   const c = useTranslations('Common');
   const n = useTranslations('Navigation');
+  const roomTranslation = useTranslations('Rooms');
 
   // 로그인 안 되어 있으면 /login (단, 데모 모드는 허용)
   useEffect(() => {
@@ -100,7 +101,7 @@ export default function HomePage() {
   }, [auth.idToken, auth.demoMode, ready, router]);
 
   const name = useMemo(
-    () => auth.profile?.name ?? '사용자',
+    () => auth.profile?.name ?? c('user'),
     [auth.profile?.name]
   );
 
@@ -168,7 +169,7 @@ export default function HomePage() {
     { revalidateOnFocus: false }
   );
 
-  const city = coords ? (geo?.city ?? c('unknown')) : 'Location unavailable';
+  const city = coords ? (geo?.city ?? c('unknown')) : t('locationUnavailable');
   const temp = weather?.current?.temp ?? '-';
   const humidity = weather?.current?.humidity ?? '-';
   const main = weather?.current?.main;
@@ -195,18 +196,18 @@ export default function HomePage() {
 
   const averageIndoorAQI = useMemo(() => {
     if (!rooms || rooms.length === 0) {
-      return { value: 0, label: 'No Data' };
+      return { value: 0, label: t('noData') };
     }
 
     const totalAQI = rooms.reduce((sum, room) => sum + room.aqi, 0);
     const avgAQI = Math.round(totalAQI / rooms.length);
 
-    let label = 'Good';
-    if (avgAQI > 100) label = 'Unhealthy';
-    else if (avgAQI > 50) label = 'Moderate';
+    let label = c('good');
+    if (avgAQI > 100) label = c('unhealthy');
+    else if (avgAQI > 50) label = c('moderate');
 
     return { value: avgAQI, label };
-  }, [rooms]);
+  }, [rooms, c, t]);
 
   // 디바이스 위치 fallback → 좌표 없을 때만
   useEffect(() => {
@@ -243,9 +244,12 @@ export default function HomePage() {
   } = useSWR<{ rooms: RoomNode[]; edges: RoomEdge[] }>(
     auth.idToken ? 'room-graph' : null,
     async () => {
-      const [roomNodes, roomEdges] = await Promise.all([getRooms(), getRoomEdges()]);
+      const [roomNodes, roomEdges] = await Promise.all([
+        getRooms(),
+        getRoomEdges(),
+      ]);
       return { rooms: roomNodes, edges: roomEdges };
-    },
+    }
   );
 
   const roomsById = useMemo(() => {
@@ -260,7 +264,7 @@ export default function HomePage() {
 
   const handleQuickAddRoom = async () => {
     if (!auth.idToken) return;
-    const name = window.prompt('새 방 이름을 입력하세요');
+    const name = window.prompt(t('enterNewRoomName'));
     if (!name) return;
 
     try {
@@ -275,12 +279,12 @@ export default function HomePage() {
       await mutateRoomGraph();
     } catch (e) {
       console.error(e);
-      alert('방 생성에 실패했습니다.');
+      alert(t('failedToCreateRoom'));
     }
   };
 
   const handleDeleteRoom = async (roomId: string) => {
-    if (!window.confirm('이 방을 삭제할까요? 연결도 함께 삭제됩니다.')) {
+    if (!window.confirm(t('confirmDeleteRoom'))) {
       return;
     }
     try {
@@ -288,29 +292,30 @@ export default function HomePage() {
       await mutateRoomGraph();
     } catch (e) {
       console.error(e);
-      alert('방 삭제에 실패했습니다.');
+      alert(t('failedToDeleteRoom'));
     }
   };
 
   const handleToggleEdgeType = async (edge: RoomEdge) => {
-    const newType: 'door' | 'airflow' = edge.type === 'door' ? 'airflow' : 'door';
+    const newType: 'door' | 'airflow' =
+      edge.type === 'door' ? 'airflow' : 'door';
     try {
       await updateRoomEdgeType(edge.id, newType);
       await mutateRoomGraph();
     } catch (e) {
       console.error(e);
-      alert('연결 타입 변경에 실패했습니다.');
+      alert(t('failedToChangeConnectionType'));
     }
   };
 
   const handleDeleteEdge = async (edgeId: string) => {
-    if (!window.confirm('이 연결을 삭제할까요?')) return;
+    if (!window.confirm(t('confirmDeleteConnection'))) return;
     try {
       await deleteRoomEdgeApi(edgeId);
       await mutateRoomGraph();
     } catch (e) {
       console.error(e);
-      alert('연결 삭제에 실패했습니다.');
+      alert(t('failedToDeleteConnection'));
     }
   };
 
@@ -419,12 +424,12 @@ export default function HomePage() {
                     opacity: 0.8,
                   }}
                 >
-                  Indoor Air Quality ·{' '}
+                  {t('indoorAirQuality')} ·{' '}
                   {rooms && rooms.length > 0
                     ? `${rooms.length} ${
-                        rooms.length === 1 ? 'device' : 'devices'
+                        rooms.length === 1 ? t('device') : t('devices')
                       }`
-                    : 'No devices'}
+                    : t('noDevices')}
                 </div>
                 <div
                   style={{
@@ -438,7 +443,7 @@ export default function HomePage() {
                           : '#ef4444',
                   }}
                 >
-                  AQI {averageIndoorAQI.value}{' '}
+                  {c('aqi')} {averageIndoorAQI.value}{' '}
                   <span
                     style={{
                       fontSize: 13,
@@ -456,10 +461,11 @@ export default function HomePage() {
                   }}
                 >
                   {rooms && rooms.length > 0
-                    ? `Monitoring ${rooms.length} ${
-                        rooms.length === 1 ? 'room' : 'rooms'
-                      }`
-                    : 'Add devices to start monitoring'}
+                    ? t('monitoringRooms', {
+                        count: rooms.length,
+                        plural: rooms.length === 1 ? t('room') : t('rooms'),
+                      })
+                    : t('addDevicesToStartMonitoring')}
                 </div>
               </div>
             </div>
@@ -496,7 +502,7 @@ export default function HomePage() {
                 opacity: 0.8,
               }}
             >
-              {c('humidity')} {humidity}% · AQI {aqiValue}
+              {c('humidity')} {humidity}% · {c('aqi')} {aqiValue}
               {aqiLabel ? ` (${aqiLabel})` : ''}
             </div>
           </div>
@@ -534,11 +540,11 @@ export default function HomePage() {
               }}
             >
               {isLoadingRooms
-                ? 'Loading devices...'
+                ? t('loadingDevices')
                 : roomsError
-                  ? 'Failed to load devices. Please try again.'
+                  ? t('failedToLoadDevices')
                   : rooms && rooms.length > 0
-                    ? 'Tap any device to view details and controls'
+                    ? t('tapDeviceToView')
                     : c('noDevicesRegistered')}
             </div>
           </div>
@@ -551,7 +557,7 @@ export default function HomePage() {
                 opacity: 0.7,
               }}
             >
-              Loading devices...
+              {t('loadingDevices')}
             </div>
           ) : rooms && rooms.length > 0 ? (
             <DeviceCarousel
@@ -560,8 +566,8 @@ export default function HomePage() {
                 name: room.name,
                 aqi: room.aqi,
                 aqiLabel: room.aqiLabel,
-                status: room.status.online ? 'online' : 'offline',
-                mode: room.settings.autoMode ? 'Auto' : 'Manual',
+                status: room.status.online ? c('online') : c('offline'),
+                mode: room.settings.autoMode ? c('auto') : c('manual'),
               }))}
             />
           ) : roomsError ? (
@@ -573,7 +579,7 @@ export default function HomePage() {
                 opacity: 0.7,
               }}
             >
-              기기를 불러오는 중 오류가 발생했습니다.
+              {t('errorLoadingDevices')}
             </div>
           ) : (
             <div
@@ -660,7 +666,7 @@ export default function HomePage() {
                 marginBottom: 4,
               }}
             >
-              Room Graph
+              {t('roomGraph')}
             </div>
             <div
               style={{
@@ -668,8 +674,7 @@ export default function HomePage() {
                 opacity: 0.7,
               }}
             >
-              home screen summary that displays room-level sensor data 
-              and simple lists of connections between rooms (doors / airflow).
+              {t('roomGraphDescription')}
             </div>
           </div>
 
@@ -686,7 +691,7 @@ export default function HomePage() {
               whiteSpace: 'nowrap',
             }}
           >
-            Open Graph →
+            {t('openGraph')}
           </button>
         </div>
 
@@ -699,7 +704,7 @@ export default function HomePage() {
                 opacity: 0.8,
               }}
             >
-              방 정보를 불러오는 중입니다...
+              {t('loadingRoomInfo')}
             </div>
           ) : roomGraphError ? (
             <div
@@ -709,7 +714,7 @@ export default function HomePage() {
                 opacity: 0.8,
               }}
             >
-              Room Graph를 불러오는 중 오류가 발생했습니다.
+              {t('errorLoadingRoomGraph')}
             </div>
           ) : !roomGraph || roomGraph.rooms.length === 0 ? (
             <div
@@ -719,7 +724,8 @@ export default function HomePage() {
                 opacity: 0.8,
               }}
             >
-              아직 등록된 방이 없습니다. 아래 버튼으로 첫 방을 추가해보세요.
+              {roomTranslation('noRooms')} +{' '}
+              {roomTranslation('addFirstRoomPrompt')}
             </div>
           ) : (
             <div
@@ -739,7 +745,7 @@ export default function HomePage() {
                     opacity: 0.8,
                   }}
                 >
-                  Rooms ({roomGraph.rooms.length})
+                  {t('roomsTitle', { count: roomGraph.rooms.length })}
                 </div>
                 <div
                   style={{
@@ -776,7 +782,7 @@ export default function HomePage() {
                           }}
                         >
                           ({room.position.x}, {room.position.y}) ·{' '}
-                          {room.deviceIds.length} devices
+                          {room.deviceIds.length} {t('devices')}
                         </div>
                         {room.sensors && (
                           <div
@@ -785,8 +791,9 @@ export default function HomePage() {
                               marginTop: 2,
                             }}
                           >
-                            PM2.5 {room.sensors.avgPm25} · CO2 {room.sensors.avgCo2}{' '}
-                            · Temp {room.sensors.avgTemperature}°C
+                            PM2.5 {room.sensors.avgPm25} · CO2{' '}
+                            {room.sensors.avgCo2} · Temp{' '}
+                            {room.sensors.avgTemperature}°C
                           </div>
                         )}
                       </div>
@@ -802,7 +809,7 @@ export default function HomePage() {
                           color: '#fee2e2',
                         }}
                       >
-                        삭제
+                        {c('delete')}
                       </button>
                     </div>
                   ))}
@@ -819,7 +826,7 @@ export default function HomePage() {
                     opacity: 0.8,
                   }}
                 >
-                  Connections ({roomGraph.edges.length})
+                  {t('connectionsTitle', { count: roomGraph.edges.length })}
                 </div>
                 {roomGraph.edges.length === 0 ? (
                   <div
@@ -828,8 +835,7 @@ export default function HomePage() {
                       opacity: 0.8,
                     }}
                   >
-                    아직 방 사이 연결이 없습니다. Room Graph 페이지에서 노드를
-                    연결해보세요.
+                    {t('noConnections')}
                   </div>
                 ) : (
                   <div
@@ -872,8 +878,10 @@ export default function HomePage() {
                                 opacity: 0.8,
                               }}
                             >
-                              {isDoor ? '🚪 door' : '💨 airflow'} ·{' '}
-                              {new Date(edge.createdAt).toLocaleString()}
+                              {isDoor
+                                ? `🚪 ${t('door')}`
+                                : `💨 ${t('airflow')}`}{' '}
+                              · {new Date(edge.createdAt).toLocaleString()}
                             </div>
                           </div>
                           <div
@@ -894,7 +902,7 @@ export default function HomePage() {
                                 color: '#bfdbfe',
                               }}
                             >
-                              타입 전환
+                              {t('switchType')}
                             </button>
                             <button
                               type="button"
@@ -908,7 +916,7 @@ export default function HomePage() {
                                 color: '#fee2e2',
                               }}
                             >
-                              삭제
+                              {c('delete')}
                             </button>
                           </div>
                         </div>
@@ -932,7 +940,7 @@ export default function HomePage() {
                   alignSelf: 'flex-start',
                 }}
               >
-                + 새 방 추가
+                {t('addNewRoom')}
               </button>
             </div>
           )}
@@ -959,7 +967,7 @@ export default function HomePage() {
               marginBottom: 4,
             }}
           >
-            Air Quality Insights
+            {t('airQualityInsights')}
           </div>
           <div
             style={{
@@ -968,8 +976,8 @@ export default function HomePage() {
             }}
           >
             {rooms && rooms.length > 0
-              ? 'View AQI trend and alerts for your home.'
-              : 'Real AQI trends.'}
+              ? t('aqiTrendView')
+              : t('realAqiTrends')}
           </div>
         </div>
 

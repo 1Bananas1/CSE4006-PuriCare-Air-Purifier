@@ -28,7 +28,9 @@
     "done": "Done",
     "retry": "Retry",
     "refresh": "Refresh",
-    "copy": "Copy"
+    "copy": "Copy",
+    "auto": "Auto",
+    "manual": "Manual"
   },
   "Errors": {
     "connectionAlreadyExists": "The connection already exists",
@@ -40,7 +42,8 @@
     "newRoom": "New Room",
     "instructionOne": "You can drag a node to adjust the room's position, and connect nodes to create a door / airflow link between rooms. Tap the edge to toggle between door ↔ airflow.",
     "instructionTwo": "Click the + New Room button in the top right to add the first room.",
-    "noRooms": "There are no rooms registered yet"
+    "noRooms": "There are no rooms registered yet",
+    "addFirstRoomPrompt": "Add the first room using the button below"
   },
   "HomePage": {
     "title": "Welcome to PuriCare",
@@ -64,7 +67,33 @@
     "addDevicesToStartMonitoring": "Add devices to start monitoring",
     "locationUnavailable": "Location unavailable",
     "loadingDevices": "Loading devices...",
-    "tapDeviceToView": "Tap any device to view details and controls"
+    "tapDeviceToView": "Tap any device to view details and controls",
+    "failedToLoadDevices": "Failed to load devices. Please try again.",
+    "errorLoadingDevices": "Error loading devices.",
+    "roomGraph": "Room Graph",
+    "roomGraphDescription": "home screen summary that displays room-level sensor data and simple lists of connections between rooms (doors / airflow).",
+    "openGraph": "Open Graph →",
+    "loadingRoomInfo": "Loading room information...",
+    "errorLoadingRoomGraph": "Error loading Room Graph.",
+    "roomsTitle": "Rooms ({count})",
+    "delete": "Delete",
+    "connectionsTitle": "Connections ({count})",
+    "noConnections": "No connections between rooms yet. Connect nodes on the Room Graph page.",
+    "door": "door",
+    "airflow": "airflow",
+    "switchType": "Switch Type",
+    "addNewRoom": "+ Add New Room",
+    "airQualityInsights": "Air Quality Insights",
+    "aqiTrendView": "View AQI trend and alerts for your home.",
+    "realAqiTrends": "Real AQI trends.",
+    "enterNewRoomName": "Enter new room name",
+    "failedToCreateRoom": "Failed to create room.",
+    "confirmDeleteRoom": "Delete this room? Connections will also be deleted.",
+    "failedToDeleteRoom": "Failed to delete room.",
+    "failedToChangeConnectionType": "Failed to change connection type.",
+    "confirmDeleteConnection": "Delete this connection?",
+    "failedToDeleteConnection": "Failed to delete connection.",
+    "noData": "No Data"
   },
   "Navigation": {
     "home": "Home",

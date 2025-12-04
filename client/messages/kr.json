@@ -28,7 +28,9 @@
     "done": "완료",
     "retry": "재시도",
     "refresh": "새로고침",
-    "copy": "복사"
+    "copy": "복사",
+    "auto": "자동",
+    "manual": "수동"
   },
   "Errors": {
     "connectionAlreadyExists": "이미 존재하는 연결입니다",
@@ -40,7 +42,8 @@
     "newRoom": "새 방",
     "instructionOne": "노드를 드래그해서 방 위치를 조정하고, 노드를 이어서 방 사이 door / airflow 연결을 만들 수 있어요. 엣지를 탭하면 door ↔ airflow가 토글됩니다.",
     "instructionTwo": "오른쪽 상단의 + 새 방 버튼을 눌러 첫 번째 방을 추가해 보세요.",
-    "noRooms": "아직 등록된 방이 없어요"
+    "noRooms": "아직 등록된 방이 없어요",
+    "addFirstRoomPrompt": "아래 버튼으로 첫 방을 추가해보세요"
   },
   "HomePage": {
     "title": "퓨리케어에 오신 것을 환영합니다",
@@ -64,7 +67,33 @@
     "addDevicesToStartMonitoring": "장치를 추가하여 모니터링 시작",
     "locationUnavailable": "위치를 사용할 수 없음",
     "loadingDevices": "장치 로딩 중...",
-    "tapDeviceToView": "장치를 탭하여 세부 정보 및 제어 확인"
+    "tapDeviceToView": "장치를 탭하여 세부 정보 및 제어 확인",
+    "failedToLoadDevices": "장치를 불러오는데 실패했습니다. 다시 시도해주세요.",
+    "errorLoadingDevices": "장치 로딩 오류.",
+    "roomGraph": "룸 그래프",
+    "roomGraphDescription": "룸 레벨 센서 데이터와 룸 간의 연결(문/기류)의 간단한 목록을 표시하는 홈 화면 요약입니다.",
+    "openGraph": "그래프 열기 →",
+    "loadingRoomInfo": "방 정보를 불러오는 중입니다...",
+    "errorLoadingRoomGraph": "룸 그래프를 불러오는 중 오류가 발생했습니다.",
+    "roomsTitle": "방 ({count})",
+    "delete": "삭제",
+    "connectionsTitle": "연결 ({count})",
+    "noConnections": "아직 방 사이에 연결이 없습니다. 룸 그래프 페이지에서 노드를 연결해보세요.",
+    "door": "문",
+    "airflow": "기류",
+    "switchType": "타입 전환",
+    "addNewRoom": "+ 새 방 추가",
+    "airQualityInsights": "공기 질 인사이트",
+    "aqiTrendView": "집의 AQI 추세 및 알림 보기",
+    "realAqiTrends": "실시간 AQI 동향.",
+    "enterNewRoomName": "새 방 이름을 입력하세요",
+    "failedToCreateRoom": "방 생성에 실패했습니다.",
+    "confirmDeleteRoom": "이 방을 삭제하시겠습니까? 연결도 함께 삭제됩니다.",
+    "failedToDeleteRoom": "방 삭제에 실패했습니다.",
+    "failedToChangeConnectionType": "연결 유형 변경에 실패했습니다.",
+    "confirmDeleteConnection": "이 연결을 삭제하시겠습니까?",
+    "failedToDeleteConnection": "연결 삭제에 실패했습니다.",
+    "noData": "데이터 없음"
   },
   "Navigation": {
     "home": "홈",
